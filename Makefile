@@ -24,10 +24,11 @@ LOC_TEST=test
 OBJDIR=obj
 
 CC = cc -std=gnu11
-CXX = CC -std=c++11
+#CXX = CC -std=c++11
+CXX = nvcc
 LD= cc -std=gnu11
 
-CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT) $(ARCH) -m64 -I. -Iinclude
+CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT) $(ARCH) -sm70 -I. -Iinclude
 
 LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) -lpthread -lssl -lcrypto -lm
 
@@ -71,7 +72,7 @@ $(OBJDIR)/bm.o:								$(LOC_INCLUDE)/gqf_wrapper.h \
 
 # dependencies between .o files and .cc (or .c) files
 
-$(OBJDIR)/gqf.o:							$(LOC_SRC)/gqf.c $(LOC_INCLUDE)/gqf.h
+$(OBJDIR)/gqf.o:							$(LOC_SRC)/gqf.cu $(LOC_INCLUDE)/gqf.h
 $(OBJDIR)/gqf_file.o:					$(LOC_SRC)/gqf_file.c $(LOC_INCLUDE)/gqf_file.h
 $(OBJDIR)/hashutil.o:					$(LOC_SRC)/hashutil.c $(LOC_INCLUDE)/hashutil.h
 $(OBJDIR)/partitioned_counter.o:	$(LOC_INCLUDE)/partitioned_counter.h
