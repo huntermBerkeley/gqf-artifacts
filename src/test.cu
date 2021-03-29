@@ -1,3 +1,4 @@
+
 /*
  * ============================================================================
  *
@@ -17,7 +18,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <unistd.h>
-//#include <openssl/rand.h>
+#include <openssl/rand.h>
 
 #include "include/gqf.h"
 #include "include/gqf_int.h"
@@ -66,31 +67,31 @@ int main(int argc, char **argv)
 	/* Generate random values */
 	vals = (uint64_t*)malloc(nvals*sizeof(vals[0]));
 	hashes = (uint64_t*)malloc(nvals * sizeof(hashes[0]));
-	//RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
+	RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
 	srand(0);
 	//pre-hash everything
 	for (uint64_t i = 0; i < nvals; i++) {
-		//make random variables
-		vals[i] = rand();
 		vals[i] = (1 * vals[i]) % qf.metadata->range;
 		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
 		/*fake hash until implemented*/
 		//hashes[i] = vals[i];
 	}
-	
+/*	
 	for(int i = 0; i<nvals; i++){
-	printf("%lu\n", vals[i]);
+	printf("%lx\n", vals[i]);
 	}
-	
+*/	
 	/* Insert keys in the CQF */
        //Sort here so the test works
        //TODO: ask Prashant why this breaks the test (bottom test, prints 'index weirdness')
-      printf("sortd\n");
+  //    printf("sortd\n");
 	qsort(vals, nvals, sizeof(vals[0]), cmpfunc);
+	/*
 	for (int i = 0; i<nvals; i++){
-	printf("%lx\n", vals[i]);
+
+		printf("%lx\n", vals[i]);
 	}
-	
+	*/
 	qf_insert_gpu(&qf, vals, 0, key_count, nvals, nslots,  QF_NO_LOCK);
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {
@@ -245,5 +246,3 @@ int main(int argc, char **argv)
 
 	fprintf(stdout, "Validated the CQF.\n");
 }
-
-
