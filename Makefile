@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 TARGETS=test test_threadsafe test_pc bm
 
 ifdef D
