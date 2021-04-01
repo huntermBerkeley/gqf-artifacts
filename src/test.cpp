@@ -19,6 +19,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <openssl/rand.h>
+#include <algorithm>
 
 #include "include/gqf.h"
 #include "include/gqf_int.h"
@@ -85,13 +86,13 @@ int main(int argc, char **argv)
        //Sort here so the test works
        //TODO: ask Prashant why this breaks the test (bottom test, prints 'index weirdness')
   //    printf("sortd\n");
-	qsort(vals, nvals, sizeof(vals[0]), cmpfunc);
-	/*
+	//qsort(vals, nvals, sizeof(vals[0]), cmpfunc);
+	std::sort(vals, vals + nvals);
 	for (int i = 0; i<nvals; i++){
 
 		printf("%lx\n", vals[i]);
 	}
-	*/
+	
 	qf_insert_gpu(&qf, vals, 0, key_count, nvals, nslots,  QF_NO_LOCK);
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {
