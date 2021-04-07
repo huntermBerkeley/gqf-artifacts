@@ -31,7 +31,46 @@
 int cmpfunc (const void * a, const void * b) {
    return ( *(int*)a - *(int*)b );
 }
-
+void swapElements(uint64_t* x, uint64_t* y)
+{
+	int temp = *x;
+	*x = *y;
+	*y = temp;
+}
+// Partition function
+int partition(uint64_t arr[], int lowIndex, int highIndex)
+{
+	uint64_t pivotElement = arr[highIndex];
+	int i = (lowIndex - 1);
+	for (int j = lowIndex; j <= highIndex - 1; j++)
+	{
+		if (arr[j] <= pivotElement)
+		{
+			i++;
+			swapElements(&arr[i], &arr[j]);
+		}
+	}
+	swapElements(&arr[i + 1], &arr[highIndex]);
+	return (i + 1);
+}
+// QuickSort Function
+void quickSort(uint64_t arr[], int lowIndex, int highIndex)
+{
+	if (lowIndex < highIndex)
+	{
+		int pivot = partition(arr, lowIndex, highIndex);
+		// Separately sort elements before & after partition 
+		quickSort(arr, lowIndex, pivot - 1);
+		quickSort(arr, pivot + 1, highIndex);
+	}
+}
+// Function to print array
+void printArray(int arr[], int size)
+{
+	int i;
+	for (i = 0; i < size; i++)
+		printf("%d ", arr[i]);
+}
 
 int main(int argc, char **argv)
 {
@@ -85,7 +124,8 @@ int main(int argc, char **argv)
        //Sort here so the test works
        //TODO: ask Prashant why this breaks the test (bottom test, prints 'index weirdness')
      printf("sortd, %lu bytes\n", sizeof(vals[0]));
-	qsort(vals, nvals, sizeof(vals[0]), cmpfunc);
+	//qsort(vals, nvals, sizeof(vals[0]), cmpfunc);
+	 quickSort(vals, 0, nvals);
 	
 	for (int i = 0; i<nvals; i++){
 
