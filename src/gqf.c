@@ -1184,7 +1184,7 @@ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
 	}
 	*/
 	uint64_t runend_index2 = run_end(qf, hash_bucket_index);
-	printf("bucket %lx; rei %lx", hash_bucket_index, runend_index2)
+	printf("bucket %lx; rei %lx; hash %lx\n", hash_bucket_index, runend_index2, hash);
 	if (is_empty(qf, hash_bucket_index) /* might_be_empty(qf, hash_bucket_index) && runend_index == hash_bucket_index */) {
 		METADATA_WORD(qf, runends, hash_bucket_index) |= 1ULL <<
 			(hash_bucket_block_offset % 64);
@@ -1403,7 +1403,7 @@ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
 	}
 	/*
 	if (GET_NO_LOCK(runtime_lock) != QF_NO_LOCK) {
-		qf_unlock(qf, hash_bucket_index, /*small*/ true);
+		qf_unlock(qf, hash_bucket_index,  true);
 	}
 	*/
 	return ret_distance;
@@ -1933,18 +1933,22 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	int blocksPerRegion = 1;
 	int numRegions = qf->metadata->nblocks;
 
-	int num_threads = 4;
-	uint32_t* blockends;
+	int num_threads = 1;
+	uint64_t blockend;
+	//t_start and end refer to indexes in the keys array
 	int t_start;
 	int t_end;
-	blockends = (uint32_t*)malloc(num_threads * sizeof(blockends[0]));
-	for (int i = 0; i < num_threads; i++) {
-		blockends[i] = (nvals / num_threads) * (i + 1);
-	}
-	for (int tid = 0; tid < 4; tid++) {
+	//blockend
+
+	//use nslots for the block making
+	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
+	uint64_t block_offset = 0;
+	for (int tid = 0; tid < num_threads; tid++) {
+		blockend = tid * block_size + block_offset;
 		if (tid == 0) {
 			t_start = 0;
 		}
+		//todo: t_start finds first part in array where quotient is in it's range;
 		else t_start = blockends[tid - 1];
 		if (tid == num_threads - 1) t_end = nvals;
 		else t_end = blockends[tid];
