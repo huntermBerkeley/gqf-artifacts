@@ -117,19 +117,19 @@ int main(int argc, char **argv)
 	}
 	
 	for(int i = 0; i<nvals; i++){
-	printf("%lx\n", vals[i]);
+//	printf("%lx\n", vals[i]);
 	}
 	
 	/* Insert keys in the CQF */
        //Sort here so the test works
        //TODO: ask Prashant why this breaks the test (bottom test, prints 'index weirdness')
-     printf("sortd, %lu bytes\n", sizeof(vals[0]));
+  //   printf("sortd, %lu bytes\n", sizeof(vals[0]));
 	//qsort(vals, nvals, sizeof(vals[0]), cmpfunc);
 	 quickSort(vals, 0, nvals);
 	
 	for (int i = 0; i<nvals; i++){
 
-		printf("%lx\n", vals[i]);
+//		printf("%lx\n", vals[i]);
 	}
 	
 	qf_insert_gpu(&qf, vals, 0, key_count, nvals, nslots,  QF_NO_LOCK);
