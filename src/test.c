@@ -28,9 +28,7 @@
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
 
-int cmpfunc (const void * a, const void * b) {
-   return ( *(int*)a - *(int*)b );
-}
+
 void swapElements(uint64_t* x, uint64_t* y)
 {
 	int temp = *x;
@@ -115,23 +113,24 @@ int main(int argc, char **argv)
 		/*fake hash until implemented*/
 		//hashes[i] = vals[i];
 	}
-	
+	/*
 	for(int i = 0; i<nvals; i++){
-//	printf("%lx\n", vals[i]);
+	printf("%lx\n", vals[i]);
 	}
-	
+	*/
 	/* Insert keys in the CQF */
        //Sort here so the test works
        //TODO: ask Prashant why this breaks the test (bottom test, prints 'index weirdness')
   //   printf("sortd, %lu bytes\n", sizeof(vals[0]));
-	//qsort(vals, nvals, sizeof(vals[0]), cmpfunc);
+	//This happens inside the GPU insert step for the GPU implementation.
 	 quickSort(vals, 0, nvals);
-	
+	/*
 	for (int i = 0; i<nvals; i++){
 
-//		printf("%lx\n", vals[i]);
+		printf("%lx\n", vals[i]);
 	}
-	
+	*/
+	 printf("cqg has %d blocks and %d slots", qf->metadata->nblocks, qf->metadata->nslots);
 	qf_insert_gpu(&qf, vals, 0, key_count, nvals, nslots,  QF_NO_LOCK);
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {

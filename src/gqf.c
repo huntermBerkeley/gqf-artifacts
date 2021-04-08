@@ -1183,6 +1183,8 @@ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
 			return QF_COULDNT_LOCK;
 	}
 	*/
+	uint64_t runend_index2 = run_end(qf, hash_bucket_index);
+	printf("bucket %lx; rei %lx", hash_bucket_index, runend_index2)
 	if (is_empty(qf, hash_bucket_index) /* might_be_empty(qf, hash_bucket_index) && runend_index == hash_bucket_index */) {
 		METADATA_WORD(qf, runends, hash_bucket_index) |= 1ULL <<
 			(hash_bucket_block_offset % 64);
@@ -1217,8 +1219,7 @@ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
 					t++;
 				if (t < runend_index && get_slot(qf, t+1) == 0)
 					zero_terminator = t+1; /* Three or more 0s */
-				else if (runstart_index < runend_index && get_slot(qf, runstart_index
-																													 + 1) == 0)
+				else if (runstart_index < runend_index && get_slot(qf, runstart_index+ 1) == 0)
 					zero_terminator = runstart_index + 1; /* Exactly two 0s */
 				/* Otherwise, exactly one 0 (i.e. zero_terminator == runstart_index) */
 
@@ -1400,11 +1401,11 @@ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
 		METADATA_WORD(qf, occupieds, hash_bucket_index) |= 1ULL <<
 			(hash_bucket_block_offset % 64);
 	}
-
+	/*
 	if (GET_NO_LOCK(runtime_lock) != QF_NO_LOCK) {
 		qf_unlock(qf, hash_bucket_index, /*small*/ true);
 	}
-
+	*/
 	return ret_distance;
 }
 
@@ -1929,6 +1930,9 @@ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 
 void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint8_t
 	flags) {
+	int blocksPerRegion = 1;
+	int numRegions = qf->metadata->nblocks;
+
 	int num_threads = 4;
 	uint32_t* blockends;
 	int t_start;
