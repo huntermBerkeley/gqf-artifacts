@@ -1182,8 +1182,9 @@ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
 			return QF_COULDNT_LOCK;
 	}
 	*/
+	uint64_t hash_quotient = 
 	uint64_t runend_index2 = run_end(qf, hash_bucket_index);
-	printf("bucket %lx; rei %lx; hash %lx; %lx \n", hash_bucket_index, runend_index2, hash, QF_SLOTS_PER_BLOCK);
+	printf("bucket %lx; rei %lx; hash %lx; remainder %lx \n", hash_bucket_index, runend_index2, hash, hash_remainder);
 	if (is_empty(qf, hash_bucket_index) /* might_be_empty(qf, hash_bucket_index) && runend_index == hash_bucket_index */) {
 		METADATA_WORD(qf, runends, hash_bucket_index) |= 1ULL <<
 			(hash_bucket_block_offset % 64);
@@ -1423,7 +1424,7 @@ static inline int insert(QF *qf, __uint128_t hash, uint64_t count, uint8_t
 	}
 	*/
 	uint64_t runend_index = run_end(qf, hash_bucket_index);
-	
+	//TODO: thread SHUTS DOWN FOR THE ROUND IF runend_endex is beyond the end of it's domain.
 	/* Empty slot */
 	if (might_be_empty(qf, hash_bucket_index) && runend_index ==
 			hash_bucket_index) {
