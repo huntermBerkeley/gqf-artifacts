@@ -562,8 +562,7 @@ static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index)
 	uint64_t bucket_intrablock_offset = hash_bucket_index % QF_SLOTS_PER_BLOCK;
 	uint64_t bucket_blocks_offset = block_offset(qf, bucket_block_index);
 
-	uint64_t bucket_intrablock_rank   = bitrank(get_block(qf,
-																				bucket_block_index)->occupieds[0],
+	uint64_t bucket_intrablock_rank   = bitrank(get_block(qf,bucket_block_index)->occupieds[0],
 																				bucket_intrablock_offset);
 
 	if (bucket_intrablock_rank == 0) {
@@ -1184,7 +1183,7 @@ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
 	}
 	*/
 	uint64_t runend_index2 = run_end(qf, hash_bucket_index);
-	printf("bucket %lx; rei %lx; hash %lx\n", hash_bucket_index, runend_index2, hash);
+	printf("bucket %lx; rei %lx; hash %lx; %lx \n", hash_bucket_index, runend_index2, hash, QF_SLOTS_PER_BLOCK);
 	if (is_empty(qf, hash_bucket_index) /* might_be_empty(qf, hash_bucket_index) && runend_index == hash_bucket_index */) {
 		METADATA_WORD(qf, runends, hash_bucket_index) |= 1ULL <<
 			(hash_bucket_block_offset % 64);
