@@ -1926,7 +1926,7 @@ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 	}
 	return ret;
 }
-static inline int find_thread_start(QF* qf, uint64_t keys, int tid, int num_threads, uint64_t nvals, uint64_t qbits) {
+static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_threads, uint64_t nvals, uint64_t qbits) {
 	uint64_t max_quotient = 1ULL << qbits;
 	uint64_t thread_min_quotient = ceil(max_quotient / num_threads) * tid;
 	printf("tid %d, overall max quotient %lx, thread min quotient %lx", tid, max_quotient, thread_min_quotient);
