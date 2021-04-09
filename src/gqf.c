@@ -1949,9 +1949,9 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 			t_start = 0;
 		}
 		//todo: t_start finds first part in array where quotient is in it's range;
-		else t_start = blockends[tid - 1];
+		//else t_start = blockends[tid - 1];
 		if (tid == num_threads - 1) t_end = nvals;
-		else t_end = blockends[tid];
+		//else t_end = blockends[tid];
 
 		for (int i = t_start; i < t_end; i++) {
 			uint64_t key = keys[i];
