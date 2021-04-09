@@ -1182,7 +1182,6 @@ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
 			return QF_COULDNT_LOCK;
 	}
 	*/
-	uint64_t hash_quotient = 
 	uint64_t runend_index2 = run_end(qf, hash_bucket_index);
 	printf("bucket %lx; rei %lx; hash %lx; remainder %lx \n", hash_bucket_index, runend_index2, hash, hash_remainder);
 	if (is_empty(qf, hash_bucket_index) /* might_be_empty(qf, hash_bucket_index) && runend_index == hash_bucket_index */) {
