@@ -1926,23 +1926,37 @@ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 	}
 	return ret;
 }
+static inline int find_thread_start(QF* qf, uint64_t keys, int tid, int num_threads, uint64_t nvals, uint64_t qbits) {
+	uint64_t max_quotient = 1ULL << qbits;
+	uint64_t thread_min_quotient = ceil(max_quotient / num_threads) * tid;
+	printf("tid %d, overall max quotient %lx, thread min quotient %lx", tid, max_quotient, thread_min_quotient);
+	for (int i = 0; i < nvals; i++) {
 
-void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint8_t
+		uint64_t quotient = keys[i] >> qf->metadata->bits_per_slot;
+		if (quotient == thread_min_quotient) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint64_t qbits, uint8_t
 	flags) {
 	int blocksPerRegion = 1;
 	int numRegions = qf->metadata->nblocks;
 
-	int num_threads = 1;
+	int num_threads = 4;
 	uint64_t blockend;
 	//t_start and end refer to indexes in the keys array
 	int t_start;
 	int t_end;
 	//blockend
 
-	//use nslots for the block making
+	//use quotient bits for the block making
 	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
 	uint64_t block_offset = 0;
 	for (int tid = 0; tid < num_threads; tid++) {
+		find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
 		blockend = tid * block_size + block_offset;
 		if (tid == 0) {
 			t_start = 0;
