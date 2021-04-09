@@ -1943,10 +1943,11 @@ static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_thr
 
 void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint64_t qbits, uint8_t
 	flags) {
+	find_thread_start(qf, keys, 2, 6, nvals, qbits);
 	int blocksPerRegion = 1;
 	int numRegions = qf->metadata->nblocks;
 
-	int num_threads = 4;
+	int num_threads = 1;
 	uint64_t blockend;
 	//t_start and end refer to indexes in the keys array
 	int t_start;
@@ -1957,7 +1958,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
 	uint64_t block_offset = 0;
 	for (int tid = 0; tid < num_threads; tid++) {
-		find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
+		
 		blockend = tid * block_size + block_offset;
 		if (tid == 0) {
 			t_start = 0;
