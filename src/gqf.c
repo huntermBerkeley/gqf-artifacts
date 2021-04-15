@@ -1941,9 +1941,18 @@ static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_thr
 	}
 	return -1;
 }
-
+static inline void printarray(uint64_t* arr, uint64_t len) {
+	for (int i = 0, i < len, i++) {
+		printf("%lx,  ", arr[i]);
+		if (i % 8 == 0) {
+			printf("\n");
+		}
+	}
+	printf("\n");
+}
 void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint64_t qbits, uint8_t
 	flags) {
+	printarray(keys, nvals);
 	find_thread_start(qf, keys, 1, 6, nvals, qbits);
 	find_thread_start(qf, keys, 2, 6, nvals, qbits);
 	find_thread_start(qf, keys, 3, 6, nvals, qbits);
