@@ -1930,12 +1930,12 @@ static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_thr
 	uint64_t max_quotient = 1ULL << qbits;
 	//printf("max %lx", max_quotient);
 	uint64_t thread_min_quotient = ceil(max_quotient / num_threads) * tid;
-	printf("tid %d, overall max quotient %lx, thread min quotient %lx \n", tid, max_quotient, thread_min_quotient);
+	//printf("tid %d, overall max quotient %lx, thread min quotient %lx \n", tid, max_quotient, thread_min_quotient);
 	for (int i = 0; i < nvals; i++) {
 
 		uint64_t quotient = keys[i] >> qf->metadata->bits_per_slot;
 		if (quotient == thread_min_quotient) {
-			printf("first val %lx\n", keys[i]);
+			//printf("first val %lx\n", keys[i]);
 			return i;
 		}
 	}
@@ -1952,12 +1952,14 @@ static inline void printarray(uint64_t* arr, uint64_t len) {
 }
 void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint64_t qbits, uint8_t
 	flags) {
+	/*
 	printarray(keys, nvals);
 	find_thread_start(qf, keys, 1, 6, nvals, qbits);
 	find_thread_start(qf, keys, 2, 6, nvals, qbits);
 	find_thread_start(qf, keys, 3, 6, nvals, qbits);
 	find_thread_start(qf, keys, 4, 6, nvals, qbits);
 	find_thread_start(qf, keys, 5, 6, nvals, qbits);
+	*/
 	int blocksPerRegion = 1;
 	int numRegions = qf->metadata->nblocks;
 
@@ -1972,20 +1974,14 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
 	uint64_t block_offset = 0;
 	for (int tid = 0; tid < num_threads; tid++) {
-		int t_start = find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
-		blockend = tid * block_size + block_offset;
-		if (tid == 0) {
-			t_start = 0;
-		}
-		//todo: t_start finds first part in array where quotient is in it's range;
-		//else t_start = blockends[tid - 1];
-		if (tid == num_threads - 1) t_end = nvals;
-		//else t_end = blockends[tid];
+		int t_start = tid==0? 0:find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
+		int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, tid + 1, num_threads, nvals, qbits);
 
 		for (int i = t_start; i < t_end; i++) {
 			uint64_t key = keys[i];
 
 			//Don't worry about resizing the CQF; it should be set big enough before the start
+			/*
 			if (qf_get_num_occupied_slots(qf) >= qf->metadata->nslots * 0.95) {
 				if (qf->runtimedata->auto_resize) {
 					if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) < 0)
@@ -1997,7 +1993,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 				else
 					return;
 			}
-
+			*/
 			if (count == 0)
 				return;
 			/*
