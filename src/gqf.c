@@ -1942,7 +1942,7 @@ static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_thr
 	return -1;
 }
 static inline void printarray(uint64_t* arr, uint64_t len) {
-	for (int i = 0, i < len, i++) {
+	for (int i = 0; i < len; ++) {
 		printf("%lx,  ", arr[i]);
 		if (i % 8 == 0) {
 			printf("\n");
