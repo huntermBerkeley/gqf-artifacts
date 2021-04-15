@@ -1962,7 +1962,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
 	uint64_t block_offset = 0;
 	for (int tid = 0; tid < num_threads; tid++) {
-		int t_start = find_thread_start(qf, keys, tid, num_threads, qbits);
+		int t_start = find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
 		blockend = tid * block_size + block_offset;
 		if (tid == 0) {
 			t_start = 0;
