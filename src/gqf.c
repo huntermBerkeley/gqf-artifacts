@@ -1979,8 +1979,8 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
 	uint64_t block_offset = 0;
 	bool fin = false;
-	while (fin == false) {
-		fin == true;
+	//while (fin == false) {
+		//fin == true;
 		for (int tid = 0; tid < num_threads; tid++) {
 			int t_start = tid == 0 ? 0 : find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
 			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, tid + 1, num_threads, nvals, qbits);
@@ -2042,7 +2042,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 			}
 		}
 		//ops to resize thread blocks here;
-	}
+	//}
 	
 }
 int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
