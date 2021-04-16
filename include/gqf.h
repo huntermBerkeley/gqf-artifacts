@@ -133,7 +133,7 @@ extern "C" {
 #define QF_NO_SPACE (-1)
 #define QF_COULDNT_LOCK (-2)
 #define QF_DOESNT_EXIST (-3)
-	
+#define QF_END_OF_THREAD (-4)
 	/* Increment the counter for this key/value pair by count. 
 	 * Return value:
 	 *    >= 0: distance from the home slot to the slot in which the key is

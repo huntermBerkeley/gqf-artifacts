@@ -1949,6 +1949,12 @@ static inline void printarray(uint64_t* arr, uint64_t len) {
 	}
 	printf("\n");
 }
+
+static inline int find_last_thread_slot(QF* qf, int num_threads, int tid) {
+	int last_slot = ceil(qf->metadata->nslots / num_threads * tid);
+	printf("nslots %ld, threads last %d", qf->metadata->nslots, last_slot);
+	return last_slot;
+}
 void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint64_t qbits, uint8_t
 	flags) {
 	/*
@@ -1972,75 +1978,72 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	//use quotient bits for the block making
 	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
 	uint64_t block_offset = 0;
-	for (int tid = 0; tid < num_threads; tid++) {
-		int t_start = tid==0? 0:find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
-		int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, tid + 1, num_threads, nvals, qbits);
+	bool fin = false;
+	while (fin == false) {
+		fin == true;
+		for (int tid = 0; tid < num_threads; tid++) {
+			int t_start = tid == 0 ? 0 : find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
+			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, tid + 1, num_threads, nvals, qbits);
+			int t_last_slot == num_threads - 1 ? qf->metadata->nslots : find_last_thread_slot(qf, num_threads, tid);
+			for (int i = t_start; i < t_end; i++) {
+				uint64_t key = keys[i];
 
-		for (int i = t_start; i < t_end; i++) {
-			uint64_t key = keys[i];
-
-			//Don't worry about resizing the CQF; it should be set big enough before the start
-			/*
-			if (qf_get_num_occupied_slots(qf) >= qf->metadata->nslots * 0.95) {
-				if (qf->runtimedata->auto_resize) {
-					if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) < 0)
-					{
-						fprintf(stderr, "Resizing the failed.\n");
-						return;
-					}
-				}
-				else
-					return;
-			}
-			*/
-			if (count == 0)
-				return;
-			/*
-			* Hashing has to happen beforethis
-			if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
-				if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
-					key = MurmurHash64A(((void*)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
-				else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
-					key = hash_64(key, BITMASK(qf->metadata->key_bits));
-			}
-			*/
-			uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
-			int ret;
-			if (count == 1)
-				ret = insert1(qf, hash, flags);
-			else
-				ret = insert(qf, hash, count, flags);
-
-			// check for fullness based on the distance from the home slot to the slot
-			// in which the key is inserted
-			if (ret == QF_NO_SPACE || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
-				float load_factor = qf_get_num_occupied_slots(qf) /
-					(float)qf->metadata->nslots;
-				fprintf(stdout, "Load factor: %lf\n", load_factor);
-				if (qf->runtimedata->auto_resize) {
-					fprintf(stdout, "Resizing the CQF.\n");
-					if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) > 0)
-					{
-						if (ret == QF_NO_SPACE) {
-							if (count == 1)
-								ret = insert1(qf, hash, flags);
-							else
-								ret = insert(qf, hash, count, flags);
+				//Don't worry about resizing the CQF; it should be set big enough before the start
+				/*
+				if (qf_get_num_occupied_slots(qf) >= qf->metadata->nslots * 0.95) {
+					if (qf->runtimedata->auto_resize) {
+						if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) < 0)
+						{
+							fprintf(stderr, "Resizing the failed.\n");
+							return;
 						}
-						fprintf(stderr, "Resize finished.\n");
+					}
+					else
+						return;
+				}
+				*/
+				if (count == 0)
+					return;
+				uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
+				int ret;
+				if (count == 1)
+					ret = insert1(qf, hash, flags);
+				else
+					ret = insert(qf, hash, count, flags);
+
+				// check for fullness based on the distance from the home slot to the slot
+				// in which the key is inserted
+				if (ret == QF_NO_SPACE || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
+					float load_factor = qf_get_num_occupied_slots(qf) /
+						(float)qf->metadata->nslots;
+					fprintf(stdout, "Load factor: %lf\n", load_factor);
+					if (qf->runtimedata->auto_resize) {
+						fprintf(stdout, "Resizing the CQF.\n");
+						if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) > 0)
+						{
+							if (ret == QF_NO_SPACE) {
+								if (count == 1)
+									ret = insert1(qf, hash, flags);
+								else
+									ret = insert(qf, hash, count, flags);
+							}
+							fprintf(stderr, "Resize finished.\n");
+						}
+						else {
+							fprintf(stderr, "Resize failed\n");
+							ret = QF_NO_SPACE;
+						}
 					}
 					else {
-						fprintf(stderr, "Resize failed\n");
+						fprintf(stderr, "The CQF is filling up.\n");
 						ret = QF_NO_SPACE;
 					}
 				}
-				else {
-					fprintf(stderr, "The CQF is filling up.\n");
-					ret = QF_NO_SPACE;
-				}
 			}
 		}
+		//ops to resize thread blocks here;
 	}
+	
 }
 int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								 flags)
