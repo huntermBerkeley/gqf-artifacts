@@ -1957,8 +1957,9 @@ static inline int find_last_thread_slot(QF* qf, int num_threads, int tid) {
 }
 void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint64_t qbits, uint8_t
 	flags) {
-	/*
+	
 	printarray(keys, nvals);
+	/*
 	find_thread_start(qf, keys, 1, 6, nvals, qbits);
 	find_thread_start(qf, keys, 2, 6, nvals, qbits);
 	find_thread_start(qf, keys, 3, 6, nvals, qbits);
@@ -1993,6 +1994,8 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 			if (t_start == -1 || t_end == -1) {
 				printf("no start or end")
 			}
+			int t_last_slot = tid == num_threads - 1 ? qf->metadata->nslots : find_last_thread_slot(qf, num_threads, tid);
+			printf("tstart %d; tend %d\n", t_start, t_end);
 			for (int i = t_start; i < t_end; i++) {
 				uint64_t key = keys[i];
 
