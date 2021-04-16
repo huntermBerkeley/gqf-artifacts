@@ -131,6 +131,7 @@ int main(int argc, char **argv)
 	}
 	*/
 	qf_insert_gpu(&qf, vals, 0, key_count, nvals, nslots,  qbits, QF_NO_LOCK);
+	printf("FINISHED THE INSERT");
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {
 		int ret = qf_insert(&qf, vals[i], 0, key_count, QF_NO_LOCK);
