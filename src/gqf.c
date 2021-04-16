@@ -1992,10 +1992,9 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 			}
 			int t_last_slot = tid == num_threads - 1 ? qf->metadata->nslots : find_last_thread_slot(qf, num_threads, tid);
 			if (t_start == -1 || t_end == -1) {
-				printf("no start or end")
+				printf("no start or end");
 			}
-			int t_last_slot = tid == num_threads - 1 ? qf->metadata->nslots : find_last_thread_slot(qf, num_threads, tid);
-			printf("tstart %d; tend %d\n", t_start, t_end);
+			printf("tstart %d; tend %d; tlast_slot %d\n", t_start, t_end, t_last_slot);
 			for (int i = t_start; i < t_end; i++) {
 				uint64_t key = keys[i];
 
