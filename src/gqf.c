@@ -2296,7 +2296,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 			uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
 			int ret;
 			if (count == 1)
-				ret = insert1(qf, hash, flags);
+				ret = insert1_gpu(qf, hash, last_slot, flags);
 			else
 				ret = insert(qf, hash, count, flags);
 
