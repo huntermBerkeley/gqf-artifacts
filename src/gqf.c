@@ -2011,7 +2011,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 		while (t_end == -1) {
 			next_thread++;
 			printf("next thread %d \n", next_thread);
-			t_end = next_thread == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
+			t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 		}
 		for (int i = t_start; i < t_end; i++) {
 			uint64_t key = keys[i];
