@@ -1990,7 +1990,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	int blocksPerRegion = 1;
 	int numRegions = qf->metadata->nblocks;
 
-	int num_threads = 1;
+	int num_threads = 4;
 	uint64_t blockend;
 	//t_start and end refer to indexes in the keys array
 	int t_start;
