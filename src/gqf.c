@@ -2021,8 +2021,9 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 			printf("next thread %d \n", next_thread);
 			t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 		}
-		int last_slot = block_size * tid + block_offset;
-		printf("tid %d; last slot is %d; nslots %d", tid, last_slot, qf->metadata->nslots);
+		int last_slot = block_size * (tid+1) + block_offset;
+		printf("tid %d; blstart %d; blend %d\n", tid, t_start,t_end);
+		printf("tid %d; last slot is %d; nslots %d\n", tid, last_slot, qf->metadata->nslots);
 		for (int i = t_start; i < t_end; i++) {
 			uint64_t key = keys[i];
 
