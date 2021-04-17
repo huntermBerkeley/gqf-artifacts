@@ -2310,6 +2310,9 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 				else
 					ret = insert(qf, hash, count, flags);
 				if (ret == QF_END_OF_THREAD) {
+					thread_done[tid] = i;
+					//continue is just for serial-on GPU it'll be each thread waiting for next iter
+					continue;
 				}
 				// check for fullness based on the distance from the home slot to the slot
 				// in which the key is inserted
