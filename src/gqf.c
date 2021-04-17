@@ -2255,7 +2255,9 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	//t_start and end refer to indexes in the keys array
 	int t_start;
 	int t_end;
-	int thread_done[num_threads] = { 0 };
+	int* thread_done;
+	thread_done = (int*)malloc(num_threads * sizeof(int));
+	memset(thread_done, 0, num_threads * sizeof(int));
 	//use quotient bits for the block making
 	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
 	//block_offset is in #slots
