@@ -2002,8 +2002,16 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	uint64_t block_offset = 0;
 	for (int tid = 0; tid < num_threads; tid++) {
 		int t_start = tid == 0 ? 0 : find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
-		int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, tid + 1, num_threads, nvals, qbits);
-
+		int next_thread = tid + 1;
+		int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
+		//case where there's no quotients to a thread;
+		if (t_start == -1) {
+			continue;
+		}
+		while (t_end == -1) {
+			next_thread++;
+			t_end = next_thread == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
+		}
 		for (int i = t_start; i < t_end; i++) {
 			uint64_t key = keys[i];
 
