@@ -1195,7 +1195,7 @@ static inline int insert1(QF* qf, __uint128_t hash, uint8_t runtime_lock)
 	}
 	*/
 	uint64_t runend_index2 = run_end(qf, hash_bucket_index);
-	printf("bucket %lx; rei %lx; hash %lx; remainder %ld \n", hash_bucket_index, runend_index2, hash, hash_remainder);
+	//printf("bucket %lx; rei %lx; hash %lx; remainder %ld \n", hash_bucket_index, runend_index2, hash, hash_remainder);
 	if (is_empty(qf, hash_bucket_index) /* might_be_empty(qf, hash_bucket_index) && runend_index == hash_bucket_index */) {
 		METADATA_WORD(qf, runends, hash_bucket_index) |= 1ULL <<
 			(hash_bucket_block_offset % 64);
@@ -1977,6 +1977,13 @@ static inline void printarray(uint64_t* arr, uint64_t len) {
 	}
 	printf("\n");
 }
+
+static inline int find_last_thread_slot(QF* qf, int num_threads, int tid) {
+	int last_slot = ceil(qf->metadata->nslots / num_threads * tid);
+	printf("nslots %ld, threads last %d", qf->metadata->nslots, last_slot);
+	return last_slot;
+}
+
 void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint64_t qbits, uint8_t
 	flags) {
 	/*
@@ -1999,6 +2006,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 
 	//use quotient bits for the block making
 	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
+	//block_offset is in #slots
 	uint64_t block_offset = 0;
 	for (int tid = 0; tid < num_threads; tid++) {
 		int t_start = tid == 0 ? 0 : find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
@@ -2013,23 +2021,13 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 			printf("next thread %d \n", next_thread);
 			t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 		}
+		int last_slot = block_size * tid + block_offset;
+		printf("tid %d; last slot is %d; nslots %d", tid, last_slot, qf->metadata->nslots);
 		for (int i = t_start; i < t_end; i++) {
 			uint64_t key = keys[i];
 
-			//Don't worry about resizing the CQF; it should be set big enough before the start
-			/*
-			if (qf_get_num_occupied_slots(qf) >= qf->metadata->nslots * 0.95) {
-				if (qf->runtimedata->auto_resize) {
-					if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) < 0)
-					{
-						fprintf(stderr, "Resizing the failed.\n");
-						return;
-					}
-				}
-				else
-					return;
-			}
-			*/
+			//resizing would happen here
+
 			if (count == 0)
 				return;
 			/*
