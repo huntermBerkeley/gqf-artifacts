@@ -2257,13 +2257,14 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	int t_start;
 	int t_end;
 	//blockend
-
+	std::vector<int> thread_done(num_threads);
 	//use quotient bits for the block making
 	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
 	//block_offset is in #slots
 	uint64_t block_offset = 0;
 	int num_iter = 0;
 	bool fin = false;
+	
 	while (!fin) {
 		printf("while loop reset; num_iter %d\n", num_iter);
 		fin == true;
@@ -2285,7 +2286,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 				printf("next thread %d \n", next_thread);
 				t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 			}
-
+			t_start = min(thread_done[tid], t_start);
 			for (int i = t_start; i < t_end; i++) {
 				uint64_t key = keys[i];
 
