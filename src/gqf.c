@@ -2264,21 +2264,23 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	uint64_t block_offset = 0;
 	int num_iter = 0;
 	bool fin = false;
-	
+	bool go_next_thread = false;
 	while (!fin) {
-		printf("while loop reset; num_iter %d\n", num_iter);
+		printf("-----while loop reset; num_iter -----------%d\n", num_iter);
 		fin == true;
 		block_offset = block_offset + (block_size / 2) * num_iter;
 		for (int tid = 0; tid < num_threads; tid++) {
+			go_next_thread = false;
 			int t_start = tid == 0 ? 0 : find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
 			int next_thread = tid + 1;
 			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 			int last_slot = block_size * (tid + 1) + block_offset;
-			printf("tid %d; blstart %d; blend %d; nvals %ld \n", tid, t_start, t_end, nvals);
-			printf("tid %d; last slot is %d; nslots %d\n", tid, last_slot, qf->metadata->nslots);
-
+			printf("-tid %d; blstart %d; blend %d; nvals %ld \n", tid, t_start, t_end, nvals);
+			printf("-tid %d; last slot is %d; nslots %d\n", tid, last_slot, qf->metadata->nslots);
+			printf("-last slot doen before %d\n", thread_done[tid]);
 			//case where there's no quotients to a thread;
 			if (t_start == -1) {
+				printf("&Skipping thread %d\n", tid);
 				continue;
 			}
 			while (t_end == -1) {
@@ -2288,6 +2290,9 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 			}
 			t_start = thread_done[tid] > t_start ? thread_done[tid] : t_start;
 			for (int i = t_start; i < t_end; i++) {
+				if (go_next_thread) {
+					continue;
+				}
 				uint64_t key = keys[i];
 
 				//resizing would happen here
@@ -2310,6 +2315,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 				else
 					ret = insert(qf, hash, count, flags);
 				if (ret == QF_END_OF_THREAD) {
+					printf("**hit boundary, going next\n")
 					thread_done[tid] = i;
 					//continue is just for serial-on GPU it'll be each thread waiting for next iter
 					continue;
