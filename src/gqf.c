@@ -2315,7 +2315,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 				else
 					ret = insert(qf, hash, count, flags);
 				if (ret == QF_END_OF_THREAD) {
-					printf("**hit boundary, going next\n")
+					printf("**hit boundary, going next\n");
 					thread_done[tid] = i;
 					//continue is just for serial-on GPU it'll be each thread waiting for next iter
 					continue;
