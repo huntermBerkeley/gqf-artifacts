@@ -2289,10 +2289,8 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 				t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 			}
 			thread_done[tid] = thread_done[tid] > t_start ? thread_done[tid] : t_start;
-			while (thread_done[tid]< t_end){
-				if (go_next_thread) {
-					continue;
-				}
+			while (thread_done[tid]< t_end && go_next_thread == false){
+
 				uint64_t key = keys[thread_done[tid]];
 
 				//resizing would happen here
@@ -2317,7 +2315,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 				printf("ret %d;\n", ret);
 				if (ret == QF_END_OF_THREAD) {
 					printf("**hit boundary, going next\n");
-					
+					go_next_thread = true;
 					//continue is just for serial-on GPU it'll be each thread waiting for next iter
 					continue;
 				}
