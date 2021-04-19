@@ -2265,8 +2265,8 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	int num_iter = 0;
 	bool fin = false;
 	bool go_next_thread = false;
-	while (!fin) {
-		printf("-----while loop reset; num_iter -----------%d\n", num_iter);
+	while (fin ==false) {
+		printf("-----while loop reset; num_iter -----------%d  %B\n", num_iter, fin);
 		fin == true;
 		block_offset = block_offset + (block_size / 2) * num_iter;
 		for (int tid = 0; tid < num_threads; tid++) {
