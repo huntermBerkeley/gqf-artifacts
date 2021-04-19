@@ -2288,12 +2288,12 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 				printf("next thread %d \n", next_thread);
 				t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 			}
-			t_start = thread_done[tid] > t_start ? thread_done[tid] : t_start;
-			for (int i = t_start; i < t_end; i++) {
+			thread_done[tid] = thread_done[tid] > t_start ? thread_done[tid] : t_start;
+			while (thread_done[tid]< t_end){
 				if (go_next_thread) {
 					continue;
 				}
-				uint64_t key = keys[i];
+				uint64_t key = keys[thread_done[tid]];
 
 				//resizing would happen here
 
@@ -2321,7 +2321,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 					//continue is just for serial-on GPU it'll be each thread waiting for next iter
 					continue;
 				}
-				thread_done[tid] = i;
+				thread_done[tid] = thread_done[tid]+1;
 				// check for fullness based on the distance from the home slot to the slot
 				// in which the key is inserted
 				if (ret == QF_NO_SPACE || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
@@ -2351,6 +2351,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 					}
 				}
 			}
+			
 		}
 		num_iter++;
 	}
