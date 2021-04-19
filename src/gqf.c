@@ -2314,7 +2314,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 					ret = insert1_gpu(qf, hash, last_slot, flags);
 				else
 					ret = insert(qf, hash, count, flags);
-				printf("ret %d;", ret);
+				printf("ret %d;\n", ret);
 				if (ret == QF_END_OF_THREAD) {
 					printf("**hit boundary, going next\n");
 					
