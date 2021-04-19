@@ -1461,7 +1461,7 @@ static inline int insert1_gpu(QF* qf, __uint128_t hash, int last_slot, uint8_t r
 		uint64_t cluster_end = find_first_empty_slot(qf, runend_index + 1);
 		printf("cluster_end %ld; thread fin slot %d\n", cluster_end, last_slot);
 		if (cluster_end > last_slot) {
-			//return  QF_END_OF_THREAD;
+			return  QF_END_OF_THREAD;
 		}
 
 		int operation = 0; /* Insert into empty bucket */
@@ -2314,6 +2314,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 					ret = insert1_gpu(qf, hash, last_slot, flags);
 				else
 					ret = insert(qf, hash, count, flags);
+				printf("ret %d;", ret);
 				if (ret == QF_END_OF_THREAD) {
 					printf("**hit boundary, going next\n");
 					
