@@ -2211,11 +2211,15 @@ static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_thr
 	uint64_t max_quotient = 1ULL << qbits;
 	//printf("max %lx", max_quotient);
 	uint64_t thread_min_quotient = ceil(max_quotient / num_threads) * tid;
+	uint64_t thread_max_quotient = tid + 1 == num_threads - 1 ? nvals : ceil(max_quotient / num_threads) * tid + 1;
 	//printf("tid %d, overall max quotient %lx, thread min quotient %lx \n", tid, max_quotient, thread_min_quotient);
 	for (int i = 0; i < nvals; i++) {
 
 		uint64_t quotient = keys[i] >> qf->metadata->bits_per_slot;
-		if (quotient == thread_min_quotient) {
+		if (quotient >= thread_max_quotient) {
+			return -1;
+		}
+		if (quotient >= thread_min_quotient) {
 			//printf("first val %lx\n", keys[i]);
 			return i;
 		}
