@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 	uint64_t total_size = qf_serialize(&qf, filename);
 	if (total_size < sizeof(qfmetadata) + qf.metadata->total_size_in_bytes) {
 		fprintf(stderr, "CQF serialization failed.\n");
-		abort();
+	//	abort();
 	}
 	qf_deletefile(&qf);
 
@@ -195,14 +195,14 @@ int main(int argc, char **argv)
 	fprintf(stdout, "Reading the CQF from disk.\n");
 	if (!qf_deserialize(&file_qf, filename)) {
 		fprintf(stderr, "Can't initialize the CQF from file: %s.\n", filename);
-		abort();
+	//	abort();
 	}
 	for (uint64_t i = 0; i < nvals; i++) {
 		uint64_t count = qf_count_key_value(&file_qf, vals[i], 0, 0);
 		if (count < key_count) {
 			fprintf(stderr, "failed lookup in file based CQF for %lx %ld.\n",
 							vals[i], count);
-			abort();
+	//		abort();
 		}
 	}
 
@@ -214,7 +214,7 @@ int main(int argc, char **argv)
 	if (!qf_malloc(&unique_idx, file_qf.metadata->nslots, nhashbits, 0,
 								 QF_HASH_NONE, 0)) {
 		fprintf(stderr, "Can't allocate set.\n");
-		abort();
+	//	abort();
 	}
 
 	int64_t last_index = -1;

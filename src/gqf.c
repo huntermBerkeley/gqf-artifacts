@@ -2255,7 +2255,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	int blocksPerRegion = 1;
 	int numRegions = qf->metadata->nblocks;
 
-	int num_threads = 4;
+	int num_threads = 10;
 	//t_start and end refer to indexes in the keys array
 	int t_start;
 	int t_end;
@@ -2279,9 +2279,9 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 			int next_thread = tid + 1;
 			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 			int last_slot = block_size * (tid + 1) + block_offset;
-			//printf("-tid %d; blstart %d; blend %d; nvals %ld \n", tid, t_start, t_end, nvals);
-			//printf("-tid %d; last slot is %d; nslots %d\n", tid, last_slot, qf->metadata->nslots);
-			//printf("-last slot doen before %d\n", thread_done[tid]);
+			printf("-tid %d; blstart %d; blend %d; nvals %ld \n", tid, t_start, t_end, nvals);
+			printf("-tid %d; last slot is %d; nslots %d\n", tid, last_slot, qf->metadata->nslots);
+			printf("-last slot doen before %d\n", thread_done[tid]);
 			//case where there's no quotients to a thread;
 			if (t_start == -1) {
 				//printf("&Skipping thread %d\n", tid);
@@ -2289,7 +2289,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 			}
 			while (t_end == -1) {
 				next_thread++;
-				//printf("next thread %d \n", next_thread);
+				printf("next thread %d \n", next_thread);
 				t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 			}
 			thread_done[tid] = thread_done[tid] > t_start ? thread_done[tid] : t_start;
