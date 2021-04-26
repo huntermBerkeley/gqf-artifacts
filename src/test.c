@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 	uint64_t qbits = atoi(argv[1]);
 	uint64_t rbits = atoi(argv[2]);
 	uint64_t nhashbits = qbits + rbits;
-	//I think this is number of slots per quotient
+	//number of slots in the qf, can be changed
 	uint64_t nslots = (1ULL << qbits);
 	//this can be changed to change the % it fills up
 
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 	uint64_t key_count = 1;
 	uint64_t *vals;
 	uint64_t* hashes;
-
+	printf("nvals: %lu\n", nvals);
 	/* Initialise the CQF */
 	/*if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, 0)) {*/
 	/*fprintf(stderr, "Can't allocate CQF.\n");*/
