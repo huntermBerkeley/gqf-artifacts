@@ -2217,6 +2217,9 @@ static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_thr
 
 		uint64_t quotient = keys[i] >> qf->metadata->bits_per_slot;
 		if (quotient >= thread_max_quotient) {
+			uint64_t prev_key = keys[i-1] ;
+			printf("failed to find match tid %d, overall max quotient %lx, prev_key %lx; quotient %lx;target quotient %lx \n", tid, max_quotient, 
+				prev_key, quotient, thread_min_quotient);
 			return -1;
 		}
 		if (quotient >= thread_min_quotient) {
