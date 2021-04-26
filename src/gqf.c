@@ -2211,7 +2211,7 @@ static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_thr
 	uint64_t max_quotient = 1ULL << qbits;
 	//printf("max %lx", max_quotient);
 	uint64_t thread_min_quotient = ceil(max_quotient / num_threads) * tid;
-	uint64_t thread_max_quotient = tid + 1 == num_threads - 1 ? nvals : ceil(max_quotient / num_threads) * tid + 1;
+	uint64_t thread_max_quotient = tid + 1 == num_threads - 1 ? nvals : ceil(max_quotient / num_threads) * (tid + 1);
 	//printf("tid %d, overall max quotient %lx, thread min quotient %lx \n", tid, max_quotient, thread_min_quotient);
 	for (int i = 0; i < nvals; i++) {
 
@@ -2247,8 +2247,10 @@ static inline int find_last_thread_slot(QF* qf, int num_threads, int tid) {
 
 void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint64_t qbits, uint8_t
 	flags) {
-	/*
+	
+	
 	printarray(keys, nvals);
+	/*
 	find_thread_start(qf, keys, 1, 6, nvals, qbits);
 	find_thread_start(qf, keys, 2, 6, nvals, qbits);
 	find_thread_start(qf, keys, 3, 6, nvals, qbits);
