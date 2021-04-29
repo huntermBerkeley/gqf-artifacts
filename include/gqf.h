@@ -13,9 +13,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 	typedef struct quotient_filter quotient_filter;
 	typedef quotient_filter QF;
@@ -328,8 +326,6 @@ extern "C" {
 	void qf_dump_metadata(const QF *qf);
 
 
-#ifdef __cplusplus
-}
-#endif
+
 
 #endif /* _GQF_H_ */
