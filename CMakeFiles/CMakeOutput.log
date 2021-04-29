@@ -1,0 +1,835 @@
+The system is: Linux - 4.12.14-150.66-default - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /opt/cray/pe/craype/2.6.2/bin/cc 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is Clang, found in "/global/homes/e/ewims/cqf/CMakeFiles/3.14.4/CompilerIdC/a.out"
+
+Compiling the CUDA compiler identification source file "CMakeCUDACompilerId.cu" succeeded.
+Compiler: /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/nvcc 
+Build flags: 
+Id flags:  -v;--keep;--keep-dir;tmp
+
+The output was:
+0
+#$ _NVVM_BRANCH_=nvvm
+#$ _SPACE_= 
+#$ _CUDART_=cudart
+#$ _HERE_=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin
+#$ _THERE_=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin
+#$ _TARGET_SIZE_=
+#$ _TARGET_DIR_=
+#$ _TARGET_DIR_=targets/x86_64-linux
+#$ TOP=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/..
+#$ NVVMIR_LIBRARY_DIR=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice
+#$ LD_LIBRARY_PATH=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../lib:/opt/cray/job/2.2.4-7.0.1.1_3.48__g36b56f4.ari/lib64:/usr/common/software/sles15_cgpu/boost/1.74.0/lib:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/lib:/usr/common/software/sles15_cgpu/ucx/1.8.1/lib:/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib64:/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64:/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib:/opt/esslurm/lib64:/usr/lib64:/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/stubs
+#$ PATH=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/bin:/opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/sbin:/opt/cray/alps/default/bin:/opt/cray/job/2.2.4-7.0.1.1_3.48__g36b56f4.ari/bin:/opt/cray/pe/craype/2.6.2/bin:/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin:/opt/cray/pe/cce/9.1.0/binutils/x86_64/x86_64-pc-linux-gnu/bin:/opt/cray/pe/cce/9.1.0/binutils/cross/x86_64-aarch64/aarch64-linux-gnu/../bin:/opt/cray/pe/cce/9.1.0/utils/x86_64/bin:/usr/common/software/python/3.8-anaconda-2020.11/bin:/global/homes/e/ewims/.local/cori/3.8-anaconda-2020.11/bin:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/bin:/opt/esslurm/bin:/usr/common/software/bin:/usr/common/nsg/bin:/opt/ovis/bin:/opt/ovis/sbin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin:/opt/cray/pe/bin
+#$ INCLUDES="-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"  
+#$ LIBRARIES=  "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"
+#$ CUDAFE_FLAGS=
+#$ PTXAS_FLAGS=
+#$ rm tmp/a_dlink.reg.c
+#$ gcc -D__CUDA_ARCH__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" 
+#$ cicc --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused -nvvmir-library "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice/libdevice.10.bc" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"
+#$ ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" 
+#$ fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" 
+#$ gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" 
+#$ cudafe++ --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" 
+#$ gcc -D__CUDA_ARCH__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" 
+#$ nvlink --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -m64   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin"
+#$ fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" 
+#$ gcc -c -x c++ -DFATBINFILE="\"tmp/a_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"tmp/a_dlink.reg.c\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -m64 "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/crt/link.stub" -o "tmp/a_dlink.o" 
+#$ g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" 
+
+
+Compilation of the CUDA compiler identification source "CMakeCUDACompilerId.cu" produced "a.out"
+
+The CUDA compiler identification is NVIDIA, found in "/global/homes/e/ewims/cqf/CMakeFiles/3.14.4/CompilerIdCUDA/a.out"
+
+Parsed CUDA nvcc implicit link information from above output:
+  found 'PATH=' string: [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/bin:/opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/sbin:/opt/cray/alps/default/bin:/opt/cray/job/2.2.4-7.0.1.1_3.48__g36b56f4.ari/bin:/opt/cray/pe/craype/2.6.2/bin:/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin:/opt/cray/pe/cce/9.1.0/binutils/x86_64/x86_64-pc-linux-gnu/bin:/opt/cray/pe/cce/9.1.0/binutils/cross/x86_64-aarch64/aarch64-linux-gnu/../bin:/opt/cray/pe/cce/9.1.0/utils/x86_64/bin:/usr/common/software/python/3.8-anaconda-2020.11/bin:/global/homes/e/ewims/.local/cori/3.8-anaconda-2020.11/bin:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/bin:/opt/esslurm/bin:/usr/common/software/bin:/usr/common/nsg/bin:/opt/ovis/bin:/opt/ovis/sbin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin:/opt/cray/pe/bin]
+  found 'LIBRARIES=' string: ["-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"]
+  considering line: [#$ rm tmp/a_dlink.reg.c]
+  considering line: [gcc -D__CUDA_ARCH__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" ]
+  considering line: [cicc --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused -nvvmir-library "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice/libdevice.10.bc" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"]
+  considering line: [ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" ]
+  considering line: [fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" ]
+  considering line: [gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [cudafe++ --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [gcc -D__CUDA_ARCH__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" ]
+  considering line: [nvlink --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -m64   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin"]
+    ignoring nvlink line
+  considering line: [fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" ]
+  considering line: [gcc -c -x c++ -DFATBINFILE="\"tmp/a_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"tmp/a_dlink.reg.c\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -m64 "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/crt/link.stub" -o "tmp/a_dlink.o" ]
+  considering line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    extracted link line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+  considering line: []
+  extracted link launcher name: [g++]
+  found link launcher absolute path: [/usr/bin/g++]
+
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  link line: [cuda-fake-ld g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    arg [cuda-fake-ld] ==> ignore
+    arg [g++] ==> ignore
+    arg [-m64] ==> ignore
+    arg [-Wl,--start-group] ==> ignore
+    arg [tmp/a_dlink.o] ==> ignore
+    arg [tmp/CMakeCUDACompilerId.o] ==> ignore
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs]
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib]
+    arg [-lcudadevrt] ==> lib [cudadevrt]
+    arg [-lcudart_static] ==> lib [cudart_static]
+    arg [-lrt] ==> lib [rt]
+    arg [-lpthread] ==> lib [pthread]
+    arg [-ldl] ==> lib [dl]
+    arg [-Wl,--end-group] ==> ignore
+    arg [-o] ==> ignore
+    arg [a.out] ==> ignore
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs]
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit libs: [cudadevrt;cudart_static;rt;pthread;dl]
+  implicit dirs: [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs;/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit fwks: []
+
+
+Parsed CUDA nvcc include information from above output:
+  found 'PATH=' string: [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/bin:/opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/sbin:/opt/cray/alps/default/bin:/opt/cray/job/2.2.4-7.0.1.1_3.48__g36b56f4.ari/bin:/opt/cray/pe/craype/2.6.2/bin:/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin:/opt/cray/pe/cce/9.1.0/binutils/x86_64/x86_64-pc-linux-gnu/bin:/opt/cray/pe/cce/9.1.0/binutils/cross/x86_64-aarch64/aarch64-linux-gnu/../bin:/opt/cray/pe/cce/9.1.0/utils/x86_64/bin:/usr/common/software/python/3.8-anaconda-2020.11/bin:/global/homes/e/ewims/.local/cori/3.8-anaconda-2020.11/bin:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/bin:/opt/esslurm/bin:/usr/common/software/bin:/usr/common/nsg/bin:/opt/ovis/bin:/opt/ovis/sbin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin:/opt/cray/pe/bin]
+  found 'LIBRARIES=' string: ["-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"]
+  considering line: [#$ rm tmp/a_dlink.reg.c]
+  considering line: [gcc -D__CUDA_ARCH__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" ]
+  considering line: [cicc --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused -nvvmir-library "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice/libdevice.10.bc" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"]
+  considering line: [ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" ]
+  considering line: [fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" ]
+  considering line: [gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [cudafe++ --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [gcc -D__CUDA_ARCH__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" ]
+  considering line: [nvlink --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -m64   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin"]
+    ignoring nvlink line
+  considering line: [fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" ]
+  considering line: [gcc -c -x c++ -DFATBINFILE="\"tmp/a_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"tmp/a_dlink.reg.c\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -m64 "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/crt/link.stub" -o "tmp/a_dlink.o" ]
+  considering line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    extracted link line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+  considering line: []
+  extracted link launcher name: [g++]
+  found link launcher absolute path: [/usr/bin/g++]
+  found 'INCLUDES=' string: ["-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"  ]
+
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  link line: [cuda-fake-ld g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    arg [cuda-fake-ld] ==> ignore
+    arg [g++] ==> ignore
+    arg [-m64] ==> ignore
+    arg [-Wl,--start-group] ==> ignore
+    arg [tmp/a_dlink.o] ==> ignore
+    arg [tmp/CMakeCUDACompilerId.o] ==> ignore
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs]
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib]
+    arg [-lcudadevrt] ==> lib [cudadevrt]
+    arg [-lcudart_static] ==> lib [cudart_static]
+    arg [-lrt] ==> lib [rt]
+    arg [-lpthread] ==> lib [pthread]
+    arg [-ldl] ==> lib [dl]
+    arg [-Wl,--end-group] ==> ignore
+    arg [-o] ==> ignore
+    arg [a.out] ==> ignore
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs]
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit libs: [cudadevrt;cudart_static;rt;pthread;dl]
+  implicit dirs: [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs;/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit fwks: []
+
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_3653d/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_3653d.dir/build.make CMakeFiles/cmTC_3653d.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_3653d.dir/testCCompiler.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc    -o CMakeFiles/cmTC_3653d.dir/testCCompiler.c.o   -c /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp/testCCompiler.c
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+Linking C executable cmTC_3653d
+/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3653d.dir/link.txt --verbose=1
+/opt/cray/pe/craype/2.6.2/bin/cc      CMakeFiles/cmTC_3653d.dir/testCCompiler.c.o  -o cmTC_3653d 
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_cc74e/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_cc74e.dir/build.make CMakeFiles/cmTC_cc74e.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc   -v -o CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o   -c /global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/share/cmake-3.14/Modules/CMakeCCompilerABI.c
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+Cray clang version 9.1.0 (1627cb50a92cc05a1e33c20dc9a43e23f5817e09) (based on LLVM 9.0.0)
+Target: x86_64-unknown-linux-gnu
+Thread model: posix
+InstalledDir: /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/share/../bin
+Found candidate GCC installation: /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0
+Selected GCC installation: /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0
+Candidate multilib: .;@m64
+Selected multilib: .;@m64
+Found CUDA installation: /global/common/cori_cle7/software/sles15_cgpu/cuda/11.1.1, version 7.0
+ "/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin/clang-9" -cc1 -triple x86_64-unknown-linux-gnu -fcray-gpu -fcray-openmp-rename-outlined-funcs -flocal-restrict -mllvm -cray-enhanced-asm=1 -fenhanced-asm=1 -mllvm -cray-enhanced-ir=1 -fenhanced-ir=1 -fomp-local-offload-table -ffortran -emit-obj -mrelax-all -disable-free -main-file-name CMakeCCompilerABI.c -mrelocation-model static -mthread-model posix -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -munwind-tables -fuse-init-array -target-cpu x86-64 -dwarf-column-info -debugger-tuning=gdb -v -coverage-notes-file /global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.gcno -resource-dir /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0 -isystem /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include -isystem /opt/cray/pe/cce/9.1.0/cce/x86_64/include/craylibs -D __CRAYXC -D __CRAY_X86_64 -D __CRAYXT_COMPUTE_LINUX_TARGET -I /opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/include -I /opt/cray/pe/mpt/7.7.10/gni/mpich-crayclang/9.0/include -I /opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/include -I /opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/include -I /opt/cray/xpmem/2.2.20-7.0.1.1_4.21__g0475745.ari/include -I /opt/cray/gni-headers/5.0.12.0-7.0.1.1_6.40__g3b1768f.ari/include -I /opt/cray/dmapp/7.1.1-7.0.1.1_4.62__g38cf134.ari/include -I /opt/cray/pe/pmi/5.0.14/include -I /opt/cray/ugni/6.0.14.0-7.0.1.1_7.51__ge78e5b0.ari/include -I /opt/cray/udreg/2.3.2-7.0.1.1_3.49__g8175d3d.ari/include -I /opt/cray/wlm_detect/1.3.3-7.0.1.1_4.20__g7109084.ari/include -I /opt/cray/krca/2.2.6-7.0.1.1_5.46__gb641b12.ari/include -I /opt/cray-hss-devel/9.0.0/include -I/usr/common/software/sles15_cgpu/boost/1.74.0/include -internal-isystem /usr/local/include -internal-isystem /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdebug-compilation-dir /global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp -ferror-limit 19 -fmessage-length 0 -fobjc-runtime=gcc -fdiagnostics-show-option -faddrsig -o CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o -x c /global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/share/cmake-3.14/Modules/CMakeCCompilerABI.c
+clang -cc1 version 9.0.0 based upon LLVM 9.0.0 default target x86_64-unknown-linux-gnu
+ignoring nonexistent directory "/include"
+ignoring duplicate directory "/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/include
+ /opt/cray/pe/mpt/7.7.10/gni/mpich-crayclang/9.0/include
+ /opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/include
+ /opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/include
+ /opt/cray/xpmem/2.2.20-7.0.1.1_4.21__g0475745.ari/include
+ /opt/cray/gni-headers/5.0.12.0-7.0.1.1_6.40__g3b1768f.ari/include
+ /opt/cray/dmapp/7.1.1-7.0.1.1_4.62__g38cf134.ari/include
+ /opt/cray/pe/pmi/5.0.14/include
+ /opt/cray/ugni/6.0.14.0-7.0.1.1_7.51__ge78e5b0.ari/include
+ /opt/cray/udreg/2.3.2-7.0.1.1_3.49__g8175d3d.ari/include
+ /opt/cray/wlm_detect/1.3.3-7.0.1.1_4.20__g7109084.ari/include
+ /opt/cray/krca/2.2.6-7.0.1.1_5.46__gb641b12.ari/include
+ /opt/cray-hss-devel/9.0.0/include
+ /usr/common/software/sles15_cgpu/boost/1.74.0/include
+ /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include
+ /opt/cray/pe/cce/9.1.0/cce/x86_64/include/craylibs
+ /usr/local/include
+ /usr/include
+End of search list.
+Linking C executable cmTC_cc74e
+/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cc74e.dir/link.txt --verbose=1
+/opt/cray/pe/craype/2.6.2/bin/cc     -v CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o  -o cmTC_cc74e 
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+Cray clang version 9.1.0 (1627cb50a92cc05a1e33c20dc9a43e23f5817e09) (based on LLVM 9.0.0)
+Target: x86_64-unknown-linux-gnu
+Thread model: posix
+InstalledDir: /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/share/../bin
+Found candidate GCC installation: /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0
+Selected GCC installation: /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0
+Candidate multilib: .;@m64
+Selected multilib: .;@m64
+Found CUDA installation: /global/common/cori_cle7/software/sles15_cgpu/cuda/11.1.1, version 7.0
+ "/opt/cray/pe/cce/9.1.0/binutils/x86_64/x86_64-pc-linux-gnu/bin/ld.gold" --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_cc74e /usr/lib/../lib64/crt1.o /usr/lib/../lib64/crti.o /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/crtbegin.o -L/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/lib -L/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64 -L/opt/cray/pe/atp/2.1.3/libApp -L/opt/cray/pe/cce/9.1.0/cce/x86_64/lib/pkgconfig/../ -L/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0 -L/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/../../.. -L/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin/../lib -L/lib -L/usr/lib -plugin /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin/../lib/LLVMgold.so -plugin-opt=lto=0 -plugin-opt=mcpu=x86-64 -rpath=/opt/cray/pe/cce/9.1.0/cce/x86_64/lib -rpath=/opt/cray/pe/gcc-libs CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o --no-as-needed -lAtpSigHandler -lAtpSigHCommData --undefined=_ATP_Data_Globals --undefined=__atpHandlerInstall -lrca --as-needed -lsci_cray_mpi --no-as-needed --as-needed -lsci_cray --no-as-needed --as-needed -lpgas-dmapp --no-as-needed -lquadmath -lmodules -lfi -lcraymath -lf -lu -lcsup --as-needed -lpthread -latomic --no-as-needed --as-needed -lm --no-as-needed -L/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib /opt/cray/pe/cce/9.1.0/cce/x86_64/lib/no_mmap.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/crtend.o /usr/lib/../lib64/crtn.o
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+Parsed C implicit include dir info from above output: rv=done
+  found start of include info
+  found start of implicit include info
+    add: [/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/include]
+    add: [/opt/cray/pe/mpt/7.7.10/gni/mpich-crayclang/9.0/include]
+    add: [/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/include]
+    add: [/opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/include]
+    add: [/opt/cray/xpmem/2.2.20-7.0.1.1_4.21__g0475745.ari/include]
+    add: [/opt/cray/gni-headers/5.0.12.0-7.0.1.1_6.40__g3b1768f.ari/include]
+    add: [/opt/cray/dmapp/7.1.1-7.0.1.1_4.62__g38cf134.ari/include]
+    add: [/opt/cray/pe/pmi/5.0.14/include]
+    add: [/opt/cray/ugni/6.0.14.0-7.0.1.1_7.51__ge78e5b0.ari/include]
+    add: [/opt/cray/udreg/2.3.2-7.0.1.1_3.49__g8175d3d.ari/include]
+    add: [/opt/cray/wlm_detect/1.3.3-7.0.1.1_4.20__g7109084.ari/include]
+    add: [/opt/cray/krca/2.2.6-7.0.1.1_5.46__gb641b12.ari/include]
+    add: [/opt/cray-hss-devel/9.0.0/include]
+    add: [/usr/common/software/sles15_cgpu/boost/1.74.0/include]
+    add: [/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include]
+    add: [/opt/cray/pe/cce/9.1.0/cce/x86_64/include/craylibs]
+    add: [/usr/local/include]
+    add: [/usr/include]
+  end of search list found
+  collapse include dir [/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/include] ==> [/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/include]
+  collapse include dir [/opt/cray/pe/mpt/7.7.10/gni/mpich-crayclang/9.0/include] ==> [/opt/cray/pe/mpt/7.7.10/gni/mpich-crayclang/9.0/include]
+  collapse include dir [/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/include] ==> [/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/include]
+  collapse include dir [/opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/include] ==> [/opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/include]
+  collapse include dir [/opt/cray/xpmem/2.2.20-7.0.1.1_4.21__g0475745.ari/include] ==> [/opt/cray/xpmem/2.2.20-7.0.1.1_4.21__g0475745.ari/include]
+  collapse include dir [/opt/cray/gni-headers/5.0.12.0-7.0.1.1_6.40__g3b1768f.ari/include] ==> [/opt/cray/gni-headers/5.0.12.0-7.0.1.1_6.40__g3b1768f.ari/include]
+  collapse include dir [/opt/cray/dmapp/7.1.1-7.0.1.1_4.62__g38cf134.ari/include] ==> [/opt/cray/dmapp/7.1.1-7.0.1.1_4.62__g38cf134.ari/include]
+  collapse include dir [/opt/cray/pe/pmi/5.0.14/include] ==> [/opt/cray/pe/pmi/5.0.14/include]
+  collapse include dir [/opt/cray/ugni/6.0.14.0-7.0.1.1_7.51__ge78e5b0.ari/include] ==> [/opt/cray/ugni/6.0.14.0-7.0.1.1_7.51__ge78e5b0.ari/include]
+  collapse include dir [/opt/cray/udreg/2.3.2-7.0.1.1_3.49__g8175d3d.ari/include] ==> [/opt/cray/udreg/2.3.2-7.0.1.1_3.49__g8175d3d.ari/include]
+  collapse include dir [/opt/cray/wlm_detect/1.3.3-7.0.1.1_4.20__g7109084.ari/include] ==> [/opt/cray/wlm_detect/1.3.3-7.0.1.1_4.20__g7109084.ari/include]
+  collapse include dir [/opt/cray/krca/2.2.6-7.0.1.1_5.46__gb641b12.ari/include] ==> [/opt/cray/krca/2.2.6-7.0.1.1_5.46__gb641b12.ari/include]
+  collapse include dir [/opt/cray-hss-devel/9.0.0/include] ==> [/opt/cray-hss-devel/9.0.0/include]
+  collapse include dir [/usr/common/software/sles15_cgpu/boost/1.74.0/include] ==> [/usr/common/software/sles15_cgpu/boost/1.74.0/include]
+  collapse include dir [/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include] ==> [/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include]
+  collapse include dir [/opt/cray/pe/cce/9.1.0/cce/x86_64/include/craylibs] ==> [/opt/cray/pe/cce/9.1.0/cce/x86_64/include/craylibs]
+  collapse include dir [/usr/local/include] ==> [/usr/local/include]
+  collapse include dir [/usr/include] ==> [/usr/include]
+  implicit include dirs: [/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/include;/opt/cray/pe/mpt/7.7.10/gni/mpich-crayclang/9.0/include;/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/include;/opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/include;/opt/cray/xpmem/2.2.20-7.0.1.1_4.21__g0475745.ari/include;/opt/cray/gni-headers/5.0.12.0-7.0.1.1_6.40__g3b1768f.ari/include;/opt/cray/dmapp/7.1.1-7.0.1.1_4.62__g38cf134.ari/include;/opt/cray/pe/pmi/5.0.14/include;/opt/cray/ugni/6.0.14.0-7.0.1.1_7.51__ge78e5b0.ari/include;/opt/cray/udreg/2.3.2-7.0.1.1_3.49__g8175d3d.ari/include;/opt/cray/wlm_detect/1.3.3-7.0.1.1_4.20__g7109084.ari/include;/opt/cray/krca/2.2.6-7.0.1.1_5.46__gb641b12.ari/include;/opt/cray-hss-devel/9.0.0/include;/usr/common/software/sles15_cgpu/boost/1.74.0/include;/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include;/opt/cray/pe/cce/9.1.0/cce/x86_64/include/craylibs;/usr/local/include;/usr/include]
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command(s):/usr/bin/gmake cmTC_cc74e/fast ]
+  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTC_cc74e.dir/build.make CMakeFiles/cmTC_cc74e.dir/build]
+  ignore line: [gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp']
+  ignore line: [Building C object CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/opt/cray/pe/craype/2.6.2/bin/cc   -v -o CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o   -c /global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/share/cmake-3.14/Modules/CMakeCCompilerABI.c]
+  ignore line: [No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.]
+  ignore line: [Load a valid targeting module or set CRAY_CPU_TARGET]
+  ignore line: [Cray clang version 9.1.0 (1627cb50a92cc05a1e33c20dc9a43e23f5817e09) (based on LLVM 9.0.0)]
+  ignore line: [Target: x86_64-unknown-linux-gnu]
+  ignore line: [Thread model: posix]
+  ignore line: [InstalledDir: /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/share/../bin]
+  ignore line: [Found candidate GCC installation: /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0]
+  ignore line: [Selected GCC installation: /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0]
+  ignore line: [Candidate multilib: .]
+  ignore line: [@m64]
+  ignore line: [Selected multilib: .]
+  ignore line: [@m64]
+  ignore line: [Found CUDA installation: /global/common/cori_cle7/software/sles15_cgpu/cuda/11.1.1, version 7.0]
+  ignore line: [ "/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin/clang-9" -cc1 -triple x86_64-unknown-linux-gnu -fcray-gpu -fcray-openmp-rename-outlined-funcs -flocal-restrict -mllvm -cray-enhanced-asm=1 -fenhanced-asm=1 -mllvm -cray-enhanced-ir=1 -fenhanced-ir=1 -fomp-local-offload-table -ffortran -emit-obj -mrelax-all -disable-free -main-file-name CMakeCCompilerABI.c -mrelocation-model static -mthread-model posix -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -munwind-tables -fuse-init-array -target-cpu x86-64 -dwarf-column-info -debugger-tuning=gdb -v -coverage-notes-file /global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.gcno -resource-dir /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0 -isystem /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include -isystem /opt/cray/pe/cce/9.1.0/cce/x86_64/include/craylibs -D __CRAYXC -D __CRAY_X86_64 -D __CRAYXT_COMPUTE_LINUX_TARGET -I /opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/include -I /opt/cray/pe/mpt/7.7.10/gni/mpich-crayclang/9.0/include -I /opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/include -I /opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/include -I /opt/cray/xpmem/2.2.20-7.0.1.1_4.21__g0475745.ari/include -I /opt/cray/gni-headers/5.0.12.0-7.0.1.1_6.40__g3b1768f.ari/include -I /opt/cray/dmapp/7.1.1-7.0.1.1_4.62__g38cf134.ari/include -I /opt/cray/pe/pmi/5.0.14/include -I /opt/cray/ugni/6.0.14.0-7.0.1.1_7.51__ge78e5b0.ari/include -I /opt/cray/udreg/2.3.2-7.0.1.1_3.49__g8175d3d.ari/include -I /opt/cray/wlm_detect/1.3.3-7.0.1.1_4.20__g7109084.ari/include -I /opt/cray/krca/2.2.6-7.0.1.1_5.46__gb641b12.ari/include -I /opt/cray-hss-devel/9.0.0/include -I/usr/common/software/sles15_cgpu/boost/1.74.0/include -internal-isystem /usr/local/include -internal-isystem /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdebug-compilation-dir /global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp -ferror-limit 19 -fmessage-length 0 -fobjc-runtime=gcc -fdiagnostics-show-option -faddrsig -o CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o -x c /global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/share/cmake-3.14/Modules/CMakeCCompilerABI.c]
+  ignore line: [clang -cc1 version 9.0.0 based upon LLVM 9.0.0 default target x86_64-unknown-linux-gnu]
+  ignore line: [ignoring nonexistent directory "/include"]
+  ignore line: [ignoring duplicate directory "/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include"]
+  ignore line: [#include "..." search starts here:]
+  ignore line: [#include <...> search starts here:]
+  ignore line: [ /opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/include]
+  ignore line: [ /opt/cray/pe/mpt/7.7.10/gni/mpich-crayclang/9.0/include]
+  ignore line: [ /opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/include]
+  ignore line: [ /opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/include]
+  ignore line: [ /opt/cray/xpmem/2.2.20-7.0.1.1_4.21__g0475745.ari/include]
+  ignore line: [ /opt/cray/gni-headers/5.0.12.0-7.0.1.1_6.40__g3b1768f.ari/include]
+  ignore line: [ /opt/cray/dmapp/7.1.1-7.0.1.1_4.62__g38cf134.ari/include]
+  ignore line: [ /opt/cray/pe/pmi/5.0.14/include]
+  ignore line: [ /opt/cray/ugni/6.0.14.0-7.0.1.1_7.51__ge78e5b0.ari/include]
+  ignore line: [ /opt/cray/udreg/2.3.2-7.0.1.1_3.49__g8175d3d.ari/include]
+  ignore line: [ /opt/cray/wlm_detect/1.3.3-7.0.1.1_4.20__g7109084.ari/include]
+  ignore line: [ /opt/cray/krca/2.2.6-7.0.1.1_5.46__gb641b12.ari/include]
+  ignore line: [ /opt/cray-hss-devel/9.0.0/include]
+  ignore line: [ /usr/common/software/sles15_cgpu/boost/1.74.0/include]
+  ignore line: [ /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib/clang/9.0.0/include]
+  ignore line: [ /opt/cray/pe/cce/9.1.0/cce/x86_64/include/craylibs]
+  ignore line: [ /usr/local/include]
+  ignore line: [ /usr/include]
+  ignore line: [End of search list.]
+  ignore line: [Linking C executable cmTC_cc74e]
+  ignore line: [/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cc74e.dir/link.txt --verbose=1]
+  ignore line: [/opt/cray/pe/craype/2.6.2/bin/cc     -v CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o  -o cmTC_cc74e ]
+  ignore line: [No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.]
+  ignore line: [Load a valid targeting module or set CRAY_CPU_TARGET]
+  ignore line: [Cray clang version 9.1.0 (1627cb50a92cc05a1e33c20dc9a43e23f5817e09) (based on LLVM 9.0.0)]
+  ignore line: [Target: x86_64-unknown-linux-gnu]
+  ignore line: [Thread model: posix]
+  ignore line: [InstalledDir: /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/share/../bin]
+  ignore line: [Found candidate GCC installation: /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0]
+  ignore line: [Selected GCC installation: /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0]
+  ignore line: [Candidate multilib: .]
+  ignore line: [@m64]
+  ignore line: [Selected multilib: .]
+  ignore line: [@m64]
+  ignore line: [Found CUDA installation: /global/common/cori_cle7/software/sles15_cgpu/cuda/11.1.1, version 7.0]
+  link line: [ "/opt/cray/pe/cce/9.1.0/binutils/x86_64/x86_64-pc-linux-gnu/bin/ld.gold" --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_cc74e /usr/lib/../lib64/crt1.o /usr/lib/../lib64/crti.o /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/crtbegin.o -L/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/lib -L/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64 -L/opt/cray/pe/atp/2.1.3/libApp -L/opt/cray/pe/cce/9.1.0/cce/x86_64/lib/pkgconfig/../ -L/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0 -L/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/../../.. -L/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin/../lib -L/lib -L/usr/lib -plugin /opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin/../lib/LLVMgold.so -plugin-opt=lto=0 -plugin-opt=mcpu=x86-64 -rpath=/opt/cray/pe/cce/9.1.0/cce/x86_64/lib -rpath=/opt/cray/pe/gcc-libs CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o --no-as-needed -lAtpSigHandler -lAtpSigHCommData --undefined=_ATP_Data_Globals --undefined=__atpHandlerInstall -lrca --as-needed -lsci_cray_mpi --no-as-needed --as-needed -lsci_cray --no-as-needed --as-needed -lpgas-dmapp --no-as-needed -lquadmath -lmodules -lfi -lcraymath -lf -lu -lcsup --as-needed -lpthread -latomic --no-as-needed --as-needed -lm --no-as-needed -L/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib /opt/cray/pe/cce/9.1.0/cce/x86_64/lib/no_mmap.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/crtend.o /usr/lib/../lib64/crtn.o]
+    arg [/opt/cray/pe/cce/9.1.0/binutils/x86_64/x86_64-pc-linux-gnu/bin/ld.gold] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_cc74e] ==> ignore
+    arg [/usr/lib/../lib64/crt1.o] ==> ignore
+    arg [/usr/lib/../lib64/crti.o] ==> ignore
+    arg [/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/crtbegin.o] ==> ignore
+    arg [-L/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/lib] ==> dir [/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/lib]
+    arg [-L/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64] ==> dir [/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64]
+    arg [-L/opt/cray/pe/atp/2.1.3/libApp] ==> dir [/opt/cray/pe/atp/2.1.3/libApp]
+    arg [-L/opt/cray/pe/cce/9.1.0/cce/x86_64/lib/pkgconfig/../] ==> dir [/opt/cray/pe/cce/9.1.0/cce/x86_64/lib/pkgconfig/../]
+    arg [-L/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0] ==> dir [/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0]
+    arg [-L/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/../../../../lib64] ==> dir [/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/../../../../lib64]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+    arg [-L/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/../../..] ==> dir [/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/../../..]
+    arg [-L/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin/../lib] ==> dir [/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin/../lib]
+    arg [-L/lib] ==> dir [/lib]
+    arg [-L/usr/lib] ==> dir [/usr/lib]
+    arg [-plugin] ==> ignore
+    arg [/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin/../lib/LLVMgold.so] ==> ignore
+    arg [-plugin-opt=lto=0] ==> ignore
+    arg [-plugin-opt=mcpu=x86-64] ==> ignore
+    arg [-rpath=/opt/cray/pe/cce/9.1.0/cce/x86_64/lib] ==> ignore
+    arg [-rpath=/opt/cray/pe/gcc-libs] ==> ignore
+    arg [CMakeFiles/cmTC_cc74e.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [--no-as-needed] ==> ignore
+    arg [-lAtpSigHandler] ==> lib [AtpSigHandler]
+    arg [-lAtpSigHCommData] ==> lib [AtpSigHCommData]
+    arg [--undefined=_ATP_Data_Globals] ==> ignore
+    arg [--undefined=__atpHandlerInstall] ==> ignore
+    arg [-lrca] ==> lib [rca]
+    arg [--as-needed] ==> ignore
+    arg [-lsci_cray_mpi] ==> lib [sci_cray_mpi]
+    arg [--no-as-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-lsci_cray] ==> lib [sci_cray]
+    arg [--no-as-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-lpgas-dmapp] ==> lib [pgas-dmapp]
+    arg [--no-as-needed] ==> ignore
+    arg [-lquadmath] ==> lib [quadmath]
+    arg [-lmodules] ==> lib [modules]
+    arg [-lfi] ==> lib [fi]
+    arg [-lcraymath] ==> lib [craymath]
+    arg [-lf] ==> lib [f]
+    arg [-lu] ==> lib [u]
+    arg [-lcsup] ==> lib [csup]
+    arg [--as-needed] ==> ignore
+    arg [-lpthread] ==> lib [pthread]
+    arg [-latomic] ==> lib [atomic]
+    arg [--no-as-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-lm] ==> lib [m]
+    arg [--no-as-needed] ==> ignore
+    arg [-L/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib] ==> dir [/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib]
+    arg [/opt/cray/pe/cce/9.1.0/cce/x86_64/lib/no_mmap.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/crtend.o] ==> ignore
+    arg [/usr/lib/../lib64/crtn.o] ==> ignore
+  collapse library dir [/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/lib] ==> [/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/lib]
+  collapse library dir [/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64] ==> [/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64]
+  collapse library dir [/opt/cray/pe/atp/2.1.3/libApp] ==> [/opt/cray/pe/atp/2.1.3/libApp]
+  collapse library dir [/opt/cray/pe/cce/9.1.0/cce/x86_64/lib/pkgconfig/../] ==> [/opt/cray/pe/cce/9.1.0/cce/x86_64/lib]
+  collapse library dir [/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0] ==> [/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0]
+  collapse library dir [/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/../../../../lib64] ==> [/opt/gcc/8.1.0/snos/lib64]
+  collapse library dir [/lib/../lib64] ==> [/lib64]
+  collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+  collapse library dir [/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0/../../..] ==> [/opt/gcc/8.1.0/snos/lib]
+  collapse library dir [/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/bin/../lib] ==> [/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib]
+  collapse library dir [/lib] ==> [/lib]
+  collapse library dir [/usr/lib] ==> [/usr/lib]
+  collapse library dir [/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib] ==> [/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib]
+  implicit libs: [AtpSigHandler;AtpSigHCommData;rca;sci_cray_mpi;sci_cray;pgas-dmapp;quadmath;modules;fi;craymath;f;u;csup;pthread;atomic;m;gcc;gcc_s;c;gcc;gcc_s]
+  implicit dirs: [/opt/cray/pe/libsci/19.06.1/CRAYCLANG/9.0/x86_64/lib;/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64;/opt/cray/pe/atp/2.1.3/libApp;/opt/cray/pe/cce/9.1.0/cce/x86_64/lib;/opt/gcc/8.1.0/snos/lib/gcc/x86_64-suse-linux/8.1.0;/opt/gcc/8.1.0/snos/lib64;/lib64;/usr/lib64;/opt/gcc/8.1.0/snos/lib;/opt/cray/pe/cce/9.1.0/cce-clang/x86_64/lib;/lib;/usr/lib;/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib]
+  implicit fwks: []
+
+
+
+
+Detecting C [-std=c11] compiler features compiled with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_26c73/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_26c73.dir/build.make CMakeFiles/cmTC_26c73.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_26c73.dir/feature_tests.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc   -std=c11 -o CMakeFiles/cmTC_26c73.dir/feature_tests.c.o   -c /global/homes/e/ewims/cqf/CMakeFiles/feature_tests.c
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+Linking C executable cmTC_26c73
+/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_26c73.dir/link.txt --verbose=1
+/opt/cray/pe/craype/2.6.2/bin/cc      CMakeFiles/cmTC_26c73.dir/feature_tests.c.o  -o cmTC_26c73 
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:1c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c99] compiler features compiled with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_219c5/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_219c5.dir/build.make CMakeFiles/cmTC_219c5.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_219c5.dir/feature_tests.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc   -std=c99 -o CMakeFiles/cmTC_219c5.dir/feature_tests.c.o   -c /global/homes/e/ewims/cqf/CMakeFiles/feature_tests.c
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+Linking C executable cmTC_219c5
+/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_219c5.dir/link.txt --verbose=1
+/opt/cray/pe/craype/2.6.2/bin/cc      CMakeFiles/cmTC_219c5.dir/feature_tests.c.o  -o cmTC_219c5 
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c90] compiler features compiled with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_f3ac8/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_f3ac8.dir/build.make CMakeFiles/cmTC_f3ac8.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_f3ac8.dir/feature_tests.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc   -std=c90 -o CMakeFiles/cmTC_f3ac8.dir/feature_tests.c.o   -c /global/homes/e/ewims/cqf/CMakeFiles/feature_tests.c
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+Linking C executable cmTC_f3ac8
+/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f3ac8.dir/link.txt --verbose=1
+/opt/cray/pe/craype/2.6.2/bin/cc      CMakeFiles/cmTC_f3ac8.dir/feature_tests.c.o  -o cmTC_f3ac8 
+No supported cpu target is set, CRAY_CPU_TARGET=x86-64 will be used.
+Load a valid targeting module or set CRAY_CPU_TARGET
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:0c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:0c_variadic_macros
+Determining if the CUDA compiler works passed with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_b1573/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_b1573.dir/build.make CMakeFiles/cmTC_b1573.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building CUDA object CMakeFiles/cmTC_b1573.dir/main.cu.o
+/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/nvcc     -x cu -c /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp/main.cu -o CMakeFiles/cmTC_b1573.dir/main.cu.o
+Linking CUDA device code CMakeFiles/cmTC_b1573.dir/cmake_device_link.o
+/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b1573.dir/dlink.txt --verbose=1
+/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/nvcc    -Xcompiler=-fPIC -Wno-deprecated-gpu-targets -shared -dlink CMakeFiles/cmTC_b1573.dir/main.cu.o -o CMakeFiles/cmTC_b1573.dir/cmake_device_link.o 
+Linking CUDA executable cmTC_b1573
+/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b1573.dir/link.txt --verbose=1
+/usr/bin/g++   CMakeFiles/cmTC_b1573.dir/main.cu.o CMakeFiles/cmTC_b1573.dir/cmake_device_link.o -o cmTC_b1573  -L"/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs" -L"/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib" -lcudadevrt -lcudart_static -lrt -lpthread -ldl
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+Detecting CUDA compiler ABI info compiled with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_2eadd/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_2eadd.dir/build.make CMakeFiles/cmTC_2eadd.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building CUDA object CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o
+/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/nvcc    -Xcompiler=-v -x cu -c /global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/share/cmake-3.14/Modules/CMakeCUDACompilerABI.cu -o CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o
+Using built-in specs.
+COLLECT_GCC=gcc
+OFFLOAD_TARGET_NAMES=hsa:nvptx-none
+Target: x86_64-suse-linux
+Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go --enable-offload-targets=hsa,nvptx-none, --without-cuda-driver --enable-checking=release --disable-werror --with-gxx-include-dir=/usr/include/c++/7 --enable-ssp --disable-libssp --disable-libvtv --disable-libcc1 --disable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-7 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --build=x86_64-suse-linux --host=x86_64-suse-linux
+Thread model: posix
+gcc version 7.5.0 (SUSE Linux) 
+COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-E' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=11' '-D' '__CUDACC_VER_MINOR__=1' '-D' '__CUDACC_VER_BUILD__=105' '-D' '__CUDA_API_VER_MAJOR__=11' '-D' '__CUDA_API_VER_MINOR__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_0000c835_00000000-7_CMakeCUDACompilerABI.cpp1.ii' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/7/cc1plus -E -quiet -v -I /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include -D_GNU_SOURCE -D __CUDA_ARCH__=520 -D CUDA_DOUBLE_MATH_FUNCTIONS -D __CUDACC__ -D __NVCC__ -D __CUDACC_VER_MAJOR__=11 -D __CUDACC_VER_MINOR__=1 -D __CUDACC_VER_BUILD__=105 -D __CUDA_API_VER_MAJOR__=11 -D __CUDA_API_VER_MINOR__=1 -include cuda_runtime.h /global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/share/cmake-3.14/Modules/CMakeCUDACompilerABI.cu -o /tmp/tmpxft_0000c835_00000000-7_CMakeCUDACompilerABI.cpp1.ii -m64 -mtune=generic -march=x86-64
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include
+ /usr/common/software/sles15_cgpu/boost/1.74.0/include
+ /usr/include/c++/7
+ /usr/include/c++/7/x86_64-suse-linux
+ /usr/include/c++/7/backward
+ /usr/lib64/gcc/x86_64-suse-linux/7/include
+ /usr/local/include
+ /usr/lib64/gcc/x86_64-suse-linux/7/include-fixed
+ /usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/include
+ /usr/include
+End of search list.
+COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/bin/
+LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-E' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=11' '-D' '__CUDACC_VER_MINOR__=1' '-D' '__CUDACC_VER_BUILD__=105' '-D' '__CUDA_API_VER_MAJOR__=11' '-D' '__CUDA_API_VER_MINOR__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_0000c835_00000000-7_CMakeCUDACompilerABI.cpp1.ii' '-mtune=generic' '-march=x86-64'
+Using built-in specs.
+COLLECT_GCC=gcc
+OFFLOAD_TARGET_NAMES=hsa:nvptx-none
+Target: x86_64-suse-linux
+Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go --enable-offload-targets=hsa,nvptx-none, --without-cuda-driver --enable-checking=release --disable-werror --with-gxx-include-dir=/usr/include/c++/7 --enable-ssp --disable-libssp --disable-libvtv --disable-libcc1 --disable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-7 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --build=x86_64-suse-linux --host=x86_64-suse-linux
+Thread model: posix
+gcc version 7.5.0 (SUSE Linux) 
+COLLECT_GCC_OPTIONS='-E' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=11' '-D' '__CUDACC_VER_MINOR__=1' '-D' '__CUDACC_VER_BUILD__=105' '-D' '__CUDA_API_VER_MAJOR__=11' '-D' '__CUDA_API_VER_MINOR__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_0000c835_00000000-5_CMakeCUDACompilerABI.cpp4.ii' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/7/cc1plus -E -quiet -v -I /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include -D_GNU_SOURCE -D __CUDACC__ -D __NVCC__ -D __CUDACC_VER_MAJOR__=11 -D __CUDACC_VER_MINOR__=1 -D __CUDACC_VER_BUILD__=105 -D __CUDA_API_VER_MAJOR__=11 -D __CUDA_API_VER_MINOR__=1 -include cuda_runtime.h /global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/share/cmake-3.14/Modules/CMakeCUDACompilerABI.cu -o /tmp/tmpxft_0000c835_00000000-5_CMakeCUDACompilerABI.cpp4.ii -m64 -mtune=generic -march=x86-64
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include
+ /usr/common/software/sles15_cgpu/boost/1.74.0/include
+ /usr/include/c++/7
+ /usr/include/c++/7/x86_64-suse-linux
+ /usr/include/c++/7/backward
+ /usr/lib64/gcc/x86_64-suse-linux/7/include
+ /usr/local/include
+ /usr/lib64/gcc/x86_64-suse-linux/7/include-fixed
+ /usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/include
+ /usr/include
+End of search list.
+COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/bin/
+LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-E' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=11' '-D' '__CUDACC_VER_MINOR__=1' '-D' '__CUDACC_VER_BUILD__=105' '-D' '__CUDA_API_VER_MAJOR__=11' '-D' '__CUDA_API_VER_MINOR__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_0000c835_00000000-5_CMakeCUDACompilerABI.cpp4.ii' '-mtune=generic' '-march=x86-64'
+Using built-in specs.
+COLLECT_GCC=gcc
+OFFLOAD_TARGET_NAMES=hsa:nvptx-none
+Target: x86_64-suse-linux
+Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go --enable-offload-targets=hsa,nvptx-none, --without-cuda-driver --enable-checking=release --disable-werror --with-gxx-include-dir=/usr/include/c++/7 --enable-ssp --disable-libssp --disable-libvtv --disable-libcc1 --disable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-7 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --build=x86_64-suse-linux --host=x86_64-suse-linux
+Thread model: posix
+gcc version 7.5.0 (SUSE Linux) 
+COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/7/cc1plus -quiet -v -I /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include -D_GNU_SOURCE -D __CUDA_ARCH__=520 -D CUDA_DOUBLE_MATH_FUNCTIONS /tmp/tmpxft_0000c835_00000000-6_CMakeCUDACompilerABI.cudafe1.cpp -quiet -dumpbase tmpxft_0000c835_00000000-6_CMakeCUDACompilerABI.cudafe1.cpp -m64 -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o -version -o /tmp/ccm2GOxI.s
+GNU C++14 (SUSE Linux) version 7.5.0 (x86_64-suse-linux)
+	compiled by GNU C version 7.5.0, GMP version 6.1.2, MPFR version 4.0.1, MPC version 1.1.0, isl version isl-0.18-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include
+ /usr/common/software/sles15_cgpu/boost/1.74.0/include
+ /usr/include/c++/7
+ /usr/include/c++/7/x86_64-suse-linux
+ /usr/include/c++/7/backward
+ /usr/lib64/gcc/x86_64-suse-linux/7/include
+ /usr/local/include
+ /usr/lib64/gcc/x86_64-suse-linux/7/include-fixed
+ /usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/include
+ /usr/include
+End of search list.
+GNU C++14 (SUSE Linux) version 7.5.0 (x86_64-suse-linux)
+	compiled by GNU C version 7.5.0, GMP version 6.1.2, MPFR version 4.0.1, MPC version 1.1.0, isl version isl-0.18-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+Compiler executable checksum: 603c31811512fd6d76d3d6d8d8a9b940
+COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/bin/as -v -I /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include --64 -o CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o /tmp/ccm2GOxI.s
+GNU assembler version 2.35.1 (x86_64-suse-linux) using BFD version (GNU Binutils; SUSE Linux Enterprise 15) 2.35.1.20201123-6.20
+COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/bin/
+LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64'
+Linking CUDA device code CMakeFiles/cmTC_2eadd.dir/cmake_device_link.o
+/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2eadd.dir/dlink.txt --verbose=1
+/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/nvcc    -Xcompiler=-fPIC -Wno-deprecated-gpu-targets -shared -dlink CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o -o CMakeFiles/cmTC_2eadd.dir/cmake_device_link.o 
+Linking CUDA executable cmTC_2eadd
+/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2eadd.dir/link.txt --verbose=1
+/usr/bin/g++  -v CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o CMakeFiles/cmTC_2eadd.dir/cmake_device_link.o -o cmTC_2eadd  -L"/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs" -L"/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib" -lcudadevrt -lcudart_static -lrt -lpthread -ldl
+Using built-in specs.
+COLLECT_GCC=/usr/bin/g++
+COLLECT_LTO_WRAPPER=/usr/lib64/gcc/x86_64-suse-linux/7/lto-wrapper
+OFFLOAD_TARGET_NAMES=hsa:nvptx-none
+Target: x86_64-suse-linux
+Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go --enable-offload-targets=hsa,nvptx-none, --without-cuda-driver --enable-checking=release --disable-werror --with-gxx-include-dir=/usr/include/c++/7 --enable-ssp --disable-libssp --disable-libvtv --disable-libcc1 --disable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-7 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --build=x86_64-suse-linux --host=x86_64-suse-linux
+Thread model: posix
+gcc version 7.5.0 (SUSE Linux) 
+COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/bin/
+LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_2eadd' '-L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs' '-L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/7/collect2 -plugin /usr/lib64/gcc/x86_64-suse-linux/7/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccaujlhk.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_2eadd /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/7/crtbegin.o -L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs -L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/7 -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/7/../../.. CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o CMakeFiles/cmTC_2eadd.dir/cmake_device_link.o -lcudadevrt -lcudart_static -lrt -lpthread -ldl -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-suse-linux/7/crtend.o /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_2eadd' '-L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs' '-L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+Parsed CUDA implicit include dir info from above output: rv=done
+  found start of include info
+  found start of implicit include info
+    add: [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include]
+    add: [/usr/common/software/sles15_cgpu/boost/1.74.0/include]
+    add: [/usr/include/c++/7]
+    add: [/usr/include/c++/7/x86_64-suse-linux]
+    add: [/usr/include/c++/7/backward]
+    add: [/usr/lib64/gcc/x86_64-suse-linux/7/include]
+    add: [/usr/local/include]
+    add: [/usr/lib64/gcc/x86_64-suse-linux/7/include-fixed]
+    add: [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/include]
+    add: [/usr/include]
+  end of search list found
+  collapse include dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/include]
+  collapse include dir [/usr/common/software/sles15_cgpu/boost/1.74.0/include] ==> [/usr/common/software/sles15_cgpu/boost/1.74.0/include]
+  collapse include dir [/usr/include/c++/7] ==> [/usr/include/c++/7]
+  collapse include dir [/usr/include/c++/7/x86_64-suse-linux] ==> [/usr/include/c++/7/x86_64-suse-linux]
+  collapse include dir [/usr/include/c++/7/backward] ==> [/usr/include/c++/7/backward]
+  collapse include dir [/usr/lib64/gcc/x86_64-suse-linux/7/include] ==> [/usr/lib64/gcc/x86_64-suse-linux/7/include]
+  collapse include dir [/usr/local/include] ==> [/usr/local/include]
+  collapse include dir [/usr/lib64/gcc/x86_64-suse-linux/7/include-fixed] ==> [/usr/lib64/gcc/x86_64-suse-linux/7/include-fixed]
+  collapse include dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/include] ==> [/usr/x86_64-suse-linux/include]
+  collapse include dir [/usr/include] ==> [/usr/include]
+  implicit include dirs: [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/include;/usr/common/software/sles15_cgpu/boost/1.74.0/include;/usr/include/c++/7;/usr/include/c++/7/x86_64-suse-linux;/usr/include/c++/7/backward;/usr/lib64/gcc/x86_64-suse-linux/7/include;/usr/local/include;/usr/lib64/gcc/x86_64-suse-linux/7/include-fixed;/usr/x86_64-suse-linux/include;/usr/include]
+
+
+Parsed CUDA implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command(s):/usr/bin/gmake cmTC_2eadd/fast ]
+  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTC_2eadd.dir/build.make CMakeFiles/cmTC_2eadd.dir/build]
+  ignore line: [gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp']
+  ignore line: [Building CUDA object CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o]
+  ignore line: [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/nvcc    -Xcompiler=-v -x cu -c /global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/share/cmake-3.14/Modules/CMakeCUDACompilerABI.cu -o CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=gcc]
+  ignore line: [OFFLOAD_TARGET_NAMES=hsa:nvptx-none]
+  ignore line: [Target: x86_64-suse-linux]
+  ignore line: [Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go --enable-offload-targets=hsa,nvptx-none, --without-cuda-driver --enable-checking=release --disable-werror --with-gxx-include-dir=/usr/include/c++/7 --enable-ssp --disable-libssp --disable-libvtv --disable-libcc1 --disable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-7 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --build=x86_64-suse-linux --host=x86_64-suse-linux]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 7.5.0 (SUSE Linux) ]
+  ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-E' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=11' '-D' '__CUDACC_VER_MINOR__=1' '-D' '__CUDACC_VER_BUILD__=105' '-D' '__CUDA_API_VER_MAJOR__=11' '-D' '__CUDA_API_VER_MINOR__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_0000c835_00000000-7_CMakeCUDACompilerABI.cpp1.ii' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/cc1plus -E -quiet -v -I /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include -D_GNU_SOURCE -D __CUDA_ARCH__=520 -D CUDA_DOUBLE_MATH_FUNCTIONS -D __CUDACC__ -D __NVCC__ -D __CUDACC_VER_MAJOR__=11 -D __CUDACC_VER_MINOR__=1 -D __CUDACC_VER_BUILD__=105 -D __CUDA_API_VER_MAJOR__=11 -D __CUDA_API_VER_MINOR__=1 -include cuda_runtime.h /global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/share/cmake-3.14/Modules/CMakeCUDACompilerABI.cu -o /tmp/tmpxft_0000c835_00000000-7_CMakeCUDACompilerABI.cpp1.ii -m64 -mtune=generic -march=x86-64]
+  ignore line: [#include "..." search starts here:]
+  ignore line: [#include <...> search starts here:]
+  ignore line: [ /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include]
+  ignore line: [ /usr/common/software/sles15_cgpu/boost/1.74.0/include]
+  ignore line: [ /usr/include/c++/7]
+  ignore line: [ /usr/include/c++/7/x86_64-suse-linux]
+  ignore line: [ /usr/include/c++/7/backward]
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/include]
+  ignore line: [ /usr/local/include]
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/include-fixed]
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/include]
+  ignore line: [ /usr/include]
+  ignore line: [End of search list.]
+  ignore line: [COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/bin/]
+  ignore line: [LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-E' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=11' '-D' '__CUDACC_VER_MINOR__=1' '-D' '__CUDACC_VER_BUILD__=105' '-D' '__CUDA_API_VER_MAJOR__=11' '-D' '__CUDA_API_VER_MINOR__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_0000c835_00000000-7_CMakeCUDACompilerABI.cpp1.ii' '-mtune=generic' '-march=x86-64']
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=gcc]
+  ignore line: [OFFLOAD_TARGET_NAMES=hsa:nvptx-none]
+  ignore line: [Target: x86_64-suse-linux]
+  ignore line: [Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go --enable-offload-targets=hsa,nvptx-none, --without-cuda-driver --enable-checking=release --disable-werror --with-gxx-include-dir=/usr/include/c++/7 --enable-ssp --disable-libssp --disable-libvtv --disable-libcc1 --disable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-7 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --build=x86_64-suse-linux --host=x86_64-suse-linux]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 7.5.0 (SUSE Linux) ]
+  ignore line: [COLLECT_GCC_OPTIONS='-E' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=11' '-D' '__CUDACC_VER_MINOR__=1' '-D' '__CUDACC_VER_BUILD__=105' '-D' '__CUDA_API_VER_MAJOR__=11' '-D' '__CUDA_API_VER_MINOR__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_0000c835_00000000-5_CMakeCUDACompilerABI.cpp4.ii' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/cc1plus -E -quiet -v -I /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include -D_GNU_SOURCE -D __CUDACC__ -D __NVCC__ -D __CUDACC_VER_MAJOR__=11 -D __CUDACC_VER_MINOR__=1 -D __CUDACC_VER_BUILD__=105 -D __CUDA_API_VER_MAJOR__=11 -D __CUDA_API_VER_MINOR__=1 -include cuda_runtime.h /global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/share/cmake-3.14/Modules/CMakeCUDACompilerABI.cu -o /tmp/tmpxft_0000c835_00000000-5_CMakeCUDACompilerABI.cpp4.ii -m64 -mtune=generic -march=x86-64]
+  ignore line: [#include "..." search starts here:]
+  ignore line: [#include <...> search starts here:]
+  ignore line: [ /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include]
+  ignore line: [ /usr/common/software/sles15_cgpu/boost/1.74.0/include]
+  ignore line: [ /usr/include/c++/7]
+  ignore line: [ /usr/include/c++/7/x86_64-suse-linux]
+  ignore line: [ /usr/include/c++/7/backward]
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/include]
+  ignore line: [ /usr/local/include]
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/include-fixed]
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/include]
+  ignore line: [ /usr/include]
+  ignore line: [End of search list.]
+  ignore line: [COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/bin/]
+  ignore line: [LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-E' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=11' '-D' '__CUDACC_VER_MINOR__=1' '-D' '__CUDACC_VER_BUILD__=105' '-D' '__CUDA_API_VER_MAJOR__=11' '-D' '__CUDA_API_VER_MINOR__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_0000c835_00000000-5_CMakeCUDACompilerABI.cpp4.ii' '-mtune=generic' '-march=x86-64']
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=gcc]
+  ignore line: [OFFLOAD_TARGET_NAMES=hsa:nvptx-none]
+  ignore line: [Target: x86_64-suse-linux]
+  ignore line: [Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go --enable-offload-targets=hsa,nvptx-none, --without-cuda-driver --enable-checking=release --disable-werror --with-gxx-include-dir=/usr/include/c++/7 --enable-ssp --disable-libssp --disable-libvtv --disable-libcc1 --disable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-7 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --build=x86_64-suse-linux --host=x86_64-suse-linux]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 7.5.0 (SUSE Linux) ]
+  ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/cc1plus -quiet -v -I /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include -D_GNU_SOURCE -D __CUDA_ARCH__=520 -D CUDA_DOUBLE_MATH_FUNCTIONS /tmp/tmpxft_0000c835_00000000-6_CMakeCUDACompilerABI.cudafe1.cpp -quiet -dumpbase tmpxft_0000c835_00000000-6_CMakeCUDACompilerABI.cudafe1.cpp -m64 -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o -version -o /tmp/ccm2GOxI.s]
+  ignore line: [GNU C++14 (SUSE Linux) version 7.5.0 (x86_64-suse-linux)]
+  ignore line: [	compiled by GNU C version 7.5.0, GMP version 6.1.2, MPFR version 4.0.1, MPC version 1.1.0, isl version isl-0.18-GMP]
+  ignore line: []
+  ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+  ignore line: [#include "..." search starts here:]
+  ignore line: [#include <...> search starts here:]
+  ignore line: [ /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include]
+  ignore line: [ /usr/common/software/sles15_cgpu/boost/1.74.0/include]
+  ignore line: [ /usr/include/c++/7]
+  ignore line: [ /usr/include/c++/7/x86_64-suse-linux]
+  ignore line: [ /usr/include/c++/7/backward]
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/include]
+  ignore line: [ /usr/local/include]
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/include-fixed]
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/include]
+  ignore line: [ /usr/include]
+  ignore line: [End of search list.]
+  ignore line: [GNU C++14 (SUSE Linux) version 7.5.0 (x86_64-suse-linux)]
+  ignore line: [	compiled by GNU C version 7.5.0, GMP version 6.1.2, MPFR version 4.0.1, MPC version 1.1.0, isl version isl-0.18-GMP]
+  ignore line: []
+  ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+  ignore line: [Compiler executable checksum: 603c31811512fd6d76d3d6d8d8a9b940]
+  ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/bin/as -v -I /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include --64 -o CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o /tmp/ccm2GOxI.s]
+  ignore line: [GNU assembler version 2.35.1 (x86_64-suse-linux) using BFD version (GNU Binutils]
+  ignore line: [ SUSE Linux Enterprise 15) 2.35.1.20201123-6.20]
+  ignore line: [COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/bin/]
+  ignore line: [LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64']
+  ignore line: [Linking CUDA device code CMakeFiles/cmTC_2eadd.dir/cmake_device_link.o]
+  ignore line: [/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2eadd.dir/dlink.txt --verbose=1]
+  ignore line: [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/nvcc    -Xcompiler=-fPIC -Wno-deprecated-gpu-targets -shared -dlink CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o -o CMakeFiles/cmTC_2eadd.dir/cmake_device_link.o ]
+  ignore line: [Linking CUDA executable cmTC_2eadd]
+  ignore line: [/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2eadd.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/g++  -v CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o CMakeFiles/cmTC_2eadd.dir/cmake_device_link.o -o cmTC_2eadd  -L"/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs" -L"/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib" -lcudadevrt -lcudart_static -lrt -lpthread -ldl]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/g++]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib64/gcc/x86_64-suse-linux/7/lto-wrapper]
+  ignore line: [OFFLOAD_TARGET_NAMES=hsa:nvptx-none]
+  ignore line: [Target: x86_64-suse-linux]
+  ignore line: [Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go --enable-offload-targets=hsa,nvptx-none, --without-cuda-driver --enable-checking=release --disable-werror --with-gxx-include-dir=/usr/include/c++/7 --enable-ssp --disable-libssp --disable-libvtv --disable-libcc1 --disable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-7 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --build=x86_64-suse-linux --host=x86_64-suse-linux]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 7.5.0 (SUSE Linux) ]
+  ignore line: [COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/bin/]
+  ignore line: [LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/7/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/7/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_2eadd' '-L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs' '-L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib64/gcc/x86_64-suse-linux/7/collect2 -plugin /usr/lib64/gcc/x86_64-suse-linux/7/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccaujlhk.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_2eadd /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/7/crtbegin.o -L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs -L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/7 -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/7/../../.. CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o CMakeFiles/cmTC_2eadd.dir/cmake_device_link.o -lcudadevrt -lcudart_static -lrt -lpthread -ldl -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-suse-linux/7/crtend.o /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crtn.o]
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/7/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccaujlhk.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_2eadd] ==> ignore
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crt1.o] ==> ignore
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crti.o] ==> ignore
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/crtbegin.o] ==> ignore
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs]
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+    arg [-L/usr/lib64/gcc/x86_64-suse-linux/7] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/7]
+    arg [-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+    arg [-L/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib] ==> dir [/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib]
+    arg [-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib]
+    arg [-L/usr/lib64/gcc/x86_64-suse-linux/7/../../..] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../..]
+    arg [CMakeFiles/cmTC_2eadd.dir/CMakeCUDACompilerABI.cu.o] ==> ignore
+    arg [CMakeFiles/cmTC_2eadd.dir/cmake_device_link.o] ==> ignore
+    arg [-lcudadevrt] ==> lib [cudadevrt]
+    arg [-lcudart_static] ==> lib [cudart_static]
+    arg [-lrt] ==> lib [rt]
+    arg [-lpthread] ==> lib [pthread]
+    arg [-ldl] ==> lib [dl]
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/crtend.o] ==> ignore
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crtn.o] ==> ignore
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs]
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  collapse library dir [/usr/lib64/gcc/x86_64-suse-linux/7] ==> [/usr/lib64/gcc/x86_64-suse-linux/7]
+  collapse library dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64] ==> [/usr/lib64]
+  collapse library dir [/lib/../lib64] ==> [/lib64]
+  collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+  collapse library dir [/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib] ==> [/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib]
+  collapse library dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib] ==> [/usr/x86_64-suse-linux/lib]
+  collapse library dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../..] ==> [/usr/lib64]
+  implicit libs: [cudadevrt;cudart_static;rt;pthread;dl;stdc++;m;gcc_s;gcc;c;gcc_s;gcc]
+  implicit dirs: [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs;/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib;/usr/lib64/gcc/x86_64-suse-linux/7;/usr/lib64;/lib64;/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib;/usr/x86_64-suse-linux/lib]
+  implicit fwks: []
+
+
