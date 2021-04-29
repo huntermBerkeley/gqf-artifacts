@@ -7,11 +7,13 @@
  * ============================================================================
  */
 
-#ifndef _GQF_H_
-#define _GQF_H_
-
+#ifndef _GQF_CUH_
+#define _GQF_CUH_
+extern "C" {
 #include <inttypes.h>
 #include <stdbool.h>
+}
+
 
 
 
@@ -328,4 +330,4 @@
 
 
 
-#endif /* _GQF_H_ */
+#endif /* _GQF_CUH_ */
