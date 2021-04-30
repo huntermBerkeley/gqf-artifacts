@@ -1429,7 +1429,7 @@ static inline int insert1(QF* qf, __uint128_t hash, uint8_t runtime_lock)
 }
 
 
-static inline int insert1_gpu(QF* qf, __uint128_t hash, int last_slot, uint8_t runtime_lock)
+static inline int insert1_gpu(QF* qf, __uint128_t hash, int last_slot)
 {
 	int ret_distance = 0;
 	uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
