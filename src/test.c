@@ -22,6 +22,7 @@
 #include "include/gqf.h"
 #include "include/gqf_int.h"
 #include "include/gqf_file.h"
+#include "hashutil.h"
 
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
