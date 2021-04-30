@@ -1,5 +1,3 @@
-module swap PrgEnv-intel PrgEnv-gnu
-module load esslurm
 module purge
 module load cgpu
 module load pgi
