@@ -133,7 +133,8 @@ int main(int argc, char **argv)
 		printf("%lx\n", vals[i]);
 	}
 	*/
-	qf_insert_gpu(&qf, vals, 0, key_count, nvals, nslots,  qbits, QF_NO_LOCK);
+	 //changed so key_count is always 1
+	qf_insert_gpu(&qf, vals, 0, nvals, nslots,  qbits);
 	printf("FINISHED THE INSERT\n");
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {

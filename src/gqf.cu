@@ -2245,10 +2245,10 @@ static inline int find_last_thread_slot(QF* qf, int num_threads, int tid) {
 	return last_slot;
 }
 
-void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint64_t qbits, uint8_t
-	flags) {
-	
-	
+
+void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint64_t nslots, uint64_t qbits) {
+
+
 	printarray(keys, nvals);
 	/*
 	find_thread_start(qf, keys, 1, 6, nvals, qbits);
@@ -2259,7 +2259,6 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	*/
 	int blocksPerRegion = 1;
 	int numRegions = qf->metadata->nblocks;
-
 	int num_threads = 10;
 	//t_start and end refer to indexes in the keys array
 	int t_start;
@@ -2274,7 +2273,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 	int num_iter = 0;
 	bool fin = false;
 	bool go_next_thread = false;
-	while (fin ==false) {
+	while (fin == false) {
 		printf("-----while loop reset; num_iter -----------%d  %d\n", num_iter, fin);
 		fin = true;
 		block_offset = block_offset + (block_size / 2) * num_iter;
@@ -2298,14 +2297,11 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 				t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 			}
 			thread_done[tid] = thread_done[tid] > t_start ? thread_done[tid] : t_start;
-			while (thread_done[tid]< t_end && go_next_thread == false){
+			while (thread_done[tid] < t_end && go_next_thread == false) {
 
 				uint64_t key = keys[thread_done[tid]];
 
 				//resizing would happen here
-
-				if (count == 0)
-					return;
 				/*
 				* Hashing has to happen beforethis
 				if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
@@ -2317,10 +2313,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 				*/
 				uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
 				int ret;
-				if (count == 1)
-					ret = insert1_gpu(qf, hash, last_slot, flags);
-				else
-					ret = insert(qf, hash, count, flags);
+				ret = insert1_gpu(qf, hash, last_slot);
 				//printf("ret %d;\n", ret);
 				if (ret == QF_END_OF_THREAD) {
 					printf("**hit boundary, going next\n");
@@ -2329,7 +2322,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 					//continue is just for serial-on GPU it'll be each thread waiting for next iter
 					continue;
 				}
-				thread_done[tid] = thread_done[tid]+1;
+				thread_done[tid] = thread_done[tid] + 1;
 				// check for fullness based on the distance from the home slot to the slot
 				// in which the key is inserted
 				if (ret == QF_NO_SPACE || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
@@ -2341,10 +2334,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 						if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) > 0)
 						{
 							if (ret == QF_NO_SPACE) {
-								if (count == 1)
-									ret = insert1(qf, hash, flags);
-								else
-									ret = insert(qf, hash, count, flags);
+								ret = insert1_gpu(qf, hash, last_slot);
 							}
 							fprintf(stderr, "Resize finished.\n");
 						}
@@ -2359,11 +2349,12 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint6
 					}
 				}
 			}
-			
+
 		}
 		num_iter++;
 	}
 }
+
 int qf_set_count(QF* qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 	flags)
 {
