@@ -3,7 +3,11 @@
 
 *.cqf
 *.o
-
+out/*
+CMakeFiles/*
 main
 bm
+test
+test_pc
+test_threadsafe
 
