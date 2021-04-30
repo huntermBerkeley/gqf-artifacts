@@ -7,12 +7,15 @@
  * ============================================================================
  */
 
-#ifndef _GQF_CUH_
-#define _GQF_CUH_
-extern "C" {
+#ifndef _GQF_H_
+#define _GQF_H_
+
 #include <inttypes.h>
 #include <stdbool.h>
-}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 
@@ -329,5 +332,9 @@ extern "C" {
 
 
 
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* _GQF_CUH_ */
+#endif /* _GQF_H_ */
+
