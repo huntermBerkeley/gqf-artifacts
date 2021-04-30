@@ -1,5 +1,3 @@
-module swap PrgEnv-intel PrgEnv-gnu
-module load esslurm
 module purge
 module load cgpu
 module load pgi
@@ -9,7 +7,3 @@ module load openmpi
 module load boost
 module load python
 
-export COMBBLAS_HOME=$PWD
-export BLOOM_HOME=$PWD/src/libbloom/
-export SEQAN_HOME=$PWD/seqan
-export MYPROJDIR=$PWD
