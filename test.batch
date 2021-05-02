@@ -7,6 +7,6 @@
 #SBATCH -J multiblock_scan
 #SBATCH -o multiblock_scan.o%j
 #SBATCH -q regular
-#SBATCH -A m2865 
+#SBATCH -A mp309 
 echo "srun -N 1 -n 1 ./test"
 srun -N 1 -n 1 ./test $(20) $(8)

@@ -1,0 +1,11 @@
+#!/bin/bash -l
+#SBATCH -A mp309
+#SBATCH -N 1
+#SBATCH -c 10
+#SBATCH -G 1
+#SBATCH -C gpu
+#SBATCH -t 5:00
+#SBATCH -J test
+#SBATCH -o test.o%j
+#SBATCH -p debug
+
