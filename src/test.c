@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 	uint64_t* hashes;
 	printf("nvals: %lu\n", nvals);
 	/* Initialise the CQF */
-	/*if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, 0)) {*/
+	/*if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_NONE, 0)) {*/
 	/*fprintf(stderr, "Can't allocate CQF.\n");*/
 	/*abort();*/
 	/*}*/

@@ -1429,7 +1429,7 @@ static inline int insert1(QF* qf, __uint128_t hash, uint8_t runtime_lock)
 }
 
 
-static inline int insert1_gpu(QF* qf, __uint128_t hash, int last_slot)
+static inline int insert1_gpu(QF* qf, __uint128_t hash, int last_slot, int prev_last)
 {
 	int ret_distance = 0;
 	uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
@@ -1463,7 +1463,9 @@ static inline int insert1_gpu(QF* qf, __uint128_t hash, int last_slot)
 		if (cluster_end > last_slot) {
 			return  QF_END_OF_THREAD;
 		}
-
+		if (cluster_end < prev_last) {
+			printf("ERROR-writing in previous block's zone\n");
+		}
 		int operation = 0; /* Insert into empty bucket */
 		uint64_t insert_index = runend_index + 1;
 		uint64_t new_value = hash_remainder;
@@ -2283,6 +2285,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 			int next_thread = tid + 1;
 			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
 			int last_slot = block_size * (tid + 1) + block_offset;
+			int prev_last = block_size * (tid)+block_offset;
 			printf("-tid %d; blstart %d; blend %d; nvals %ld \n", tid, t_start, t_end, nvals);
 			printf("-tid %d; last slot is %d; nslots %d\n", tid, last_slot, qf->metadata->nslots);
 			printf("-last slot doen before %d\n", thread_done[tid]);
@@ -2313,7 +2316,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 				*/
 				uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
 				int ret;
-				ret = insert1_gpu(qf, hash, last_slot);
+				ret = insert1_gpu(qf, hash, last_slot, prev_last);
 				//printf("ret %d;\n", ret);
 				if (ret == QF_END_OF_THREAD) {
 					printf("**hit boundary, going next\n");
@@ -2329,24 +2332,10 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 					float load_factor = qf_get_num_occupied_slots(qf) /
 						(float)qf->metadata->nslots;
 					fprintf(stdout, "Load factor: %lf\n", load_factor);
-					if (qf->runtimedata->auto_resize) {
-						fprintf(stdout, "Resizing the CQF.\n");
-						if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) > 0)
-						{
-							if (ret == QF_NO_SPACE) {
-								ret = insert1_gpu(qf, hash, last_slot);
-							}
-							fprintf(stderr, "Resize finished.\n");
-						}
-						else {
-							fprintf(stderr, "Resize failed\n");
-							ret = QF_NO_SPACE;
-						}
-					}
-					else {
+
 						fprintf(stderr, "The CQF is filling up.\n");
 						ret = QF_NO_SPACE;
-					}
+					
 				}
 			}
 
