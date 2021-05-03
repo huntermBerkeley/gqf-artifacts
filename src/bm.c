@@ -10,7 +10,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <openssl/rand.h>
+//#include <openssl/rand.h>
 #include <unistd.h>
 #include <math.h>
 #include <string.h>
@@ -320,7 +320,7 @@ void *uniform_pregen_init(uint64_t maxoutputs, __uint128_t maxvalue, void *param
 	state->maxoutputs = maxoutputs;
 	state->outputs = (__uint128_t *)malloc(state->maxoutputs * sizeof(state->outputs[0]));
 	assert(state->outputs != NULL);
-	RAND_bytes((unsigned char *)state->outputs, sizeof(*state->outputs) * state->maxoutputs);
+	//RAND_bytes((unsigned char *)state->outputs, sizeof(*state->outputs) * state->maxoutputs);
 	for (i = 0; i < state->maxoutputs; i++)
 		state->outputs[i] = (1 * state->outputs[i]) % maxvalue;
 

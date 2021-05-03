@@ -17,7 +17,7 @@ endif
 ifdef P
 	PROFILE=-pg -no-pie # for bug in gprof.
 endif
-
+DEBUG= -g
 LOC_INCLUDE=include
 LOC_SRC=src
 LOC_TEST=test
@@ -28,9 +28,9 @@ CXX = CC -std=c++11
 #CXX = nvcc
 LD= cc -std=gnu11
 
-CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT) $(ARCH) -sm70  -I. -Iinclude
+CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT)   -I. -Iinclude
 
-LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) -lpthread -lssl -lcrypto -lm
+LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) -lpthread  -lm
 
 #
 # declaration of dependencies
@@ -60,13 +60,6 @@ bm:									$(OBJDIR)/bm.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
 
 $(OBJDIR)/test.o: 						$(LOC_INCLUDE)/gqf.h $(LOC_INCLUDE)/gqf_file.h \
 															$(LOC_INCLUDE)/hashutil.h \
-															$(LOC_INCLUDE)/partitioned_counter.h
-
-$(OBJDIR)/test_threadsafe.o: 	$(LOC_INCLUDE)/gqf.h $(LOC_INCLUDE)/gqf_file.h \
-															$(LOC_INCLUDE)/hashutil.h \
-															$(LOC_INCLUDE)/partitioned_counter.h
-
-$(OBJDIR)/bm.o:								$(LOC_INCLUDE)/gqf_wrapper.h \
 															$(LOC_INCLUDE)/partitioned_counter.h
 
 

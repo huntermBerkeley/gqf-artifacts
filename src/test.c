@@ -17,7 +17,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <openssl/rand.h>
+//#include <openssl/rand.h>
 
 #include "include/gqf.h"
 #include "include/gqf_int.h"
@@ -103,10 +103,11 @@ int main(int argc, char **argv)
 	/* Generate random values */
 	vals = (uint64_t*)malloc(nvals*sizeof(vals[0]));
 	hashes = (uint64_t*)malloc(nvals * sizeof(hashes[0]));
-	RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
+	//RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
 	srand(0);
 	//pre-hash everything
 	for (uint64_t i = 0; i < nvals; i++) {
+		vals[i] = rand();
 		vals[i] = (1 * vals[i]) % qf.metadata->range;
 		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
 		/*fake hash until implemented*/
