@@ -1464,7 +1464,7 @@ static inline int insert1_gpu(QF* qf, __uint128_t hash, int last_slot, int prev_
 			return  QF_END_OF_THREAD;
 		}
 		if (cluster_end < prev_last) {
-			printf("ERROR-writing in previous block's zone\n");
+			//printf("ERROR-writing in previous block's zone\n");
 		}
 		int operation = 0; /* Insert into empty bucket */
 		uint64_t insert_index = runend_index + 1;
