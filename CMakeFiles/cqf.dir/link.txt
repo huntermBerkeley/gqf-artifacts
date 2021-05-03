@@ -1,2 +1,1 @@
-/opt/cray/pe/cce/9.1.0/binutils/x86_64/x86_64-pc-linux-gnu/bin/ar qc libcqf.a  CMakeFiles/cqf.dir/src/bm.c.o CMakeFiles/cqf.dir/src/gqf_file.c.o CMakeFiles/cqf.dir/src/hashutil.c.o CMakeFiles/cqf.dir/src/partitioned_counter.c.o CMakeFiles/cqf.dir/src/gqf.cu.o CMakeFiles/cqf.dir/src/test_partitioned_counter.c.o CMakeFiles/cqf.dir/src/test_threadsafe.c.o CMakeFiles/cqf.dir/src/zipf.c.o
-/opt/cray/pe/cce/9.1.0/binutils/x86_64/x86_64-pc-linux-gnu/bin/ranlib libcqf.a
+/usr/bin/g++  CMakeFiles/cqf.dir/src/test.cu.o -o cqf  -L"/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs" -L"/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib" -lcudadevrt -lcudart_static -lrt -lpthread -ldl

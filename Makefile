@@ -111,19 +111,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named runtest
-
-# Build rule for target.
-runtest: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 runtest
-.PHONY : runtest
-
-# fast build rule for target.
-runtest/fast:
-	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/build
-.PHONY : runtest/fast
-
-#=============================================================================
 # Target rules for targets named cqf
 
 # Build rule for target.
@@ -136,148 +123,13 @@ cqf/fast:
 	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/build
 .PHONY : cqf/fast
 
-src/bm.o: src/bm.c.o
-
-.PHONY : src/bm.o
-
-# target to build an object file
-src/bm.c.o:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/bm.c.o
-.PHONY : src/bm.c.o
-
-src/bm.i: src/bm.c.i
-
-.PHONY : src/bm.i
-
-# target to preprocess a source file
-src/bm.c.i:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/bm.c.i
-.PHONY : src/bm.c.i
-
-src/bm.s: src/bm.c.s
-
-.PHONY : src/bm.s
-
-# target to generate assembly for a file
-src/bm.c.s:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/bm.c.s
-.PHONY : src/bm.c.s
-
-src/gqf.o: src/gqf.cu.o
-
-.PHONY : src/gqf.o
-
-# target to build an object file
-src/gqf.cu.o:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/gqf.cu.o
-.PHONY : src/gqf.cu.o
-
-src/gqf.i: src/gqf.cu.i
-
-.PHONY : src/gqf.i
-
-# target to preprocess a source file
-src/gqf.cu.i:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/gqf.cu.i
-.PHONY : src/gqf.cu.i
-
-src/gqf.s: src/gqf.cu.s
-
-.PHONY : src/gqf.s
-
-# target to generate assembly for a file
-src/gqf.cu.s:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/gqf.cu.s
-.PHONY : src/gqf.cu.s
-
-src/gqf_file.o: src/gqf_file.c.o
-
-.PHONY : src/gqf_file.o
-
-# target to build an object file
-src/gqf_file.c.o:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/gqf_file.c.o
-.PHONY : src/gqf_file.c.o
-
-src/gqf_file.i: src/gqf_file.c.i
-
-.PHONY : src/gqf_file.i
-
-# target to preprocess a source file
-src/gqf_file.c.i:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/gqf_file.c.i
-.PHONY : src/gqf_file.c.i
-
-src/gqf_file.s: src/gqf_file.c.s
-
-.PHONY : src/gqf_file.s
-
-# target to generate assembly for a file
-src/gqf_file.c.s:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/gqf_file.c.s
-.PHONY : src/gqf_file.c.s
-
-src/hashutil.o: src/hashutil.c.o
-
-.PHONY : src/hashutil.o
-
-# target to build an object file
-src/hashutil.c.o:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/hashutil.c.o
-.PHONY : src/hashutil.c.o
-
-src/hashutil.i: src/hashutil.c.i
-
-.PHONY : src/hashutil.i
-
-# target to preprocess a source file
-src/hashutil.c.i:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/hashutil.c.i
-.PHONY : src/hashutil.c.i
-
-src/hashutil.s: src/hashutil.c.s
-
-.PHONY : src/hashutil.s
-
-# target to generate assembly for a file
-src/hashutil.c.s:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/hashutil.c.s
-.PHONY : src/hashutil.c.s
-
-src/partitioned_counter.o: src/partitioned_counter.c.o
-
-.PHONY : src/partitioned_counter.o
-
-# target to build an object file
-src/partitioned_counter.c.o:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/partitioned_counter.c.o
-.PHONY : src/partitioned_counter.c.o
-
-src/partitioned_counter.i: src/partitioned_counter.c.i
-
-.PHONY : src/partitioned_counter.i
-
-# target to preprocess a source file
-src/partitioned_counter.c.i:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/partitioned_counter.c.i
-.PHONY : src/partitioned_counter.c.i
-
-src/partitioned_counter.s: src/partitioned_counter.c.s
-
-.PHONY : src/partitioned_counter.s
-
-# target to generate assembly for a file
-src/partitioned_counter.c.s:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/partitioned_counter.c.s
-.PHONY : src/partitioned_counter.c.s
-
 src/test.o: src/test.cu.o
 
 .PHONY : src/test.o
 
 # target to build an object file
 src/test.cu.o:
-	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/src/test.cu.o
+	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/test.cu.o
 .PHONY : src/test.cu.o
 
 src/test.i: src/test.cu.i
@@ -286,7 +138,7 @@ src/test.i: src/test.cu.i
 
 # target to preprocess a source file
 src/test.cu.i:
-	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/src/test.cu.i
+	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/test.cu.i
 .PHONY : src/test.cu.i
 
 src/test.s: src/test.cu.s
@@ -295,89 +147,8 @@ src/test.s: src/test.cu.s
 
 # target to generate assembly for a file
 src/test.cu.s:
-	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/src/test.cu.s
+	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/test.cu.s
 .PHONY : src/test.cu.s
-
-src/test_partitioned_counter.o: src/test_partitioned_counter.c.o
-
-.PHONY : src/test_partitioned_counter.o
-
-# target to build an object file
-src/test_partitioned_counter.c.o:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/test_partitioned_counter.c.o
-.PHONY : src/test_partitioned_counter.c.o
-
-src/test_partitioned_counter.i: src/test_partitioned_counter.c.i
-
-.PHONY : src/test_partitioned_counter.i
-
-# target to preprocess a source file
-src/test_partitioned_counter.c.i:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/test_partitioned_counter.c.i
-.PHONY : src/test_partitioned_counter.c.i
-
-src/test_partitioned_counter.s: src/test_partitioned_counter.c.s
-
-.PHONY : src/test_partitioned_counter.s
-
-# target to generate assembly for a file
-src/test_partitioned_counter.c.s:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/test_partitioned_counter.c.s
-.PHONY : src/test_partitioned_counter.c.s
-
-src/test_threadsafe.o: src/test_threadsafe.c.o
-
-.PHONY : src/test_threadsafe.o
-
-# target to build an object file
-src/test_threadsafe.c.o:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/test_threadsafe.c.o
-.PHONY : src/test_threadsafe.c.o
-
-src/test_threadsafe.i: src/test_threadsafe.c.i
-
-.PHONY : src/test_threadsafe.i
-
-# target to preprocess a source file
-src/test_threadsafe.c.i:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/test_threadsafe.c.i
-.PHONY : src/test_threadsafe.c.i
-
-src/test_threadsafe.s: src/test_threadsafe.c.s
-
-.PHONY : src/test_threadsafe.s
-
-# target to generate assembly for a file
-src/test_threadsafe.c.s:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/test_threadsafe.c.s
-.PHONY : src/test_threadsafe.c.s
-
-src/zipf.o: src/zipf.c.o
-
-.PHONY : src/zipf.o
-
-# target to build an object file
-src/zipf.c.o:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/zipf.c.o
-.PHONY : src/zipf.c.o
-
-src/zipf.i: src/zipf.c.i
-
-.PHONY : src/zipf.i
-
-# target to preprocess a source file
-src/zipf.c.i:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/zipf.c.i
-.PHONY : src/zipf.c.i
-
-src/zipf.s: src/zipf.c.s
-
-.PHONY : src/zipf.s
-
-# target to generate assembly for a file
-src/zipf.c.s:
-	$(MAKE) -f CMakeFiles/cqf.dir/build.make CMakeFiles/cqf.dir/src/zipf.c.s
-.PHONY : src/zipf.c.s
 
 # Help Target
 help:
@@ -387,35 +158,10 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... runtest"
 	@echo "... cqf"
-	@echo "... src/bm.o"
-	@echo "... src/bm.i"
-	@echo "... src/bm.s"
-	@echo "... src/gqf.o"
-	@echo "... src/gqf.i"
-	@echo "... src/gqf.s"
-	@echo "... src/gqf_file.o"
-	@echo "... src/gqf_file.i"
-	@echo "... src/gqf_file.s"
-	@echo "... src/hashutil.o"
-	@echo "... src/hashutil.i"
-	@echo "... src/hashutil.s"
-	@echo "... src/partitioned_counter.o"
-	@echo "... src/partitioned_counter.i"
-	@echo "... src/partitioned_counter.s"
 	@echo "... src/test.o"
 	@echo "... src/test.i"
 	@echo "... src/test.s"
-	@echo "... src/test_partitioned_counter.o"
-	@echo "... src/test_partitioned_counter.i"
-	@echo "... src/test_partitioned_counter.s"
-	@echo "... src/test_threadsafe.o"
-	@echo "... src/test_threadsafe.i"
-	@echo "... src/test_threadsafe.s"
-	@echo "... src/zipf.o"
-	@echo "... src/zipf.i"
-	@echo "... src/zipf.s"
 .PHONY : help
 
 

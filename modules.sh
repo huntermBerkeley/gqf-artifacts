@@ -7,3 +7,4 @@ module load openmpi
 module load boost
 module load python
 
+export HOME=$PWD

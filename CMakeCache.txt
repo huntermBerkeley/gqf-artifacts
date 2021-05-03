@@ -204,6 +204,9 @@ cqf_BINARY_DIR:STATIC=/global/homes/e/ewims/cqf
 //Value Computed by CMake
 cqf_SOURCE_DIR:STATIC=/global/homes/e/ewims/cqf
 
+//The directory containing a CMake configuration file for openssl.
+openssl_DIR:PATH=openssl_DIR-NOTFOUND
+
 
 ########################
 # INTERNAL cache entries
