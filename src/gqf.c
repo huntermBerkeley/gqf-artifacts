@@ -2260,10 +2260,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 	int numRegions = qf->metadata->nblocks;
 	int num_threads = 10;
 
-	uint64_t max_quotient = 1ULL << qbits;
-	//printf("max %lx", max_quotient);
-	uint64_t thread_min_quotient = ceil(max_quotient / num_threads) * tid;
-	uint64_t thread_max_quotient = tid + 1 == num_threads - 1 ? nvals : ceil(max_quotient / num_threads) * (tid + 1);
+	
 	//t_start and end refer to indexes in the keys array
 	int t_start;
 	int t_end;
@@ -2283,6 +2280,11 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 		block_offset = block_offset + (block_size / 2) * num_iter;
 		for (int tid = 0; tid < num_threads; tid++) {
 			go_next_thread = false;
+			uint64_t max_quotient = 1ULL << qbits;
+			//printf("max %lx", max_quotient);
+			uint64_t thread_min_quotient = ceil(max_quotient / num_threads) * tid;
+			uint64_t thread_max_quotient = tid + 1 == num_threads - 1 ? nvals : ceil(max_quotient / num_threads) * (tid + 1);
+
 			int t_start = tid == 0 ? 0 : find_thread_start(qf, keys, tid, num_threads, nvals, qbits, max_quotient, thread_min_quotient, thread_max_quotient);
 			int next_thread = tid + 1;
 			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits, max_quotient, thread_min_quotient, thread_max_quotient);
