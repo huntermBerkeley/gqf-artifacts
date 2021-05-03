@@ -2233,7 +2233,7 @@ static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_thr
 	return -1;
 }
 
-static inline uint64_t find_thread_last_slot(QF* qf, int tid, int num_threads) {
+static inline uint64_t find_thread_last_slot(QF* qf, int tid, int num_threads, uint64_t qbits) {
 	uint64_t slot_per_quot = qf->metadata->nslots / (1ULL << qbits);
 	//same calculation as find_thread_start
 	uint64_t thread_max_quotient = tid + 1 == num_threads - 1 ? nvals : ceil(max_quotient / num_threads) * (tid + 1);
@@ -2249,12 +2249,6 @@ static inline void printarray(uint64_t* arr, uint64_t len) {
 		}
 	}
 	printf("\n");
-}
-
-static inline int find_last_thread_slot(QF* qf, int num_threads, int tid) {
-	int last_slot = ceil(qf->metadata->nslots / num_threads * tid);
-	printf("nslots %ld, threads last %d", qf->metadata->nslots, last_slot);
-	return last_slot;
 }
 
 
@@ -2294,8 +2288,8 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 			int t_start = tid == 0 ? 0 : find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
 			int next_thread = tid + 1;
 			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
-			uint64_t last_slot = find_thread_slot_end(qf, num_threads, tid);
-			uint64_t prev_last = find_thread_slot_end(qf, num_threads, tid-1);
+			uint64_t last_slot = find_thread_last_slot(qf, num_threads, tid, qbits);
+			uint64_t prev_last = find_thread_last_slot(qf, num_threads, tid-1, qbits);
 			printf("-tid %d; blstart %d; blend %d; nvals %ld \n", tid, t_start, t_end, nvals);
 			printf("-tid %d; last slot is %lu; nslots %lu, prev_last %lu\n", tid, last_slot, qf->metadata->nslots, prev_last);
 			printf("-last key doen before %d\n", thread_done[tid]);
