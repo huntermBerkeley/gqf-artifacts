@@ -2239,7 +2239,7 @@ static inline uint64_t find_thread_last_slot(QF* qf, int num_threads, int tid, u
 	//same calculation as find_thread_start
 	uint64_t thread_max_quotient = tid + 1 == num_threads - 1 ? nvals : ceil(max_quotient / num_threads) * (tid + 1);
 	uint64_t last_slot = slot_per_quot * thread_max_quotient;
-	printf(" slot per quotient %lu last_slot %lu\n", slot_per_quot, last_slot);
+	printf("FINDING_SLOT: tid %d maxquot %lu tquot %lu slot per quotient %lu last_slot %lu\n",tid, max_quotient, thread_max_quotient, slot_per_quot, last_slot);
 	return last_slot;
 }
 static inline void printarray(uint64_t* arr, uint64_t len) {
