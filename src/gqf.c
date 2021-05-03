@@ -2233,7 +2233,7 @@ static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_thr
 	return -1;
 }
 
-static inline uint64_t find_thread_last_slot(QF* qf, int tid, int num_threads, uint64_t nvals, uint64_t qbits) {
+static inline uint64_t find_thread_last_slot(QF* qf, int num_threads, int tid, uint64_t nvals, uint64_t qbits) {
 	uint64_t max_quotient = 1ULL << qbits;
 	uint64_t slot_per_quot = qf->metadata->nslots /max_quotient;
 	//same calculation as find_thread_start
