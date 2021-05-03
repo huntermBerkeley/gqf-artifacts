@@ -1429,7 +1429,7 @@ static inline int insert1(QF* qf, __uint128_t hash, uint8_t runtime_lock)
 }
 
 
-static inline int insert1_gpu(QF* qf, __uint128_t hash, int last_slot, int prev_last)
+static inline int insert1_gpu(QF* qf, __uint128_t hash, uint64_t last_slot, uint64_t prev_last)
 {
 	int ret_distance = 0;
 	uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
@@ -1464,7 +1464,7 @@ static inline int insert1_gpu(QF* qf, __uint128_t hash, int last_slot, int prev_
 			return  QF_END_OF_THREAD;
 		}
 		if (cluster_end < prev_last) {
-			//printf("ERROR-writing in previous block's zone\n");
+			printf("ERROR-writing in previous block's zone\n");
 		}
 		int operation = 0; /* Insert into empty bucket */
 		uint64_t insert_index = runend_index + 1;
@@ -2232,6 +2232,15 @@ static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_thr
 	}
 	return -1;
 }
+
+static inline uint64_t find_thread_last_slot(QF* qf, int tid, int num_threads) {
+	uint64_t slot_per_quot = qf->metadata->nslots / (1ULL << qbits);
+	//same calculation as find_thread_start
+	uint64_t thread_max_quotient = tid + 1 == num_threads - 1 ? nvals : ceil(max_quotient / num_threads) * (tid + 1);
+	uint64_t last_slot = slot_per_quot * thread_max_quotient;
+	printf(" slot per quotient %lu last_slot %lu\n", slot_per_quot, last_slot);
+	return last_slot
+}
 static inline void printarray(uint64_t* arr, uint64_t len) {
 	for (int i = 0; i < len; i++) {
 		printf("%lx,  ", arr[i]);
@@ -2252,7 +2261,7 @@ static inline int find_last_thread_slot(QF* qf, int num_threads, int tid) {
 void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint64_t nslots, uint64_t qbits) {
 
 
-	printarray(keys, nvals);
+	//printarray(keys, nvals);
 	/*
 	find_thread_start(qf, keys, 1, 6, nvals, qbits);
 	find_thread_start(qf, keys, 2, 6, nvals, qbits);
@@ -2285,11 +2294,11 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 			int t_start = tid == 0 ? 0 : find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
 			int next_thread = tid + 1;
 			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
-			int last_slot = block_size * (tid + 1) + block_offset;
-			int prev_last = block_size * (tid)+block_offset;
+			uint64_t last_slot = find_thread_slot_end(qf, num_threads, tid);
+			uint64_t prev_last = find_thread_slot_end(qf, num_threads, tid-1);
 			printf("-tid %d; blstart %d; blend %d; nvals %ld \n", tid, t_start, t_end, nvals);
-			printf("-tid %d; last slot is %d; nslots %d\n", tid, last_slot, qf->metadata->nslots);
-			printf("-last slot doen before %d\n", thread_done[tid]);
+			printf("-tid %d; last slot is %lu; nslots %lu, prev_last %lu\n", tid, last_slot, qf->metadata->nslots, prev_last);
+			printf("-last key doen before %d\n", thread_done[tid]);
 			//case where there's no quotients to a thread;
 			if (t_start == -1) {
 				//printf("&Skipping thread %d\n", tid);
