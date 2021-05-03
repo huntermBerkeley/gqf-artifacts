@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	uint64_t nslots = (4ULL << qbits);
 	//this can be changed to change the % it fills up
 
-	uint64_t nvals = 95*nslots/100;
+	uint64_t nvals = 80*nslots/100;
 	uint64_t key_count = 1;
 	uint64_t *vals;
 	uint64_t* hashes;

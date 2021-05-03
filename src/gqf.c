@@ -2266,7 +2266,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 	find_thread_start(qf, keys, 4, 6, nvals, qbits);
 	find_thread_start(qf, keys, 5, 6, nvals, qbits);
 	*/
-	int num_threads = 8;
+	int num_threads = 4000;
 	//t_start and end refer to indexes in the keys array
 	int* thread_done;
 	thread_done = (int*)malloc(num_threads * sizeof(int));
@@ -2322,7 +2322,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 				ret = insert1_gpu(qf, hash, last_slot, prev_last, tid);
 				//printf("ret %d;\n", ret);
 				if (ret == QF_END_OF_THREAD) {
-					printf("**hit boundary, going next\n");
+					//printf("**hit boundary, going next\n");
 					fin = false;
 					go_next_thread = true;
 					//continue is just for serial-on GPU it'll be each thread waiting for next iter
