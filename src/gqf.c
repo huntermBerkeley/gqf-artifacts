@@ -2299,7 +2299,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 			while (t_end == -1) {
 				next_thread++;
 				printf("next thread %d \n", next_thread);
-				t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
+				t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits, max_quotient, thread_min_quotient, thread_max_quotient);
 			}
 			thread_done[tid] = thread_done[tid] > t_start ? thread_done[tid] : t_start;
 			while (thread_done[tid] < t_end && go_next_thread == false) {
