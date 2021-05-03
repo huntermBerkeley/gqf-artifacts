@@ -2285,7 +2285,7 @@ void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint6
 			go_next_thread = false;
 			int t_start = tid == 0 ? 0 : find_thread_start(qf, keys, tid, num_threads, nvals, qbits, max_quotient, thread_min_quotient, thread_max_quotient);
 			int next_thread = tid + 1;
-			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
+			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits, max_quotient, thread_min_quotient, thread_max_quotient);
 			int last_slot = block_size * (tid + 1) + block_offset;
 			int prev_last = block_size * (tid)+block_offset;
 			printf("-tid %d; blstart %d; blend %d; nvals %ld \n", tid, t_start, t_end, nvals);
