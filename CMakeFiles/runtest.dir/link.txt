@@ -1,0 +1,1 @@
+/usr/bin/g++  CMakeFiles/runtest.dir/src/test.cu.o CMakeFiles/runtest.dir/cmake_device_link.o -o runtest  -L"/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs" -L"/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib" -lcudadevrt -lcudart_static -lrt -lpthread -ldl

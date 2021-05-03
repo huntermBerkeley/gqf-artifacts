@@ -111,17 +111,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named test
+# Target rules for targets named runtest
 
 # Build rule for target.
-test: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 test
-.PHONY : test
+runtest: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 runtest
+.PHONY : runtest
 
 # fast build rule for target.
-test/fast:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/build
-.PHONY : test/fast
+runtest/fast:
+	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/build
+.PHONY : runtest/fast
 
 #=============================================================================
 # Target rules for targets named cqf
@@ -277,7 +277,7 @@ src/test.o: src/test.cu.o
 
 # target to build an object file
 src/test.cu.o:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/test.cu.o
+	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/src/test.cu.o
 .PHONY : src/test.cu.o
 
 src/test.i: src/test.cu.i
@@ -286,7 +286,7 @@ src/test.i: src/test.cu.i
 
 # target to preprocess a source file
 src/test.cu.i:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/test.cu.i
+	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/src/test.cu.i
 .PHONY : src/test.cu.i
 
 src/test.s: src/test.cu.s
@@ -295,7 +295,7 @@ src/test.s: src/test.cu.s
 
 # target to generate assembly for a file
 src/test.cu.s:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/test.cu.s
+	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/src/test.cu.s
 .PHONY : src/test.cu.s
 
 src/test_partitioned_counter.o: src/test_partitioned_counter.c.o
@@ -387,7 +387,7 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... test"
+	@echo "... runtest"
 	@echo "... cqf"
 	@echo "... src/bm.o"
 	@echo "... src/bm.i"

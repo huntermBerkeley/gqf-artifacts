@@ -1,4 +1,4 @@
 /global/homes/e/ewims/cqf/CMakeFiles/rebuild_cache.dir
 /global/homes/e/ewims/cqf/CMakeFiles/edit_cache.dir
-/global/homes/e/ewims/cqf/CMakeFiles/test.dir
+/global/homes/e/ewims/cqf/CMakeFiles/runtest.dir
 /global/homes/e/ewims/cqf/CMakeFiles/cqf.dir

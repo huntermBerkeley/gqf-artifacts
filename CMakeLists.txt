@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
 project(cqf LANGUAGES C CUDA)
 
+find_package(openssl REQUIRED)
+
 add_library(cqf STATIC
   
   include/gqf_file.h
@@ -19,11 +21,13 @@ add_library(cqf STATIC
   src/zipf.c
   )
 
-add_executable(test src/test.cu)
+add_executable(runtest src/test.cu)
 
 # We need to explicitly state that we need all CUDA files in the particle
 # library to be built with -dc as the member functions could be called by
 # other libraries and executables
-set_target_properties( test
+set_target_properties( runtest
                        PROPERTIES CUDA_SEPARABLE_COMPILATION ON
                       )
+set_property(TARGET runtest PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS OFF)
+

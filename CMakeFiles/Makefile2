@@ -65,39 +65,39 @@ CMAKE_SOURCE_DIR = /global/homes/e/ewims/cqf
 CMAKE_BINARY_DIR = /global/homes/e/ewims/cqf
 
 #=============================================================================
-# Target rules for target CMakeFiles/test.dir
+# Target rules for target CMakeFiles/runtest.dir
 
 # All Build rule for target.
-CMakeFiles/test.dir/all:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/depend
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/global/homes/e/ewims/cqf/CMakeFiles --progress-num=10,11,12 "Built target test"
-.PHONY : CMakeFiles/test.dir/all
+CMakeFiles/runtest.dir/all:
+	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/depend
+	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/global/homes/e/ewims/cqf/CMakeFiles --progress-num=10,11,12 "Built target runtest"
+.PHONY : CMakeFiles/runtest.dir/all
 
 # Include target in all.
-all: CMakeFiles/test.dir/all
+all: CMakeFiles/runtest.dir/all
 
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/test.dir/rule: cmake_check_build_system
+CMakeFiles/runtest.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /global/homes/e/ewims/cqf/CMakeFiles 3
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/test.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/runtest.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /global/homes/e/ewims/cqf/CMakeFiles 0
-.PHONY : CMakeFiles/test.dir/rule
+.PHONY : CMakeFiles/runtest.dir/rule
 
 # Convenience name for target.
-test: CMakeFiles/test.dir/rule
+runtest: CMakeFiles/runtest.dir/rule
 
-.PHONY : test
-
-# clean rule for target.
-CMakeFiles/test.dir/clean:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/clean
-.PHONY : CMakeFiles/test.dir/clean
+.PHONY : runtest
 
 # clean rule for target.
-clean: CMakeFiles/test.dir/clean
+CMakeFiles/runtest.dir/clean:
+	$(MAKE) -f CMakeFiles/runtest.dir/build.make CMakeFiles/runtest.dir/clean
+.PHONY : CMakeFiles/runtest.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/runtest.dir/clean
 
 .PHONY : clean
 
