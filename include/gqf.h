@@ -146,8 +146,7 @@ extern "C" {
 	 */
 	int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								flags);
-
-	void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint64_t nslots, uint64_t qbits);
+	int insert1_gpu(QF* qf, __uint128_t hash, uint64_t last_slot, uint64_t prev_last, int tid);
 	/* Set the counter for this key/value pair to count. 
 	 Return value: Same as qf_insert. 
 	 Returns 0 if new count is equal to old count.

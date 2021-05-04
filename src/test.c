@@ -26,6 +26,7 @@
 
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
+#define DISTANCE_FROM_HOME_SLOT_CUTOFF 1000
 
 
 void swapElements(uint64_t* x, uint64_t* y)
@@ -61,12 +62,151 @@ void quickSort(uint64_t arr[], int lowIndex, int highIndex)
 		quickSort(arr, pivot + 1, highIndex);
 	}
 }
-// Function to print array
-void printArray(int arr[], int size)
-{
-	int i;
-	for (i = 0; i < size; i++)
-		printf("%d ", arr[i]);
+
+static inline int find_thread_start(QF* qf, uint64_t* keys, int tid, int num_threads, uint64_t nvals, uint64_t qbits) {
+	uint64_t max_quotient = 1ULL << qbits;
+	//printf("max %lx", max_quotient);
+	uint64_t thread_min_quotient = ceil(max_quotient / num_threads) * (tid);
+	//TODO:reassess use of ceil
+	uint64_t thread_max_quotient = tid + 1 == num_threads - 1 ? max_quotient : ceil(max_quotient / num_threads) * (tid + 1);
+	//printf("tid %d, overall max quotient %lu, thread min quotient %lu, tmax %lu \n", tid, max_quotient, thread_min_quotient, thread_max_quotient);
+	//TODO: optimze the search
+	uint64_t rem_bits = qf->metadata->key_bits - qbits;
+	for (int i = 0; i < nvals; i++) {
+
+		uint64_t quotient = keys[i] >> rem_bits;
+
+		if (quotient >= thread_max_quotient) {
+			//uint64_t prev_key = keys[i-1] ;
+			/*printf("failed to find match tid %d, overall max quotient %lu, prev_key %lu; quotient %lu;search min %lu; search max %lu\n", tid, max_quotient,
+				prev_key, quotient, thread_min_quotient, thread_max_quotient);
+				*/
+			return -1;
+		}
+		if (quotient >= thread_min_quotient) {
+			//printf("first val %lu, val quo %lu, tminval %lu bits %lu\n", keys[i], quotient, thread_min_quotient << rem_bits, rem_bits);
+			return i;
+		}
+	}
+	return -1;
+}
+
+static inline uint64_t find_thread_last_slot(QF* qf, int num_threads, int tid, uint64_t nvals, uint64_t qbits) {
+	if (tid == num_threads - 1) {
+		return qf->metadata->nslots;
+	}
+	uint64_t max_quotient = 1ULL << qbits;
+	uint64_t slot_per_quot = qf->metadata->nslots / max_quotient;
+	//same calculation as find_thread_start
+	uint64_t thread_quotient = ceil(max_quotient / num_threads) * tid + 1;
+	uint64_t last_slot = slot_per_quot * thread_quotient;
+	//printf("FINDING_SLOT: tid %d maxquot %lu tquot %lu slot per quotient %lu last_slot %lu\n",tid, max_quotient, thread_quotient, slot_per_quot, last_slot);
+	return last_slot;
+}
+static inline void printarray(uint64_t* arr, uint64_t len) {
+	for (int i = 0; i < len; i++) {
+		printf("%lu,  ", arr[i]);
+		if (i % 8 == 0) {
+			printf("\n");
+		}
+	}
+	printf("\n");
+}
+
+
+void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint64_t nslots, uint64_t qbits) {
+
+
+	//printarray(keys, nvals);
+	/*
+	find_thread_start(qf, keys, 1, 6, nvals, qbits);
+	find_thread_start(qf, keys, 2, 6, nvals, qbits);
+	find_thread_start(qf, keys, 3, 6, nvals, qbits);
+	find_thread_start(qf, keys, 4, 6, nvals, qbits);
+	find_thread_start(qf, keys, 5, 6, nvals, qbits);
+	*/
+	int num_threads = 8000;
+	//t_start and end refer to indexes in the keys array
+	int* thread_done;
+	thread_done = (int*)malloc(num_threads * sizeof(int));
+	memset(thread_done, 0, num_threads * sizeof(int));
+	//use quotient bits for the block making
+	uint64_t block_size = ceil(qf->metadata->nslots / num_threads);
+	//block_offset is in #slots
+	uint64_t block_offset = 0;
+	int num_iter = 0;
+	int thread_added;
+	bool fin = false;
+	bool go_next_thread = false;
+	while (fin == false) {
+		printf("-----while loop reset; num_iter -----------%d  %d\n", num_iter, fin);
+		fin = true;
+		block_offset = block_offset + (block_size / 2) * num_iter;
+		for (int tid = 0; tid < num_threads; tid++) {
+			thread_added = 0;
+			go_next_thread = false;
+			int t_start = tid == 0 ? 0 : find_thread_start(qf, keys, tid, num_threads, nvals, qbits);
+			int next_thread = tid + 1;
+			int t_end = tid == num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
+			uint64_t last_slot = find_thread_last_slot(qf, num_threads, tid + num_iter, nvals, qbits);
+			uint64_t prev_last = find_thread_last_slot(qf, num_threads, tid - 1 + num_iter, nvals, qbits);
+			//printf("-tid %d; blstart %d; blend %d; nvals %ld \n", tid, t_start, t_end, nvals);
+			//printf("-tid %d; last slot is %lu; nslots %lu, prev_last %lu\n", tid, last_slot, qf->metadata->nslots, prev_last);
+			//printf("-last key doen before %d\n", thread_done[tid]);
+			//case where there's no quotients to a thread;
+			if (t_start == -1) {
+				//printf("&Skipping thread %d\n", tid);
+				continue;
+			}
+			while (t_end == -1) {
+				next_thread++;
+				//printf("next thread %d \n", next_thread);
+				t_end = next_thread >= num_threads - 1 ? nvals : find_thread_start(qf, keys, next_thread, num_threads, nvals, qbits);
+			}
+			thread_done[tid] = thread_done[tid] > t_start ? thread_done[tid] : t_start;
+			while (thread_done[tid] < t_end && go_next_thread == false) {
+
+				uint64_t key = keys[thread_done[tid]];
+
+				//resizing would happen here
+				/*
+				* Hashing has to happen beforethis
+				if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
+					if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
+						key = MurmurHash64A(((void*)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
+					else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
+						key = hash_64(key, BITMASK(qf->metadata->key_bits));
+				}
+				*/
+				uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
+				int ret;
+				ret = insert1_gpu(qf, hash, last_slot, prev_last, tid);
+				//printf("ret %d;\n", ret);
+				if (ret == QF_END_OF_THREAD) {
+					//printf("**hit boundary, going next\n");
+					fin = false;
+					go_next_thread = true;
+					//continue is just for serial-on GPU it'll be each thread waiting for next iter
+					continue;
+				}
+				thread_added += 1;
+				thread_done[tid] = thread_done[tid] + 1;
+				// check for fullness based on the distance from the home slot to the slot
+				// in which the key is inserted
+				if (ret == QF_NO_SPACE || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
+					float load_factor = qf_get_num_occupied_slots(qf) /
+						(float)qf->metadata->nslots;
+					fprintf(stdout, "Load factor: %lf\n", load_factor);
+
+					fprintf(stderr, "The CQF is filling up.\n");
+					ret = QF_NO_SPACE;
+
+				}
+			}
+			if (tid >= num_threads-2) printf("tid %d added %d items\n",tid, thread_added);
+		}
+		num_iter++;
+	}
 }
 
 int main(int argc, char **argv)
@@ -83,7 +223,7 @@ int main(int argc, char **argv)
 	uint64_t nslots = (4ULL << qbits);
 	//this can be changed to change the % it fills up
 
-	uint64_t nvals = 80*nslots/100;
+	uint64_t nvals = 20*nslots/100;
 	uint64_t key_count = 1;
 	uint64_t *vals;
 	uint64_t* hashes;
@@ -245,13 +385,14 @@ int main(int argc, char **argv)
 							key, idx);
 			abort();
 		}
+		/*
 		qf_insert(&unique_idx, key, 0, 1, QF_NO_LOCK);
 		int64_t newindex = qf_get_unique_index(&unique_idx, key, 0, 0);
 		if (idx < newindex) {
 			fprintf(stderr, "Index weirdness: index %dth key %ld was at %ld, is now at %ld\n",
 							i, key, idx, newindex);
 			//abort();
-		}
+		}*/
 
 		i++;
 		qfi_next(&qfi);
