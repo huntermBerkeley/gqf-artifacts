@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <openssl/rand.h>
+//#include <openssl/rand.h>
 
 #include "include/gqf.h"
 #include "include/gqf_int.h"
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
 	/* Generate random values */
 	vals = (uint64_t*)calloc(nvals, sizeof(vals[0]));
-	RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
+	//RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
 	for (uint32_t i = 0; i < nvals; i++) {
 		vals[i] = (1 * vals[i]) % cfr.metadata->range;
 	}

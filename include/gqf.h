@@ -7,12 +7,15 @@
  * ============================================================================
  */
 
-#ifndef _GQF_CUH_
-#define _GQF_CUH_
-extern "C" {
+#ifndef _GQF_H_
+#define _GQF_H_
+
 #include <inttypes.h>
 #include <stdbool.h>
-}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 
@@ -144,8 +147,7 @@ extern "C" {
 	int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								flags);
 
-	void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t nslots, uint64_t qbits, uint8_t
-		flags);
+	void qf_insert_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t nvals, uint64_t nslots, uint64_t qbits);
 	/* Set the counter for this key/value pair to count. 
 	 Return value: Same as qf_insert. 
 	 Returns 0 if new count is equal to old count.
@@ -329,5 +331,9 @@ extern "C" {
 
 
 
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* _GQF_CUH_ */
+#endif /* _GQF_H_ */
+

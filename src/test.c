@@ -7,7 +7,6 @@
  *
  * ============================================================================
  */
-extern "C"{
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -18,15 +17,12 @@ extern "C"{
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <openssl/rand.h>
+//#include <openssl/rand.h>
 
-
+#include "include/gqf.h"
 #include "include/gqf_int.h"
 #include "include/gqf_file.h"
 #include "hashutil.h"
-}
-
-#include "include/gqf.cuh"
 
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
@@ -87,13 +83,13 @@ int main(int argc, char **argv)
 	uint64_t nslots = (4ULL << qbits);
 	//this can be changed to change the % it fills up
 
-	uint64_t nvals = 95*nslots/100;
+	uint64_t nvals = 80*nslots/100;
 	uint64_t key_count = 1;
 	uint64_t *vals;
 	uint64_t* hashes;
 	printf("nvals: %lu\n", nvals);
 	/* Initialise the CQF */
-	/*if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, 0)) {*/
+	/*if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_NONE, 0)) {*/
 	/*fprintf(stderr, "Can't allocate CQF.\n");*/
 	/*abort();*/
 	/*}*/
@@ -107,10 +103,11 @@ int main(int argc, char **argv)
 	/* Generate random values */
 	vals = (uint64_t*)malloc(nvals*sizeof(vals[0]));
 	hashes = (uint64_t*)malloc(nvals * sizeof(hashes[0]));
-	RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
+	//RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
 	srand(0);
 	//pre-hash everything
 	for (uint64_t i = 0; i < nvals; i++) {
+		vals[i] = rand();
 		vals[i] = (1 * vals[i]) % qf.metadata->range;
 		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
 		/*fake hash until implemented*/
@@ -133,7 +130,8 @@ int main(int argc, char **argv)
 		printf("%lx\n", vals[i]);
 	}
 	*/
-	qf_insert_gpu(&qf, vals, 0, key_count, nvals, nslots,  qbits, QF_NO_LOCK);
+	 //changed so key_count is always 1
+	qf_insert_gpu(&qf, vals, 0, nvals, nslots,  qbits);
 	printf("FINISHED THE INSERT\n");
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {
