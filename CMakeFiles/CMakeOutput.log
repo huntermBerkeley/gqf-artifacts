@@ -1,0 +1,394 @@
+The system is: Linux - 4.12.14-150.66-default - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /opt/cray/pe/craype/2.6.2/bin/cc 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is Intel, found in "/global/homes/e/ewims/cqf/CMakeFiles/3.10.2/CompilerIdC/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_7684b/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_7684b.dir/build.make CMakeFiles/cmTC_7684b.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_7684b.dir/testCCompiler.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc    -o CMakeFiles/cmTC_7684b.dir/testCCompiler.c.o   -c /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_7684b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7684b.dir/link.txt --verbose=1
+/opt/cray/pe/craype/2.6.2/bin/cc      CMakeFiles/cmTC_7684b.dir/testCCompiler.c.o  -o cmTC_7684b 
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_83d53/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_83d53.dir/build.make CMakeFiles/cmTC_83d53.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc    -o CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_83d53
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_83d53.dir/link.txt --verbose=1
+/opt/cray/pe/craype/2.6.2/bin/cc     -v CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o  -o cmTC_83d53 
+__INTEL_PRE_CFLAGS options:  -Qlocation,ld,/global/common/cori/software/altd/2.0/bin
+icc version 19.0.3.199 (gcc version 7.5.0 compatibility)
+/opt/intel/compilers_and_libraries_2019.3.199/linux/bin/intel64/mcpcom    -mGLOB_em64t=TRUE -mP1OPT_version=19.0-intel64 -mGLOB_diag_file=CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.diag -mGLOB_long_size_64 -mGLOB_routine_pointer_size_64 -mP1OPT_print_version=FALSE -mCG_use_gas_got_workaround=F -mP2OPT_align_option_used=TRUE -mGLOB_gcc_version=750 "-mGLOB_options_string=-I/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/include -I/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/include -I/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/include -I/opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/include -I/opt/cray/xpmem/2.2.20-7.0.1.1_4.21__g0475745.ari/include -I/opt/cray/gni-headers/5.0.12.0-7.0.1.1_6.40__g3b1768f.ari/include -I/opt/cray/pe/pmi/5.0.14/include -I/opt/cray/ugni/6.0.14.0-7.0.1.1_7.51__ge78e5b0.ari/include -I/opt/cray/udreg/2.3.2-7.0.1.1_3.49__g8175d3d.ari/include -I/opt/cray/wlm_detect/1.3.3-7.0.1.1_4.20__g7109084.ari/include -I/opt/cray/krca/2.2.6-7.0.1.1_5.46__gb641b12.ari/include -I/opt/cray-hss-devel/9.0.0/include -Qlocation,ld,/global/common/cori/software/altd/2.0/bin -xCORE-AVX2 -D__CRAYXC -D__CRAY_HASWELL -D__CRAYXT_COMPUTE_LINUX_TARGET -v -o cmTC_83d53 -Wl,-rpath=/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64 -L/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib -L/opt/cray/dmapp/default/lib64 -L/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib -L/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64 -L/usr/common/software/darshan/3.2.1/lib -L/opt/cray/pe/atp/2.1.3/libApp -Wl,-Ttext-segment=0x20000000 -Wl,-zmax-page-size=0x20000000 -Wl,--whole-archive,-lhugetlbfs,--no-whole-archive -Wl,--no-as-needed,-lAtpSigHandler,-lAtpSigHCommData -Wl,--undefined=_ATP_Data_Globals -Wl,--undefined=__atpHandlerInstall -lrca -Wl,-rpath=/usr/common/software/darshan/3.2.1/lib -Wl,-no-as-needed -ldarshan -lz -Wl,--as-needed,-lmpich_intel,--no-as-needed -Wl,--as-needed,-lsci_intel_mpi,--no-as-needed -Wl,--as-needed,-lsci_intel,--no-as-needed -Wl,--as-needed,-limf,--no-as-needed -Wl,--as-needed,-lm,--no-as-needed -Wl,--as-needed,-lifcoremt,--no-as-needed -Wl,--as-needed,-lifport,--no-as-needed -Wl,--as-needed,-lpthread,--no-as-needed" -mGLOB_cxx_limited_range=FALSE -mCG_extend_parms=FALSE -mGLOB_compiler_bin_directory=/opt/intel/compilers_and_libraries_2019.3.199/linux/bin/intel64 -mGLOB_as_output_backup_file_name=/tmp/iccc8zwgpas_.s -mGLOB_dashboard_use_source_name -mIPOPT_activate -mGLOB_product_id_code=0x22006d93 -mGLOB_extended_instructions=0x4000 -mGLOB_advanced_optim=TRUE -mP3OPT_use_mspp_call_convention -mP2OPT_subs_out_of_bound=FALSE -mP2OPT_disam_type_based_disam=2 -mP2OPT_disam_assume_ansi_c -mP2OPT_checked_disam_ansi_alias=TRUE -mGLOB_ansi_alias -mPGOPTI_value_profile_use=T -mGLOB_opt_report_use_source_name -mP2OPT_il0_array_sections=TRUE -mGLOB_offload_mode=1 -mP2OPT_offload_unique_var_string=icc0475292214jYfIjE -mP2OPT_hlo -mP2OPT_hpo_rtt_control=0 -mIPOPT_args_in_regs=0 -mP2OPT_disam_assume_nonstd_intent_in=FALSE -mGLOB_imf_mapping_library=/opt/intel/compilers_and_libraries_2019.3.199/linux/bin/intel64/libiml_attr.so -mPGOPTI_gen_threadsafe_level=0 -mIPOPT_link -mIPOPT_ipo_activate -mIPOPT_mo_activate -mIPOPT_source_files_list=/tmp/iccslisx7B19E -mIPOPT_mo_global_data -mIPOPT_link_script_file=/tmp/iccscriptA6ahdx "-mIPOPT_cmdline_link="/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crt1.o" "/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crti.o" "/usr/lib64/gcc/x86_64-suse-linux/7/crtbegin.o" "--eh-frame-hdr" "--build-id" "-dynamic-linker" "/lib64/ld-linux-x86-64.so.2" "-m" "elf_x86_64" "-L/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib" "-L/opt/cray/dmapp/default/lib64" "-L/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib" "-L/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64" "-L/usr/common/software/darshan/3.2.1/lib" "-L/opt/cray/pe/atp/2.1.3/libApp" "-o" "cmTC_83d53" "-L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64" "-L/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64" "-L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64_lin" "-L/usr/lib64/gcc/x86_64-suse-linux/7/" "-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64" "-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/" "-L/lib/../lib64" "-L/lib/../lib64/" "-L/usr/lib/../lib64" "-L/usr/lib/../lib64/" "-L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64/" "-L/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64/" "-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/" "-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../" "-L/lib64" "-L/lib/" "-L/usr/lib64" "-L/usr/lib" "CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o" "-rpath=/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64" "-Ttext-segment=0x20000000" "-zmax-page-size=0x20000000" "--whole-archive" "-lhugetlbfs" "--no-whole-archive" "--no-as-needed" "-lAtpSigHandler" "-lAtpSigHCommData" "--undefined=_ATP_Data_Globals" "--undefined=__atpHandlerInstall" "-lrca" "-rpath=/usr/common/software/darshan/3.2.1/lib" "-no-as-needed" "-ldarshan" "-lz" "--as-needed" "-lmpich_intel" "--no-as-needed" "--as-needed" "-lsci_intel_mpi" "--no-as-needed" "--as-needed" "-lsci_intel" "--no-as-needed" "--as-needed" "-limf" "--no-as-needed" "--as-needed" "-lm" "--no-as-needed" "--as-needed" "-lifcoremt" "--no-as-needed" "--as-needed" "-lifport" "--no-as-needed" "--as-needed" "-lpthread" "--no-as-needed" "-Bdynamic" "-Bstatic" "-limf" "-lsvml" "-lirng" "-Bdynamic" "-lm" "-Bstatic" "-lipgo" "-ldecimal" "--as-needed" "-Bdynamic" "-lcilkrts" "-lstdc++" "--no-as-needed" "-lgcc" "-lgcc_s" "-Bstatic" "-lirc" "-lsvml" "-Bdynamic" "-lc" "-lgcc" "-lgcc_s" "-Bstatic" "-lirc_s" "-Bdynamic" "-ldl" "-lc" "/usr/lib64/gcc/x86_64-suse-linux/7/crtend.o" "/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crtn.o"" -mIPOPT_il_in_obj -mIPOPT_ipo_activate_warn=FALSE -mIPOPT_obj_output_file_name=/tmp/ipo_iccBnQyQq.o -mIPOPT_whole_archive_fixup_file_name=/tmp/iccwarchT5jxo9 -mGLOB_linker_version=2.35.1.20201123 -mGLOB_linker=/global/common/cori/software/altd/2.0/bin/ld -mGLOB_driver_tempfile_name=/tmp/icctempfile3leit1 -mP3OPT_asm_target=P3OPT_ASM_TARGET_GAS -mGLOB_async_unwind_tables=TRUE -mGLOB_obj_output_file=/tmp/ipo_iccBnQyQq.o -mGLOB_source_dialect=GLOB_SOURCE_DIALECT_NONE -mP1OPT_source_file_name=ipo_out.c CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o -mIPOPT_object_files=T -mIPOPT_assembly_files=/tmp/iccalisVQI2Wa -mIPOPT_generated_tempfiles=/tmp/iccelis3M2h02 -mIPOPT_embedded_object_base_name=/tmp/icceobjtXhx3U -mIPOPT_cmdline_link_new_name=/tmp/iccllisunuM6M
+/global/common/cori/software/altd/2.0/bin/ld    /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/7/crtbegin.o --eh-frame-hdr --build-id -dynamic-linker /lib64/ld-linux-x86-64.so.2 -m elf_x86_64 -L/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib -L/opt/cray/dmapp/default/lib64 -L/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib -L/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64 -L/usr/common/software/darshan/3.2.1/lib -L/opt/cray/pe/atp/2.1.3/libApp -o cmTC_83d53 -L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64 -L/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64 -L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64_lin -L/usr/lib64/gcc/x86_64-suse-linux/7/ -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/ -L/lib/../lib64 -L/lib/../lib64/ -L/usr/lib/../lib64 -L/usr/lib/../lib64/ -L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64/ -L/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64/ -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/ -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../ -L/lib64 -L/lib/ -L/usr/lib64 -L/usr/lib CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o -rpath=/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64 -Ttext-segment=0x20000000 -zmax-page-size=0x20000000 --whole-archive -lhugetlbfs --no-whole-archive --no-as-needed -lAtpSigHandler -lAtpSigHCommData --undefined=_ATP_Data_Globals --undefined=__atpHandlerInstall -lrca -rpath=/usr/common/software/darshan/3.2.1/lib -no-as-needed -ldarshan -lz --as-needed -lmpich_intel --no-as-needed --as-needed -lsci_intel_mpi --no-as-needed --as-needed -lsci_intel --no-as-needed --as-needed -limf --no-as-needed --as-needed -lm --no-as-needed --as-needed -lifcoremt --no-as-needed --as-needed -lifport --no-as-needed --as-needed -lpthread --no-as-needed -Bdynamic -Bstatic -limf -lsvml -lirng -Bdynamic -lm -Bstatic -lipgo -ldecimal --as-needed -Bdynamic -lcilkrts -lstdc++ --no-as-needed -lgcc -lgcc_s -Bstatic -lirc -lsvml -Bdynamic -lc -lgcc -lgcc_s -Bstatic -lirc_s -Bdynamic -ldl -lc /usr/lib64/gcc/x86_64-suse-linux/7/crtend.o /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crtn.o
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/gmake" "cmTC_83d53/fast"]
+  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTC_83d53.dir/build.make CMakeFiles/cmTC_83d53.dir/build]
+  ignore line: [gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp']
+  ignore line: [Building C object CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/opt/cray/pe/craype/2.6.2/bin/cc    -o CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_83d53]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_83d53.dir/link.txt --verbose=1]
+  ignore line: [/opt/cray/pe/craype/2.6.2/bin/cc     -v CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o  -o cmTC_83d53 ]
+  ignore line: [__INTEL_PRE_CFLAGS options:  -Qlocation,ld,/global/common/cori/software/altd/2.0/bin]
+  ignore line: [icc version 19.0.3.199 (gcc version 7.5.0 compatibility)]
+  ignore line: [/opt/intel/compilers_and_libraries_2019.3.199/linux/bin/intel64/mcpcom    -mGLOB_em64t=TRUE -mP1OPT_version=19.0-intel64 -mGLOB_diag_file=CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.diag -mGLOB_long_size_64 -mGLOB_routine_pointer_size_64 -mP1OPT_print_version=FALSE -mCG_use_gas_got_workaround=F -mP2OPT_align_option_used=TRUE -mGLOB_gcc_version=750 "-mGLOB_options_string=-I/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/include -I/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/include -I/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/include -I/opt/cray/alps/6.6.58-7.0.1.1_6.20__g437d88db.ari/include -I/opt/cray/xpmem/2.2.20-7.0.1.1_4.21__g0475745.ari/include -I/opt/cray/gni-headers/5.0.12.0-7.0.1.1_6.40__g3b1768f.ari/include -I/opt/cray/pe/pmi/5.0.14/include -I/opt/cray/ugni/6.0.14.0-7.0.1.1_7.51__ge78e5b0.ari/include -I/opt/cray/udreg/2.3.2-7.0.1.1_3.49__g8175d3d.ari/include -I/opt/cray/wlm_detect/1.3.3-7.0.1.1_4.20__g7109084.ari/include -I/opt/cray/krca/2.2.6-7.0.1.1_5.46__gb641b12.ari/include -I/opt/cray-hss-devel/9.0.0/include -Qlocation,ld,/global/common/cori/software/altd/2.0/bin -xCORE-AVX2 -D__CRAYXC -D__CRAY_HASWELL -D__CRAYXT_COMPUTE_LINUX_TARGET -v -o cmTC_83d53 -Wl,-rpath=/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64 -L/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib -L/opt/cray/dmapp/default/lib64 -L/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib -L/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64 -L/usr/common/software/darshan/3.2.1/lib -L/opt/cray/pe/atp/2.1.3/libApp -Wl,-Ttext-segment=0x20000000 -Wl,-zmax-page-size=0x20000000 -Wl,--whole-archive,-lhugetlbfs,--no-whole-archive -Wl,--no-as-needed,-lAtpSigHandler,-lAtpSigHCommData -Wl,--undefined=_ATP_Data_Globals -Wl,--undefined=__atpHandlerInstall -lrca -Wl,-rpath=/usr/common/software/darshan/3.2.1/lib -Wl,-no-as-needed -ldarshan -lz -Wl,--as-needed,-lmpich_intel,--no-as-needed -Wl,--as-needed,-lsci_intel_mpi,--no-as-needed -Wl,--as-needed,-lsci_intel,--no-as-needed -Wl,--as-needed,-limf,--no-as-needed -Wl,--as-needed,-lm,--no-as-needed -Wl,--as-needed,-lifcoremt,--no-as-needed -Wl,--as-needed,-lifport,--no-as-needed -Wl,--as-needed,-lpthread,--no-as-needed" -mGLOB_cxx_limited_range=FALSE -mCG_extend_parms=FALSE -mGLOB_compiler_bin_directory=/opt/intel/compilers_and_libraries_2019.3.199/linux/bin/intel64 -mGLOB_as_output_backup_file_name=/tmp/iccc8zwgpas_.s -mGLOB_dashboard_use_source_name -mIPOPT_activate -mGLOB_product_id_code=0x22006d93 -mGLOB_extended_instructions=0x4000 -mGLOB_advanced_optim=TRUE -mP3OPT_use_mspp_call_convention -mP2OPT_subs_out_of_bound=FALSE -mP2OPT_disam_type_based_disam=2 -mP2OPT_disam_assume_ansi_c -mP2OPT_checked_disam_ansi_alias=TRUE -mGLOB_ansi_alias -mPGOPTI_value_profile_use=T -mGLOB_opt_report_use_source_name -mP2OPT_il0_array_sections=TRUE -mGLOB_offload_mode=1 -mP2OPT_offload_unique_var_string=icc0475292214jYfIjE -mP2OPT_hlo -mP2OPT_hpo_rtt_control=0 -mIPOPT_args_in_regs=0 -mP2OPT_disam_assume_nonstd_intent_in=FALSE -mGLOB_imf_mapping_library=/opt/intel/compilers_and_libraries_2019.3.199/linux/bin/intel64/libiml_attr.so -mPGOPTI_gen_threadsafe_level=0 -mIPOPT_link -mIPOPT_ipo_activate -mIPOPT_mo_activate -mIPOPT_source_files_list=/tmp/iccslisx7B19E -mIPOPT_mo_global_data -mIPOPT_link_script_file=/tmp/iccscriptA6ahdx "-mIPOPT_cmdline_link="/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crt1.o" "/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crti.o" "/usr/lib64/gcc/x86_64-suse-linux/7/crtbegin.o" "--eh-frame-hdr" "--build-id" "-dynamic-linker" "/lib64/ld-linux-x86-64.so.2" "-m" "elf_x86_64" "-L/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib" "-L/opt/cray/dmapp/default/lib64" "-L/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib" "-L/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64" "-L/usr/common/software/darshan/3.2.1/lib" "-L/opt/cray/pe/atp/2.1.3/libApp" "-o" "cmTC_83d53" "-L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64" "-L/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64" "-L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64_lin" "-L/usr/lib64/gcc/x86_64-suse-linux/7/" "-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64" "-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/" "-L/lib/../lib64" "-L/lib/../lib64/" "-L/usr/lib/../lib64" "-L/usr/lib/../lib64/" "-L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64/" "-L/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64/" "-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/" "-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../" "-L/lib64" "-L/lib/" "-L/usr/lib64" "-L/usr/lib" "CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o" "-rpath=/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64" "-Ttext-segment=0x20000000" "-zmax-page-size=0x20000000" "--whole-archive" "-lhugetlbfs" "--no-whole-archive" "--no-as-needed" "-lAtpSigHandler" "-lAtpSigHCommData" "--undefined=_ATP_Data_Globals" "--undefined=__atpHandlerInstall" "-lrca" "-rpath=/usr/common/software/darshan/3.2.1/lib" "-no-as-needed" "-ldarshan" "-lz" "--as-needed" "-lmpich_intel" "--no-as-needed" "--as-needed" "-lsci_intel_mpi" "--no-as-needed" "--as-needed" "-lsci_intel" "--no-as-needed" "--as-needed" "-limf" "--no-as-needed" "--as-needed" "-lm" "--no-as-needed" "--as-needed" "-lifcoremt" "--no-as-needed" "--as-needed" "-lifport" "--no-as-needed" "--as-needed" "-lpthread" "--no-as-needed" "-Bdynamic" "-Bstatic" "-limf" "-lsvml" "-lirng" "-Bdynamic" "-lm" "-Bstatic" "-lipgo" "-ldecimal" "--as-needed" "-Bdynamic" "-lcilkrts" "-lstdc++" "--no-as-needed" "-lgcc" "-lgcc_s" "-Bstatic" "-lirc" "-lsvml" "-Bdynamic" "-lc" "-lgcc" "-lgcc_s" "-Bstatic" "-lirc_s" "-Bdynamic" "-ldl" "-lc" "/usr/lib64/gcc/x86_64-suse-linux/7/crtend.o" "/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crtn.o"" -mIPOPT_il_in_obj -mIPOPT_ipo_activate_warn=FALSE -mIPOPT_obj_output_file_name=/tmp/ipo_iccBnQyQq.o -mIPOPT_whole_archive_fixup_file_name=/tmp/iccwarchT5jxo9 -mGLOB_linker_version=2.35.1.20201123 -mGLOB_linker=/global/common/cori/software/altd/2.0/bin/ld -mGLOB_driver_tempfile_name=/tmp/icctempfile3leit1 -mP3OPT_asm_target=P3OPT_ASM_TARGET_GAS -mGLOB_async_unwind_tables=TRUE -mGLOB_obj_output_file=/tmp/ipo_iccBnQyQq.o -mGLOB_source_dialect=GLOB_SOURCE_DIALECT_NONE -mP1OPT_source_file_name=ipo_out.c CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o -mIPOPT_object_files=T -mIPOPT_assembly_files=/tmp/iccalisVQI2Wa -mIPOPT_generated_tempfiles=/tmp/iccelis3M2h02 -mIPOPT_embedded_object_base_name=/tmp/icceobjtXhx3U -mIPOPT_cmdline_link_new_name=/tmp/iccllisunuM6M]
+  link line: [/global/common/cori/software/altd/2.0/bin/ld    /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/7/crtbegin.o --eh-frame-hdr --build-id -dynamic-linker /lib64/ld-linux-x86-64.so.2 -m elf_x86_64 -L/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib -L/opt/cray/dmapp/default/lib64 -L/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib -L/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64 -L/usr/common/software/darshan/3.2.1/lib -L/opt/cray/pe/atp/2.1.3/libApp -o cmTC_83d53 -L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64 -L/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64 -L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64_lin -L/usr/lib64/gcc/x86_64-suse-linux/7/ -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/ -L/lib/../lib64 -L/lib/../lib64/ -L/usr/lib/../lib64 -L/usr/lib/../lib64/ -L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64/ -L/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64/ -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/ -L/usr/lib64/gcc/x86_64-suse-linux/7/../../../ -L/lib64 -L/lib/ -L/usr/lib64 -L/usr/lib CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o -rpath=/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64 -Ttext-segment=0x20000000 -zmax-page-size=0x20000000 --whole-archive -lhugetlbfs --no-whole-archive --no-as-needed -lAtpSigHandler -lAtpSigHCommData --undefined=_ATP_Data_Globals --undefined=__atpHandlerInstall -lrca -rpath=/usr/common/software/darshan/3.2.1/lib -no-as-needed -ldarshan -lz --as-needed -lmpich_intel --no-as-needed --as-needed -lsci_intel_mpi --no-as-needed --as-needed -lsci_intel --no-as-needed --as-needed -limf --no-as-needed --as-needed -lm --no-as-needed --as-needed -lifcoremt --no-as-needed --as-needed -lifport --no-as-needed --as-needed -lpthread --no-as-needed -Bdynamic -Bstatic -limf -lsvml -lirng -Bdynamic -lm -Bstatic -lipgo -ldecimal --as-needed -Bdynamic -lcilkrts -lstdc++ --no-as-needed -lgcc -lgcc_s -Bstatic -lirc -lsvml -Bdynamic -lc -lgcc -lgcc_s -Bstatic -lirc_s -Bdynamic -ldl -lc /usr/lib64/gcc/x86_64-suse-linux/7/crtend.o /usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crtn.o]
+    arg [/global/common/cori/software/altd/2.0/bin/ld] ==> ignore
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crt1.o] ==> ignore
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crti.o] ==> ignore
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/crtbegin.o] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-L/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib] ==> dir [/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib]
+    arg [-L/opt/cray/dmapp/default/lib64] ==> dir [/opt/cray/dmapp/default/lib64]
+    arg [-L/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib] ==> dir [/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib]
+    arg [-L/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64] ==> dir [/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64]
+    arg [-L/usr/common/software/darshan/3.2.1/lib] ==> dir [/usr/common/software/darshan/3.2.1/lib]
+    arg [-L/opt/cray/pe/atp/2.1.3/libApp] ==> dir [/opt/cray/pe/atp/2.1.3/libApp]
+    arg [-o] ==> ignore
+    arg [cmTC_83d53] ==> ignore
+    arg [-L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64] ==> dir [/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64]
+    arg [-L/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64] ==> dir [/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64]
+    arg [-L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64_lin] ==> dir [/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64_lin]
+    arg [-L/usr/lib64/gcc/x86_64-suse-linux/7/] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/7/]
+    arg [-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64]
+    arg [-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/lib/../lib64/] ==> dir [/lib/../lib64/]
+    arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+    arg [-L/usr/lib/../lib64/] ==> dir [/usr/lib/../lib64/]
+    arg [-L/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64/] ==> dir [/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64/]
+    arg [-L/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64/] ==> dir [/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64/]
+    arg [-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/]
+    arg [-L/usr/lib64/gcc/x86_64-suse-linux/7/../../../] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../]
+    arg [-L/lib64] ==> dir [/lib64]
+    arg [-L/lib/] ==> dir [/lib/]
+    arg [-L/usr/lib64] ==> dir [/usr/lib64]
+    arg [-L/usr/lib] ==> dir [/usr/lib]
+    arg [CMakeFiles/cmTC_83d53.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-rpath=/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64] ==> ignore
+    arg [-Ttext-segment=0x20000000] ==> ignore
+    arg [-zmax-page-size=0x20000000] ==> ignore
+    arg [--whole-archive] ==> ignore
+    arg [-lhugetlbfs] ==> lib [hugetlbfs]
+    arg [--no-whole-archive] ==> ignore
+    arg [--no-as-needed] ==> ignore
+    arg [-lAtpSigHandler] ==> lib [AtpSigHandler]
+    arg [-lAtpSigHCommData] ==> lib [AtpSigHCommData]
+    arg [--undefined=_ATP_Data_Globals] ==> ignore
+    arg [--undefined=__atpHandlerInstall] ==> ignore
+    arg [-lrca] ==> lib [rca]
+    arg [-rpath=/usr/common/software/darshan/3.2.1/lib] ==> ignore
+    arg [-no-as-needed] ==> ignore
+    arg [-ldarshan] ==> lib [darshan]
+    arg [-lz] ==> lib [z]
+    arg [--as-needed] ==> ignore
+    arg [-lmpich_intel] ==> lib [mpich_intel]
+    arg [--no-as-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-lsci_intel_mpi] ==> lib [sci_intel_mpi]
+    arg [--no-as-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-lsci_intel] ==> lib [sci_intel]
+    arg [--no-as-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-limf] ==> lib [imf]
+    arg [--no-as-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-lm] ==> lib [m]
+    arg [--no-as-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-lifcoremt] ==> lib [ifcoremt]
+    arg [--no-as-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-lifport] ==> lib [ifport]
+    arg [--no-as-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-lpthread] ==> lib [pthread]
+    arg [--no-as-needed] ==> ignore
+    arg [-Bdynamic] ==> ignore
+    arg [-Bstatic] ==> ignore
+    arg [-limf] ==> lib [imf]
+    arg [-lsvml] ==> lib [svml]
+    arg [-lirng] ==> lib [irng]
+    arg [-Bdynamic] ==> ignore
+    arg [-lm] ==> lib [m]
+    arg [-Bstatic] ==> ignore
+    arg [-lipgo] ==> lib [ipgo]
+    arg [-ldecimal] ==> lib [decimal]
+    arg [--as-needed] ==> ignore
+    arg [-Bdynamic] ==> ignore
+    arg [-lcilkrts] ==> lib [cilkrts]
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [--no-as-needed] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-Bstatic] ==> ignore
+    arg [-lirc] ==> lib [irc]
+    arg [-lsvml] ==> lib [svml]
+    arg [-Bdynamic] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-Bstatic] ==> ignore
+    arg [-lirc_s] ==> lib [irc_s]
+    arg [-Bdynamic] ==> ignore
+    arg [-ldl] ==> lib [dl]
+    arg [-lc] ==> lib [c]
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/crtend.o] ==> ignore
+    arg [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/crtn.o] ==> ignore
+  collapse library dir [/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib] ==> [/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib]
+  collapse library dir [/opt/cray/dmapp/default/lib64] ==> [/opt/cray/dmapp/default/lib64]
+  collapse library dir [/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib] ==> [/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib]
+  collapse library dir [/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64] ==> [/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64]
+  collapse library dir [/usr/common/software/darshan/3.2.1/lib] ==> [/usr/common/software/darshan/3.2.1/lib]
+  collapse library dir [/opt/cray/pe/atp/2.1.3/libApp] ==> [/opt/cray/pe/atp/2.1.3/libApp]
+  collapse library dir [/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64] ==> [/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64]
+  collapse library dir [/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64] ==> [/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64]
+  collapse library dir [/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64_lin] ==> [/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64_lin]
+  collapse library dir [/usr/lib64/gcc/x86_64-suse-linux/7/] ==> [/usr/lib64/gcc/x86_64-suse-linux/7]
+  collapse library dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64] ==> [/usr/lib64]
+  collapse library dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../lib64/] ==> [/usr/lib64]
+  collapse library dir [/lib/../lib64] ==> [/lib64]
+  collapse library dir [/lib/../lib64/] ==> [/lib64]
+  collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+  collapse library dir [/usr/lib/../lib64/] ==> [/usr/lib64]
+  collapse library dir [/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64/] ==> [/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64]
+  collapse library dir [/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64/] ==> [/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64]
+  collapse library dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../../x86_64-suse-linux/lib/] ==> [/usr/x86_64-suse-linux/lib]
+  collapse library dir [/usr/lib64/gcc/x86_64-suse-linux/7/../../../] ==> [/usr/lib64]
+  collapse library dir [/lib64] ==> [/lib64]
+  collapse library dir [/lib/] ==> [/lib]
+  collapse library dir [/usr/lib64] ==> [/usr/lib64]
+  collapse library dir [/usr/lib] ==> [/usr/lib]
+  implicit libs: [hugetlbfs;AtpSigHandler;AtpSigHCommData;rca;darshan;z;mpich_intel;sci_intel_mpi;sci_intel;imf;m;ifcoremt;ifport;pthread;imf;svml;irng;m;ipgo;decimal;cilkrts;stdc++;gcc;gcc_s;irc;svml;c;gcc;gcc_s;irc_s;dl;c]
+  implicit dirs: [/opt/cray/pe/libsci/19.06.1/INTEL/16.0/x86_64/lib;/opt/cray/dmapp/default/lib64;/opt/cray/pe/mpt/7.7.10/gni/mpich-intel/16.0/lib;/opt/cray/rca/2.2.20-7.0.1.1_4.62__g8e3fb5b.ari/lib64;/usr/common/software/darshan/3.2.1/lib;/opt/cray/pe/atp/2.1.3/libApp;/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64;/opt/intel/compilers_and_libraries_2019.3.199/linux/mkl/lib/intel64;/opt/intel/compilers_and_libraries_2019.3.199/linux/compiler/lib/intel64_lin;/usr/lib64/gcc/x86_64-suse-linux/7;/usr/lib64;/lib64;/usr/x86_64-suse-linux/lib;/lib;/usr/lib]
+  implicit fwks: []
+
+
+
+
+Detecting C [-std=c11] compiler features compiled with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_2d411/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_2d411.dir/build.make CMakeFiles/cmTC_2d411.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_2d411.dir/feature_tests.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc   -std=c11 -o CMakeFiles/cmTC_2d411.dir/feature_tests.c.o   -c /global/homes/e/ewims/cqf/CMakeFiles/feature_tests.c
+Linking C executable cmTC_2d411
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2d411.dir/link.txt --verbose=1
+/opt/cray/pe/craype/2.6.2/bin/cc      CMakeFiles/cmTC_2d411.dir/feature_tests.c.o  -o cmTC_2d411 
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:1c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c99] compiler features compiled with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_a66c4/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_a66c4.dir/build.make CMakeFiles/cmTC_a66c4.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a66c4.dir/feature_tests.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc   -std=c99 -o CMakeFiles/cmTC_a66c4.dir/feature_tests.c.o   -c /global/homes/e/ewims/cqf/CMakeFiles/feature_tests.c
+Linking C executable cmTC_a66c4
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a66c4.dir/link.txt --verbose=1
+/opt/cray/pe/craype/2.6.2/bin/cc      CMakeFiles/cmTC_a66c4.dir/feature_tests.c.o  -o cmTC_a66c4 
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:1c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c89] compiler features compiled with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_e5821/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_e5821.dir/build.make CMakeFiles/cmTC_e5821.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_e5821.dir/feature_tests.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc   -std=c89 -o CMakeFiles/cmTC_e5821.dir/feature_tests.c.o   -c /global/homes/e/ewims/cqf/CMakeFiles/feature_tests.c
+Linking C executable cmTC_e5821
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e5821.dir/link.txt --verbose=1
+/opt/cray/pe/craype/2.6.2/bin/cc      CMakeFiles/cmTC_e5821.dir/feature_tests.c.o  -o cmTC_e5821 
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:0c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:0c_variadic_macros
+The system is: Linux - 4.12.14-150.66-default - x86_64
+Compiling the CUDA compiler identification source file "CMakeCUDACompilerId.cu" succeeded.
+Compiler: /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/nvcc 
+Build flags: 
+Id flags:  -v;--keep;--keep-dir;tmp
+
+The output was:
+0
+#$ _NVVM_BRANCH_=nvvm
+#$ _SPACE_= 
+#$ _CUDART_=cudart
+#$ _HERE_=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin
+#$ _THERE_=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin
+#$ _TARGET_SIZE_=
+#$ _TARGET_DIR_=
+#$ _TARGET_DIR_=targets/x86_64-linux
+#$ TOP=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/..
+#$ NVVMIR_LIBRARY_DIR=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice
+#$ LD_LIBRARY_PATH=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../lib:/usr/common/software/sles15_cgpu/boost/1.74.0/lib:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/lib:/usr/common/software/sles15_cgpu/ucx/1.8.1/lib:/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib64:/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64:/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib:/opt/esslurm/lib64:/usr/lib64:/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/stubs
+#$ PATH=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/usr/common/software/python/3.8-anaconda-2020.11/bin:/global/homes/e/ewims/.local/cori/3.8-anaconda-2020.11/bin:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/bin:/opt/esslurm/bin:/usr/common/software/bin:/usr/common/nsg/bin:/opt/ovis/bin:/opt/ovis/sbin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin
+#$ INCLUDES="-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"  
+#$ LIBRARIES=  "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"
+#$ CUDAFE_FLAGS=
+#$ PTXAS_FLAGS=
+#$ rm tmp/a_dlink.reg.c
+#$ gcc -D__CUDA_ARCH__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" 
+#$ cicc --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused -nvvmir-library "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice/libdevice.10.bc" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"
+#$ ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" 
+#$ fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" 
+#$ gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" 
+#$ cudafe++ --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" 
+#$ gcc -D__CUDA_ARCH__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" 
+#$ nvlink --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -m64   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin"
+#$ fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" 
+#$ gcc -c -x c++ -DFATBINFILE="\"tmp/a_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"tmp/a_dlink.reg.c\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -m64 "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/crt/link.stub" -o "tmp/a_dlink.o" 
+#$ g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" 
+
+
+Compilation of the CUDA compiler identification source "CMakeCUDACompilerId.cu" produced "a.out"
+
+The CUDA compiler identification is NVIDIA, found in "/global/homes/e/ewims/cqf/CMakeFiles/3.14.4/CompilerIdCUDA/a.out"
+
+Parsed CUDA nvcc implicit link information from above output:
+  found 'PATH=' string: [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/usr/common/software/python/3.8-anaconda-2020.11/bin:/global/homes/e/ewims/.local/cori/3.8-anaconda-2020.11/bin:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/bin:/opt/esslurm/bin:/usr/common/software/bin:/usr/common/nsg/bin:/opt/ovis/bin:/opt/ovis/sbin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin]
+  found 'LIBRARIES=' string: ["-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"]
+  considering line: [#$ rm tmp/a_dlink.reg.c]
+  considering line: [gcc -D__CUDA_ARCH__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" ]
+  considering line: [cicc --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused -nvvmir-library "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice/libdevice.10.bc" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"]
+  considering line: [ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" ]
+  considering line: [fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" ]
+  considering line: [gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [cudafe++ --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [gcc -D__CUDA_ARCH__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" ]
+  considering line: [nvlink --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -m64   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin"]
+    ignoring nvlink line
+  considering line: [fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" ]
+  considering line: [gcc -c -x c++ -DFATBINFILE="\"tmp/a_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"tmp/a_dlink.reg.c\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -m64 "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/crt/link.stub" -o "tmp/a_dlink.o" ]
+  considering line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    extracted link line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+  considering line: []
+  extracted link launcher name: [g++]
+  found link launcher absolute path: [/usr/bin/g++]
+
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  link line: [cuda-fake-ld g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    arg [cuda-fake-ld] ==> ignore
+    arg [g++] ==> ignore
+    arg [-m64] ==> ignore
+    arg [-Wl,--start-group] ==> ignore
+    arg [tmp/a_dlink.o] ==> ignore
+    arg [tmp/CMakeCUDACompilerId.o] ==> ignore
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs]
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib]
+    arg [-lcudadevrt] ==> lib [cudadevrt]
+    arg [-lcudart_static] ==> lib [cudart_static]
+    arg [-lrt] ==> lib [rt]
+    arg [-lpthread] ==> lib [pthread]
+    arg [-ldl] ==> lib [dl]
+    arg [-Wl,--end-group] ==> ignore
+    arg [-o] ==> ignore
+    arg [a.out] ==> ignore
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs]
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit libs: [cudadevrt;cudart_static;rt;pthread;dl]
+  implicit dirs: [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs;/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit fwks: []
+
+
+Parsed CUDA nvcc include information from above output:
+  found 'PATH=' string: [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/usr/common/software/python/3.8-anaconda-2020.11/bin:/global/homes/e/ewims/.local/cori/3.8-anaconda-2020.11/bin:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/bin:/opt/esslurm/bin:/usr/common/software/bin:/usr/common/nsg/bin:/opt/ovis/bin:/opt/ovis/sbin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin]
+  found 'LIBRARIES=' string: ["-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"]
+  considering line: [#$ rm tmp/a_dlink.reg.c]
+  considering line: [gcc -D__CUDA_ARCH__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" ]
+  considering line: [cicc --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused -nvvmir-library "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice/libdevice.10.bc" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"]
+  considering line: [ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" ]
+  considering line: [fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" ]
+  considering line: [gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [cudafe++ --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [gcc -D__CUDA_ARCH__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" ]
+  considering line: [nvlink --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -m64   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin"]
+    ignoring nvlink line
+  considering line: [fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" ]
+  considering line: [gcc -c -x c++ -DFATBINFILE="\"tmp/a_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"tmp/a_dlink.reg.c\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -m64 "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/crt/link.stub" -o "tmp/a_dlink.o" ]
+  considering line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    extracted link line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+  considering line: []
+  extracted link launcher name: [g++]
+  found link launcher absolute path: [/usr/bin/g++]
+  found 'INCLUDES=' string: ["-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"  ]
+
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  link line: [cuda-fake-ld g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    arg [cuda-fake-ld] ==> ignore
+    arg [g++] ==> ignore
+    arg [-m64] ==> ignore
+    arg [-Wl,--start-group] ==> ignore
+    arg [tmp/a_dlink.o] ==> ignore
+    arg [tmp/CMakeCUDACompilerId.o] ==> ignore
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs]
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib]
+    arg [-lcudadevrt] ==> lib [cudadevrt]
+    arg [-lcudart_static] ==> lib [cudart_static]
+    arg [-lrt] ==> lib [rt]
+    arg [-lpthread] ==> lib [pthread]
+    arg [-ldl] ==> lib [dl]
+    arg [-Wl,--end-group] ==> ignore
+    arg [-o] ==> ignore
+    arg [a.out] ==> ignore
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs]
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit libs: [cudadevrt;cudart_static;rt;pthread;dl]
+  implicit dirs: [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs;/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit fwks: []
+
+
