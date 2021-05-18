@@ -7,7 +7,11 @@
  * ============================================================================
  */
 
-#include <stdio.h>
+
+#include "include/qqf_call.cuh"
+
+extern C{
+	#include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,10 +23,15 @@
 #include <unistd.h>
 #include <openssl/rand.h>
 
-#include "include/gqf.h"
-#include "include/gqf_int.h"
+	#include "include/gqf_int.h"
 #include "include/gqf_file.h"
 #include "hashutil.h"
+	#include "include/gqf.h"
+}
+
+
+
+
 
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
