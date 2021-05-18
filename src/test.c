@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	uint64_t nslots = (1ULL << qbits);
 	//this can be changed to change the % it fills up
 	uint64_t nvals = 95*nslots/100;
-	uint64_t key_count = 4;
+	uint64_t key_count = 1;
 	uint64_t *vals;
 	uint64_t* hashes;
 
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 		abort();
 	}
 
-	qf_set_auto_resize(&qf, true);
+	qf_set_auto_resize(&qf,false);
 	/* Generate random values */
 	vals = (uint64_t*)malloc(nvals*sizeof(vals[0]));
 	hashes = (uint64_t*)malloc(nvals * sizeof(hashes[0]));
