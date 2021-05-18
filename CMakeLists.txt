@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+
 project(cqf LANGUAGES C CUDA)
 
 
@@ -8,17 +10,15 @@ set(CUDA_SEPARABLE_COMPILATION ON)
 include(GNUInstallDirs)
 
 
-add_subdirectory(src})
+add_subdirectory(src)
 
 include_directories(
-	include
+include
 	)
 
 
 link_directories(
 	include
 	)
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
-endif()
+add_subdirectory(src)
 
