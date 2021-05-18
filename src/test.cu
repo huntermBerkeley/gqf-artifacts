@@ -7,6 +7,7 @@
  * ============================================================================
  */
 
+#include <cuda.h>
 
 #include "include/qqf_call.cuh"
 
@@ -35,6 +36,10 @@ extern C{
 
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
+#define CUDA_CHECK(ans)                                                                  \
+    {                                                                                    \
+        gpuAssert((ans), __FILE__, __LINE__);                                            \
+    }
 
 int main(int argc, char **argv)
 {
@@ -71,6 +76,12 @@ int main(int argc, char **argv)
 	RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
 	srand(0);
 	//pre-hash everything
+	float* d_vals;
+
+	CUDA_CHECK(cudaMalloc(&d_Vals, sizeof(uint64_t) * nvals);
+	CUDA_CHECK(cudaMemcpy(&d_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
+	//TODO better block sizes
+
 	for (uint64_t i = 0; i < nvals; i++) {
 		vals[i] = (1 * vals[i]) % qf.metadata->range;
 		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
