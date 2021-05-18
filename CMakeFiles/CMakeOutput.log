@@ -392,3 +392,137 @@ Parsed CUDA nvcc include information from above output:
   implicit fwks: []
 
 
+Compiling the CUDA compiler identification source file "CMakeCUDACompilerId.cu" succeeded.
+Compiler: /usr/common/software/sles15_cgpu/cuda/11.1.1/bin/nvcc 
+Build flags: 
+Id flags:  -v;--keep;--keep-dir;tmp
+
+The output was:
+0
+#$ _NVVM_BRANCH_=nvvm
+#$ _SPACE_= 
+#$ _CUDART_=cudart
+#$ _HERE_=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin
+#$ _THERE_=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin
+#$ _TARGET_SIZE_=
+#$ _TARGET_DIR_=
+#$ _TARGET_DIR_=targets/x86_64-linux
+#$ TOP=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/..
+#$ NVVMIR_LIBRARY_DIR=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice
+#$ LD_LIBRARY_PATH=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../lib:/usr/common/software/sles15_cgpu/boost/1.74.0/lib:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/lib:/usr/common/software/sles15_cgpu/ucx/1.8.1/lib:/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib64:/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64:/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/lib:/opt/esslurm/lib64:/usr/lib64:/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/stubs
+#$ PATH=/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/usr/common/software/python/3.8-anaconda-2020.11/bin:/global/homes/e/ewims/.local/cori/3.8-anaconda-2020.11/bin:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/bin:/opt/esslurm/bin:/usr/common/software/bin:/usr/common/nsg/bin:/opt/ovis/bin:/opt/ovis/sbin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin
+#$ INCLUDES="-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"  
+#$ LIBRARIES=  "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"
+#$ CUDAFE_FLAGS=
+#$ PTXAS_FLAGS=
+#$ rm tmp/a_dlink.reg.c
+#$ gcc -D__CUDA_ARCH__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" 
+#$ cicc --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused -nvvmir-library "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice/libdevice.10.bc" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"
+#$ ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" 
+#$ fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" 
+#$ gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" 
+#$ cudafe++ --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" 
+#$ gcc -D__CUDA_ARCH__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" 
+#$ nvlink --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -m64   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin"
+#$ fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" 
+#$ gcc -c -x c++ -DFATBINFILE="\"tmp/a_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"tmp/a_dlink.reg.c\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -m64 "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/crt/link.stub" -o "tmp/a_dlink.o" 
+#$ g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" 
+
+
+Compilation of the CUDA compiler identification source "CMakeCUDACompilerId.cu" produced "a.out"
+
+The CUDA compiler identification is NVIDIA, found in "/global/homes/e/ewims/cqf/CMakeFiles/3.14.4/CompilerIdCUDA/a.out"
+
+Parsed CUDA nvcc implicit link information from above output:
+  found 'PATH=' string: [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/usr/common/software/python/3.8-anaconda-2020.11/bin:/global/homes/e/ewims/.local/cori/3.8-anaconda-2020.11/bin:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/bin:/opt/esslurm/bin:/usr/common/software/bin:/usr/common/nsg/bin:/opt/ovis/bin:/opt/ovis/sbin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin]
+  found 'LIBRARIES=' string: ["-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"]
+  considering line: [#$ rm tmp/a_dlink.reg.c]
+  considering line: [gcc -D__CUDA_ARCH__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" ]
+  considering line: [cicc --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused -nvvmir-library "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice/libdevice.10.bc" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"]
+  considering line: [ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" ]
+  considering line: [fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" ]
+  considering line: [gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [cudafe++ --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [gcc -D__CUDA_ARCH__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" ]
+  considering line: [nvlink --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -m64   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin"]
+    ignoring nvlink line
+  considering line: [fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" ]
+  considering line: [gcc -c -x c++ -DFATBINFILE="\"tmp/a_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"tmp/a_dlink.reg.c\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -m64 "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/crt/link.stub" -o "tmp/a_dlink.o" ]
+  considering line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    extracted link line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+  considering line: []
+  extracted link launcher name: [g++]
+  found link launcher absolute path: [/usr/bin/g++]
+
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  link line: [cuda-fake-ld g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    arg [cuda-fake-ld] ==> ignore
+    arg [g++] ==> ignore
+    arg [-m64] ==> ignore
+    arg [-Wl,--start-group] ==> ignore
+    arg [tmp/a_dlink.o] ==> ignore
+    arg [tmp/CMakeCUDACompilerId.o] ==> ignore
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs]
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib]
+    arg [-lcudadevrt] ==> lib [cudadevrt]
+    arg [-lcudart_static] ==> lib [cudart_static]
+    arg [-lrt] ==> lib [rt]
+    arg [-lpthread] ==> lib [pthread]
+    arg [-ldl] ==> lib [dl]
+    arg [-Wl,--end-group] ==> ignore
+    arg [-o] ==> ignore
+    arg [a.out] ==> ignore
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs]
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit libs: [cudadevrt;cudart_static;rt;pthread;dl]
+  implicit dirs: [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs;/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit fwks: []
+
+
+Parsed CUDA nvcc include information from above output:
+  found 'PATH=' string: [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/usr/common/software/python/3.8-anaconda-2020.11/bin:/global/homes/e/ewims/.local/cori/3.8-anaconda-2020.11/bin:/usr/common/software/sles15_cgpu/openmpi/4.0.3/pgi/bin:/usr/common/software/sles15_cgpu/cuda/11.1.1/bin:/global/common/sw/cray/cnl7/haswell/cmake/3.14.4/gcc/8.2.0/2hef55n/bin:/usr/common/software/sles15_cgpu/pgi/20.4/linux86-64/20.4/bin:/opt/esslurm/bin:/usr/common/software/bin:/usr/common/nsg/bin:/opt/ovis/bin:/opt/ovis/sbin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin]
+  found 'LIBRARIES=' string: ["-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"]
+  considering line: [#$ rm tmp/a_dlink.reg.c]
+  considering line: [gcc -D__CUDA_ARCH__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" ]
+  considering line: [cicc --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused -nvvmir-library "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../nvvm/libdevice/libdevice.10.bc" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"]
+  considering line: [ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" ]
+  considering line: [fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" ]
+  considering line: [gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [cudafe++ --c++14 --gnu_version=70500 --orig_src_file_name "CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+  considering line: [gcc -D__CUDA_ARCH__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" ]
+  considering line: [nvlink --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -m64   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin"]
+    ignoring nvlink line
+  considering line: [fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" ]
+  considering line: [gcc -c -x c++ -DFATBINFILE="\"tmp/a_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"tmp/a_dlink.reg.c\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -m64 "/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/crt/link.stub" -o "tmp/a_dlink.o" ]
+  considering line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    extracted link line: [g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+  considering line: []
+  extracted link launcher name: [g++]
+  found link launcher absolute path: [/usr/bin/g++]
+  found 'INCLUDES=' string: ["-I/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/include"  ]
+
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  link line: [cuda-fake-ld g++ -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o"   "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+    arg [cuda-fake-ld] ==> ignore
+    arg [g++] ==> ignore
+    arg [-m64] ==> ignore
+    arg [-Wl,--start-group] ==> ignore
+    arg [tmp/a_dlink.o] ==> ignore
+    arg [tmp/CMakeCUDACompilerId.o] ==> ignore
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs]
+    arg [-L/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib]
+    arg [-lcudadevrt] ==> lib [cudadevrt]
+    arg [-lcudart_static] ==> lib [cudart_static]
+    arg [-lrt] ==> lib [rt]
+    arg [-lpthread] ==> lib [pthread]
+    arg [-ldl] ==> lib [dl]
+    arg [-Wl,--end-group] ==> ignore
+    arg [-o] ==> ignore
+    arg [a.out] ==> ignore
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib/stubs] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs]
+  collapse library dir [/usr/common/software/sles15_cgpu/cuda/11.1.1/bin/../targets/x86_64-linux/lib] ==> [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit libs: [cudadevrt;cudart_static;rt;pthread;dl]
+  implicit dirs: [/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib/stubs;/usr/common/software/sles15_cgpu/cuda/11.1.1/targets/x86_64-linux/lib]
+  implicit fwks: []
+
+

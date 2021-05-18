@@ -132,3 +132,101 @@ gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
 gmake: *** [Makefile:121: cmTC_62697/fast] Error 2
 
 
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /opt/cray/pe/craype/2.6.2/bin/cc 
+Build flags: 
+Id flags:  
+
+The output was:
+255
+Error: A PrgEnv-* modulefile must be loaded.
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /opt/cray/pe/craype/2.6.2/bin/cc 
+Build flags: 
+Id flags: -c 
+
+The output was:
+255
+Error: A PrgEnv-* modulefile must be loaded.
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /opt/cray/pe/craype/2.6.2/bin/cc 
+Build flags: 
+Id flags: -Aa 
+
+The output was:
+255
+Error: A PrgEnv-* modulefile must be loaded.
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /opt/cray/pe/craype/2.6.2/bin/cc 
+Build flags: 
+Id flags: -D__CLASSIC_C__ 
+
+The output was:
+255
+Error: A PrgEnv-* modulefile must be loaded.
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /opt/cray/pe/craype/2.6.2/bin/cc 
+Build flags: 
+Id flags:  
+
+The output was:
+255
+Error: A PrgEnv-* modulefile must be loaded.
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /opt/cray/pe/craype/2.6.2/bin/cc 
+Build flags: 
+Id flags: -c 
+
+The output was:
+255
+Error: A PrgEnv-* modulefile must be loaded.
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /opt/cray/pe/craype/2.6.2/bin/cc 
+Build flags: 
+Id flags: -Aa 
+
+The output was:
+255
+Error: A PrgEnv-* modulefile must be loaded.
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /opt/cray/pe/craype/2.6.2/bin/cc 
+Build flags: 
+Id flags: -D__CLASSIC_C__ 
+
+The output was:
+255
+Error: A PrgEnv-* modulefile must be loaded.
+
+
+Checking whether the C compiler is IAR using "" did not match "IAR .+ Compiler":
+Error: A PrgEnv-* modulefile must be loaded.
+Checking whether the C compiler is IAR using "" did not match "IAR .+ Compiler":
+Error: A PrgEnv-* modulefile must be loaded.
+Determining if the C compiler works failed with the following output:
+Change Dir: /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_65594/fast 
+/usr/bin/gmake -f CMakeFiles/cmTC_65594.dir/build.make CMakeFiles/cmTC_65594.dir/build
+gmake[1]: Entering directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_65594.dir/testCCompiler.c.o
+/opt/cray/pe/craype/2.6.2/bin/cc    -o CMakeFiles/cmTC_65594.dir/testCCompiler.c.o   -c /global/homes/e/ewims/cqf/CMakeFiles/CMakeTmp/testCCompiler.c
+Error: A PrgEnv-* modulefile must be loaded.
+gmake[1]: *** [CMakeFiles/cmTC_65594.dir/build.make:66: CMakeFiles/cmTC_65594.dir/testCCompiler.c.o] Error 255
+gmake[1]: Leaving directory '/global/u2/e/ewims/cqf/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:121: cmTC_65594/fast] Error 2
+
+
