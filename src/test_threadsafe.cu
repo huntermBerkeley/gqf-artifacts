@@ -17,9 +17,9 @@
 #include <pthread.h>
 #include <openssl/rand.h>
 
-#include "include/gqf.h"
-#include "include/gqf_int.h"
-#include "include/gqf_file.h"
+#include "include/gqf.cuh"
+#include "include/gqf_int.cuh"
+#include "include/gqf_file.cuh"
 
 typedef struct insert_args {
 	QF *cf;

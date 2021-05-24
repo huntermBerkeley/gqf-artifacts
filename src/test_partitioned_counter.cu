@@ -19,9 +19,9 @@
 #include <time.h>
 #include <sys/time.h>
 
-#include "partitioned_counter.h"
+#include "partitioned_counter.cuh"
 
-#include	<stdlib.h>
+#include	<stdlib.cuh>
 
 #define INC_TO 500000
 #define DEC_TO INC_BY/2

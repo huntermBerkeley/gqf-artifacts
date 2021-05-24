@@ -7,12 +7,12 @@
  * ============================================================================
  */
 
-#ifndef GQF_WRAPPER_H
-#define GQF_WRAPPER_H
+#ifndef GQF_WRAPPER_CUH
+#define GQF_WRAPPER_CUH
 
-#include "gqf.h"
-#include "gqf_int.h"
-#include "gqf_file.h"
+#include "gqf.cuh"
+#include "gqf_int.cuh"
+#include "gqf_file.cuh"
 
 QF g_quotient_filter;
 QFi g_quotient_filter_itr;

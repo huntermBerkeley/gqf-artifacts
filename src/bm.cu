@@ -18,8 +18,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "include/zipf.h"
-#include "include/gqf_wrapper.h"
+#include "include/zipf.cuh"
+#include "include/gqf_wrapper.cuh"
 
 #ifndef  USE_MYRANDOM
 #define RFUN random

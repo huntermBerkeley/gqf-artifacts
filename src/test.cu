@@ -8,11 +8,7 @@
  */
 
 #include <cuda.h>
-
-#include "include/qqf_call.cuh"
-
-extern C{
-	#include <stdio.h>
+#include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,11 +20,11 @@ extern C{
 #include <unistd.h>
 #include <openssl/rand.h>
 
-	#include "include/gqf_int.h"
-#include "include/gqf_file.h"
-#include "hashutil.h"
-	#include "include/gqf.h"
-}
+#include "include/gqf_int.cuh"
+#include "include/gqf_file.cuh"
+#include "hashutil.cuh"
+#include "include/gqf.cuh"
+
 
 
 
@@ -76,10 +72,7 @@ int main(int argc, char **argv)
 	RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
 	srand(0);
 	//pre-hash everything
-	float* d_vals;
-
-	CUDA_CHECK(cudaMalloc(&d_Vals, sizeof(uint64_t) * nvals);
-	CUDA_CHECK(cudaMemcpy(&d_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
+	
 	//TODO better block sizes
 
 	for (uint64_t i = 0; i < nvals; i++) {

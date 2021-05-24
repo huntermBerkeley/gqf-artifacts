@@ -7,15 +7,13 @@
  * ============================================================================
  */
 
-#ifndef _PARTITIONED_COUNTER_H_
-#define _PARTITIONED_COUNTER_H_
+#ifndef _PARTITIONED_COUNTER_CUH_
+#define _PARTITIONED_COUNTER_CUH_
 
 #include <inttypes.h>
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 typedef struct local_counter {
 	int64_t counter;
@@ -47,8 +45,6 @@ void pc_add(pc_t *pc, int64_t count);
 
 void pc_sync(pc_t *pc);
 
-#ifdef __cplusplus
-}
-#endif
 
-#endif /* _PARTITIONED_COUNTER_H_ */
+
+#endif /* _PARTITIONED_COUNTER_CUH_ */

@@ -7,18 +7,15 @@
  * ============================================================================
  */
 
-#ifndef _GQF_INT_H_
-#define _GQF_INT_H_
+#ifndef _GQF_INT_CUH_
+#define _GQF_INT_CUH_
 
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include "gqf.h"
-#include "partitioned_counter.h"
+#include "gqf.cuh"
+#include "partitioned_counter.cuh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define MAGIC_NUMBER 1018874902021329732
 
@@ -149,8 +146,6 @@ extern "C" {
 		cluster_data *c_info;
 	} quotient_filter_iterator;
 
-#ifdef __cplusplus
-}
-#endif
 
-#endif /* _GQF_INT_H_ */
+
+#endif /* _GQF_INT_CUH_ */

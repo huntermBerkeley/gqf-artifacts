@@ -19,9 +19,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "hashutil.h"
-#include "gqf.h"
-#include "gqf_int.h"
+#include "hashutil.cuh"
+#include "gqf.cuh"
+#include "gqf_int.cuh"
 
 /******************************************************************
  * Code for managing the metadata bits and slots w/o interpreting *
@@ -34,8 +34,7 @@
 #define NUM_SLOTS_TO_LOCK (1ULL<<16)
 #define CLUSTER_SIZE (1ULL<<14)
 #define METADATA_WORD(qf,field,slot_index)                              \
-  (get_block((qf), (slot_index) /                                       \
-             QF_SLOTS_PER_BLOCK)->field[((slot_index)  % QF_SLOTS_PER_BLOCK) / 64])
+  (get_block((qf), (slot_index) /   QF_SLOTS_PER_BLOCK)->field[((slot_index)  % QF_SLOTS_PER_BLOCK) / 64])
 
 #define GET_NO_LOCK(flag) (flag & QF_NO_LOCK)
 #define GET_TRY_ONCE_LOCK(flag) (flag & QF_TRY_ONCE_LOCK)
@@ -1867,9 +1866,10 @@ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 {
 	// We fill up the CQF up to 95% load factor.
 	// This is a very conservative check.
+	/*
 	if (qf_get_num_occupied_slots(qf) >= qf->metadata->nslots * 0.95) {
 		if (qf->runtimedata->auto_resize) {
-			/*fprintf(stdout, "Resizing the CQF.\n");*/
+			fprintf(stdout, "Resizing the CQF.\n");
 			if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) < 0)
 			{
 				fprintf(stderr, "Resizing the failed.\n");
@@ -1878,15 +1878,17 @@ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 		} else
 			return QF_NO_SPACE;
 	}
+	*/
 	if (count == 0)
 		return 0;
-
+	/*
 	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
 		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
 			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
 		else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
 			key = hash_64(key, BITMASK(qf->metadata->key_bits));
 	}
+	*/
 	uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
 	int ret;
 	if (count == 1)
@@ -1896,6 +1898,7 @@ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 
 	// check for fullness based on the distance from the home slot to the slot
 	// in which the key is inserted
+	/*
 	if (ret == QF_NO_SPACE || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
 		float load_factor = qf_get_num_occupied_slots(qf) /
 			(float)qf->metadata->nslots;
@@ -1920,8 +1923,221 @@ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 			ret = QF_NO_SPACE;
 		}
 	}
+	*/
 	return ret;
 }
+/*------------------------
+GPU Modifications
+--------------------------*/
+
+#include "include/gqf_call.cuh"
+
+extern C{
+	#include "include/gqf.h"
+#include "include/gqf_int.h"
+#include "include/gqf_file.h"
+#include "hashutil.h"
+
+}
+#define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
+#define CUDA_CHECK(ans)                                                                  \
+    {                                                                                    \
+        gpuAssert((ans), __FILE__, __LINE__);                                            \
+    }
+
+__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
+	//TODO: INIT QF IN GPU MEMORY
+	float* d_qf;
+	CUDA_CHECK(CudaMalloc(&d_qf, sizeof(QF)));
+	CUDA_CHECK(CudaMemcpy(&d_qf), qf, sizeof(QF), cudaMemcpyHostToDevice));
+
+	float* d_vals;
+
+	CUDA_CHECK(cudaMalloc(&d_vals, sizeof(uint64_t) * nvals);
+	CUDA_CHECK(cudaMemcpy(&d_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
+
+	int block_size = 512;
+	int num_blocks = (nvals + block_size - 1) / block_size;
+	hash_all << num_blocks, block_size >> (d_vals, nvals, nhashbits);
+
+	float* d_lock;
+	int num_locks = qf->metadata->nslots / 4096;
+	CUDA_CHECK(cudaMalloc(&d_lock, sizeof(uint16_t) * num_locks));
+	CUDA_CHECK(cudaMemSet(d_lock, 0, sizeof(unit16_t) * num_locks));
+	qf_bulk_insert(qf, d_vals, 0, 1, nvals, d_lock, QF_NO_LOCK);
+
+}
+
+__global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
+	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	int stride = blockDim.x * gridDim.x;
+	for (int i = idx; i < nvals; i += stride) {
+		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
+	}
+	return;
+}
+
+
+__device__ uint16_t get_lock(uint16_t* lock, int index) {
+	//set lock to 1 to claim
+	//returns 0 if success
+	return atomicCAS(lock[index], 0, 1);
+}
+
+__device__ uint16_t unlock(uint16_t* lock, int index) {
+	//set lock to 0 to release
+	return atomicCAS(lock[index], 1, 0);
+}
+
+__host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16t* locks, uint8_t flags) {
+	uint64_t evenness = 1;
+	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
+	evenness = 0;
+	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
+
+}
+__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16t* locks, int evenness, uint8_t flags) {
+	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	int n_threads = blockDim.x * gridDim.x;
+	//start and end points in the keys array
+	int start = nvals * idx / n_threads;
+	int end = nvals * (idx + 1) / n_threads;
+	int i = start;
+	while (i < end) {
+		uint64_t key = keys[i];
+		int64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
+		uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
+		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
+		if (hash_bucket_index % 2 == evenness) {
+			if (get_lock(locks, hash_bucket_index) == 0) {
+				int ret = qf_insert(&qf, keys[i], 0, 1, QF_NO_LOCK);
+				if (ret < 0) {
+					fprintf(stderr, "failed insertion for key: %lx %d.\n", vals[i], 50);
+					if (ret == QF_NO_SPACE)
+						fprintf(stderr, "CQF is full.\n");
+					else if (ret == QF_COULDNT_LOCK)
+						fprintf(stderr, "TRY_ONCE_LOCK failed.\n");
+					else
+						fprintf(stderr, "Does not recognise return value.\n");
+					i++;
+				}
+			}
+
+		}
+		else {
+
+			i++;
+		}
+		//TODO: Lock the right thing
+
+	}
+	return;
+}
+
+#include "include/gqf_call.cuh"
+
+extern C{
+	#include "include/gqf.h"
+#include "include/gqf_int.h"
+#include "include/gqf_file.h"
+#include "hashutil.h"
+
+}
+#define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
+#define CUDA_CHECK(ans)                                                                  \
+    {                                                                                    \
+        gpuAssert((ans), __FILE__, __LINE__);                                            \
+    }
+
+__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
+	//TODO: INIT QF IN GPU MEMORY
+	float* d_qf;
+	CUDA_CHECK(CudaMalloc(&d_qf, sizeof(QF)));
+	CUDA_CHECK(CudaMemcpy(&d_qf), qf, sizeof(QF), cudaMemcpyHostToDevice));
+
+	float* d_vals;
+
+	CUDA_CHECK(cudaMalloc(&d_vals, sizeof(uint64_t) * nvals);
+	CUDA_CHECK(cudaMemcpy(&d_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
+
+	int block_size = 512;
+	int num_blocks = (nvals + block_size - 1) / block_size;
+	hash_all << num_blocks, block_size >> (d_vals, nvals, nhashbits);
+
+	float* d_lock;
+	int num_locks = qf->metadata->nslots / 4096;
+	CUDA_CHECK(cudaMalloc(&d_lock, sizeof(uint16_t) * num_locks));
+	CUDA_CHECK(cudaMemSet(d_lock, 0, sizeof(unit16_t) * num_locks));
+	qf_bulk_insert(qf, d_vals, 0, 1, nvals, d_lock, QF_NO_LOCK);
+
+}
+
+__global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
+	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	int stride = blockDim.x * gridDim.x;
+	for (int i = idx; i < nvals; i += stride) {
+		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
+	}
+	return;
+}
+
+
+__device__ uint16_t get_lock(uint16_t* lock, int index) {
+	//set lock to 1 to claim
+	//returns 0 if success
+	return atomicCAS(lock[index], 0, 1);
+}
+
+__device__ uint16_t unlock(uint16_t* lock, int index) {
+	//set lock to 0 to release
+	return atomicCAS(lock[index], 1, 0);
+}
+
+__host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16t* locks, uint8_t flags) {
+	uint64_t evenness = 1;
+	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
+	evenness = 0;
+	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
+
+}
+__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16t* locks, int evenness, uint8_t flags) {
+	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	int n_threads = blockDim.x * gridDim.x;
+	//start and end points in the keys array
+	int start = nvals * idx / n_threads;
+	int end = nvals * (idx + 1) / n_threads;
+	int i = start;
+	while (i < end) {
+		uint64_t key = keys[i];
+		int64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
+		uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
+		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
+		if (hash_bucket_index % 2 == evenness) {
+			if (get_lock(locks, hash_bucket_index) == 0) {
+				int ret = qf_insert(&qf, keys[i], 0, 1, QF_NO_LOCK);
+				if (ret < 0) {
+					fprintf(stderr, "failed insertion for key: %lx %d.\n", vals[i], 50);
+					if (ret == QF_NO_SPACE)
+						fprintf(stderr, "CQF is full.\n");
+					else if (ret == QF_COULDNT_LOCK)
+						fprintf(stderr, "TRY_ONCE_LOCK failed.\n");
+					else
+						fprintf(stderr, "Does not recognise return value.\n");
+					i++;
+				}
+			}
+
+		}
+		else {
+			i++;
+		}
+		//TODO: Lock the right thing
+
+	}
+	return;
+
+}
+
 void qf_insert_from_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint8_t
 	flags) {
 	int tid = 1;

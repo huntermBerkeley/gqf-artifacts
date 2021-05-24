@@ -7,18 +7,15 @@
  * ============================================================================
  */
 
-#ifndef _GQF_FILE_H_
-#define _GQF_FILE_H_
+#ifndef _GQF_FILE_CUH_
+#define _GQF_FILE_CUH_
 
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdbool.h>
 
-#include "gqf.h"
+#include "gqf.cuh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 	/* Initialize a file-backed (i.e. mmapped) CQF at "filename". */
 	bool qf_initfile(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
@@ -58,8 +55,6 @@ extern "C" {
      first element visited by the qfi. */
   int qfi_initial_madvise(QFi *qfi);
   
-#ifdef __cplusplus
-}
-#endif
+
 
 #endif // _GQF_FILE_H_

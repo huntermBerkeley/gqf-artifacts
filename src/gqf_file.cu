@@ -23,10 +23,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "hashutil.h"
-#include "gqf.h"
-#include "gqf_int.h"
-#include "gqf_file.h"
+#include "hashutil.cuh"
+#include "gqf.cuh"
+#include "gqf_int.cuh"
+#include "gqf_file.cuh"
 
 #define NUM_SLOTS_TO_LOCK (1ULL<<16)
 

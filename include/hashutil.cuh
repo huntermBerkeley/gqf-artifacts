@@ -7,8 +7,8 @@
  * ============================================================================
  */
 
-#ifndef _HASHUTIL_H_
-#define _HASHUTIL_H_
+#ifndef _HASHUTIL_CUH_
+#define _HASHUTIL_CUH_
 
 #include <sys/types.h>
 #include <stdlib.h>

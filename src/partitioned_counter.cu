@@ -17,7 +17,7 @@
 #include <sys/syscall.h>
 #include <errno.h>
 
-#include "partitioned_counter.h"
+#include "partitioned_counter.cuh"
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
