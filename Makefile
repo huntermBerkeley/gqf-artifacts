@@ -25,9 +25,12 @@ OBJDIR=obj
 
 CC = gcc -std=gnu11
 CXX = g++ -std=c++11
+CU = nvcc -x cu
 LD= gcc -std=gnu11
 
 CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT) $(ARCH) -m64 -I. -Iinclude
+
+CUFLAGS = -arch=sm_70 -rdc=true -I. -Iinclude
 
 LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) -lpthread -lssl -lcrypto -lm
 
@@ -57,24 +60,24 @@ bm:									$(OBJDIR)/bm.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
 
 # dependencies between .o files and .h files
 
-$(OBJDIR)/test.o: 						$(LOC_INCLUDE)/gqf.h $(LOC_INCLUDE)/gqf_file.h \
-															$(LOC_INCLUDE)/hashutil.h \
-															$(LOC_INCLUDE)/partitioned_counter.h
+$(OBJDIR)/test.o: 						$(LOC_INCLUDE)/gqf.cuh $(LOC_INCLUDE)/gqf_file.cuh \
+															$(LOC_INCLUDE)/hashutil.cuh \
+															$(LOC_INCLUDE)/partitioned_counter.cuh
 
-$(OBJDIR)/test_threadsafe.o: 	$(LOC_INCLUDE)/gqf.h $(LOC_INCLUDE)/gqf_file.h \
-															$(LOC_INCLUDE)/hashutil.h \
-															$(LOC_INCLUDE)/partitioned_counter.h
+$(OBJDIR)/test_threadsafe.o: 	$(LOC_INCLUDE)/gqf.cuh $(LOC_INCLUDE)/gqf_file.cuh \
+															$(LOC_INCLUDE)/hashutil.cuh \
+															$(LOC_INCLUDE)/partitioned_counter.cuh
 
-$(OBJDIR)/bm.o:								$(LOC_INCLUDE)/gqf_wrapper.h \
-															$(LOC_INCLUDE)/partitioned_counter.h
+$(OBJDIR)/bm.o:								$(LOC_INCLUDE)/gqf_wrapper.cuh \
+															$(LOC_INCLUDE)/partitioned_counter.cuh
 
 
 # dependencies between .o files and .cc (or .c) files
 
-$(OBJDIR)/gqf.o:							$(LOC_SRC)/gqf.c $(LOC_INCLUDE)/gqf.h
-$(OBJDIR)/gqf_file.o:					$(LOC_SRC)/gqf_file.c $(LOC_INCLUDE)/gqf_file.h
-$(OBJDIR)/hashutil.o:					$(LOC_SRC)/hashutil.c $(LOC_INCLUDE)/hashutil.h
-$(OBJDIR)/partitioned_counter.o:	$(LOC_INCLUDE)/partitioned_counter.h
+$(OBJDIR)/gqf.o:							$(LOC_SRC)/gqf.cu $(LOC_INCLUDE)/gqf.cuh
+$(OBJDIR)/gqf_file.o:					$(LOC_SRC)/gqf_file.cu $(LOC_INCLUDE)/gqf_file.cuh
+$(OBJDIR)/hashutil.o:					$(LOC_SRC)/hashutil.cu $(LOC_INCLUDE)/hashutil.cuh
+$(OBJDIR)/partitioned_counter.o:	$(LOC_INCLUDE)/partitioned_counter.cuh
 
 #
 # generic build rules
@@ -82,6 +85,9 @@ $(OBJDIR)/partitioned_counter.o:	$(LOC_INCLUDE)/partitioned_counter.h
 
 $(TARGETS):
 	$(LD) $^ -o $@ $(LDFLAGS)
+
+$(OBJDIR)/%.o: $(LOC_SRC)/%.cu | $(OBJDIR)
+	$(CU) $(CUFLAGS) $(INCLUDE) -dc $< -o $@
 
 $(OBJDIR)/%.o: $(LOC_SRC)/%.cc | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $< -c -o $@
