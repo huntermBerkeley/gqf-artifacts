@@ -1,39 +1,41 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
-project(cmake_and_cuda LANGUAGES CXX CUDA)
- 
-include(CTest)
- 
-add_library(cqf STATIC
-	src/bm.cu
-	src/gqf.cu
-	src/gqf_file.cu
-	src/hashutil.cu
-	src/partitioned_counter.cu
-	src/zipf.cu
-	include/gqf.cuh
-	include/gqf_int.cuh
-	include/gqf_wrapper.cuh
-	include/hashutil.cuh
-	include/partitioned_counter.cuh
-	include/zipf.cuh
-	)  
-	       
-# Request that particles be built with -std=c++11
-# As this is a public compile feature anything that links to 
-# particles will also build with -std=c++11
-target_compile_features(cqf PUBLIC cxx_std_11)
-	       
-# We need to explicitly state that we need all CUDA files in the 
-# particle library to be built with -dc as the member functions 
-# could be called by other libraries and executables
-set_target_properties( cqf
-                      PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-				      
-add_executable(cqf_test src/test.cu)
-				      
-set_property(TARGET cqf_test 
-            PROPERTY CUDA_SEPARABLE_COMPILATION)
-target_link_libraries(cqf_test PRIVATE cqf)
+#
+# Help from :
+# https://rix0r.nl/blog/2015/08/13/cmake-guide/
+#
+
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+project(gpu_cqf VERSION 0.2 LANGUAGES CUDA)
+if (NOT CMAKE_BUILD_TYPE)
+   set (CMAKE_BUILD_TYPE "Release")
+endif()
+
+# We require C++17
+set(CMAKE_CUDA_STANDARD 11)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 
+#find_package(CUDA REQUIRED)
 
+if (NH)
+   set(ARCH_FLAGS "")
+   set(ARCH_DEFS "")
+   message(STATUS "Compiling without Haswell instructions")
+else()
+   set(ARCH_FLAGS "")
+   set(ARCH_DEFS "-D__SSE4_2_")
+endif()
+
+#nvcc doesn't like warning flags
+#set(CQF_CUDA_WARN "-Wno-implicit-function-declaration")
+set(CQF_CUDA_FLAGS "${ARCH_DEFS};${CQF_CUDA_WARN}")
+
+if (SDSL_INSTALL_PATH)
+   message("Adding ${SDSL_INSTALL_PATH}/include to the include path")
+   message("Adding ${SDSL_INSTALL_PATH}/build/lib to the build path")
+   list(APPEND CQF_CUDA_FLAGS "-I${SDSL_INSTALL_PATH}/include")
+   list(APPEND CQF_CUDA_FLAGS "-L${SDSL_INSTALL_PATH}/lib")
+endif()
+
+include(GNUInstallDirs)
+
+add_subdirectory(src)
