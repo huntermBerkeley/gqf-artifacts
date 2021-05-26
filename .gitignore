@@ -3,7 +3,11 @@
 
 *.cqf
 *.o
+*.file
 
+test
+test_pc
+test_threadsafe
 main
 bm
 
