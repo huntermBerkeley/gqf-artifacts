@@ -80,7 +80,7 @@
 	uint64_t qf_init(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 									 value_bits, enum qf_hashmode hash, uint32_t seed, void*
 									 buffer, uint64_t buffer_len);
-
+	
 	/* Create a CQF in "buffer". Note that this does not initialize the
 	 contents of bufferss Use this function if you have read a CQF, e.g.
 	 off of disk or network, and want to begin using that stream of
@@ -106,10 +106,10 @@
 	************************************/
 	
 	/* Initialize the CQF and allocate memory for the CQF. */
-	bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
+	__host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 								 value_bits, enum qf_hashmode hash, uint32_t seed);
 
-	bool qf_free(QF *qf);
+	__host__ bool qf_free(QF *qf);
 
 	/* Resize the QF to the specified number of slots.  Uses malloc() to
 	 * obtain the new memory, and calls free() on the old memory.
@@ -121,7 +121,7 @@
 	/* Turn on automatic resizing.  Resizing is performed by calling
 		 qf_resize_malloc, so the CQF must meet the requirements of that
 		 function. */
-	void qf_set_auto_resize(QF* qf, bool enabled);
+	__host__ __device__ void qf_set_auto_resize(QF* qf, bool enabled);
 
 	/***********************************
    Functions for modifying the CQF.
@@ -138,16 +138,14 @@
 	 *    == QF_NO_SPACE: the CQF has reached capacity.
 	 *    == QF_COULDNT_LOCK: TRY_ONCE_LOCK has failed to acquire the lock.
 	 */
-	int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
+	__host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								flags);
 
-	void qf_insert_from_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint8_t
-		flags);
 	/* Set the counter for this key/value pair to count. 
 	 Return value: Same as qf_insert. 
 	 Returns 0 if new count is equal to old count.
 	*/
-	int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count,
+	__host__ __device__ int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count,
 									 uint8_t flags);
 
 	/* Remove up to count instances of this key/value combination.
@@ -158,11 +156,11 @@
 	 *    == QF_DOESNT_EXIST: Specified item did not exist.
 	 *    == QF_COULDNT_LOCK: TRY_ONCE_LOCK has failed to acquire the lock.
 	 */
-	int qf_remove(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
+	__host__ __device__ int qf_remove(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								flags);
 
 	/* Remove all instances of this key/value pair. */
-	int qf_delete_key_value(QF *qf, uint64_t key, uint64_t value, uint8_t flags);
+	__host__ __device__ int qf_delete_key_value(QF *qf, uint64_t key, uint64_t value, uint8_t flags);
 
 	/* Remove all instances of this key. */
 	/* NOT IMPLEMENTED YET. */
@@ -176,6 +174,11 @@
 	/* NOT IMPLEMENTED YET. */
 	//void qf_replace(QF *qf, uint64_t key, uint64_t oldvalue, uint64_t newvalue);
 
+	/*******************************************
+	GPU functions
+	******************************/
+	__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
+
 	/****************************************
    Query functions
 	****************************************/
@@ -185,7 +188,7 @@
 		 present in the QF. Only returns the first value associated with key
 		 in the QF.  If you want to see others, use an iterator. 
 		 May return QF_COULDNT_LOCK if called with QF_TRY_LOCK.  */
-	uint64_t qf_query(const QF *qf, uint64_t key, uint64_t *value, uint8_t
+	__host__ __device__ uint64_t qf_query(const QF *qf, uint64_t key, uint64_t *value, uint8_t
 										flags);
 
 	/* Return the number of times key has been inserted, with any value,
@@ -196,7 +199,7 @@
 	/* Return the number of times key has been inserted, with the given
 		 value, into qf.
 		 May return QF_COULDNT_LOCK if called with QF_TRY_LOCK.  */
-	uint64_t qf_count_key_value(const QF *qf, uint64_t key, uint64_t value,
+	__host__ __device__ uint64_t qf_count_key_value(const QF *qf, uint64_t key, uint64_t value,
 															uint8_t flags);
 
 	/* Returns a unique index corresponding to the key in the CQF.  Note
@@ -206,7 +209,7 @@
 		 If the key is not found then returns QF_DOESNT_EXIST.
 		 May return QF_COULDNT_LOCK if called with QF_TRY_LOCK.
 	 */
-	int64_t qf_get_unique_index(const QF *qf, uint64_t key, uint64_t value,
+	__host__ __device__ int64_t qf_get_unique_index(const QF *qf, uint64_t key, uint64_t value,
 															uint8_t flags);
 
 

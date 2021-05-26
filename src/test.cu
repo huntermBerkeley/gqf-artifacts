@@ -55,15 +55,17 @@ int main(int argc, char **argv)
 	uint64_t* hashes;
 
 	/* Initialise the CQF */
-	/*if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, 0)) {*/
-	/*fprintf(stderr, "Can't allocate CQF.\n");*/
-	/*abort();*/
-	/*}*/
+	if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, 0)) {
+	fprintf(stderr, "Can't allocate CQF.\n");
+	abort();
+	}
+	/*
 	if (!qf_initfile(&qf, nslots, nhashbits, 0, QF_HASH_NONE, 0,
 									 "/tmp/mycqf.file")) {
 		fprintf(stderr, "Can't allocate CQF.\n");
 		abort();
 	}
+	*/
 
 	qf_set_auto_resize(&qf,false);
 	/* Generate random values */
@@ -71,20 +73,16 @@ int main(int argc, char **argv)
 	hashes = (uint64_t*)malloc(nvals * sizeof(hashes[0]));
 	RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
 	srand(0);
-	//pre-hash everything
 	
-	//TODO better block sizes
-
+	/*
 	for (uint64_t i = 0; i < nvals; i++) {
 		vals[i] = (1 * vals[i]) % qf.metadata->range;
 		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
-		/*fake hash until implemented*/
-		//hashes[i] = vals[i];
 	}
-
+	*/
 	/* Insert keys in the CQF */
+	qf_kernel(&qf, vals, nvals, nhashbits)
 
-	qf_insert_gpu(&qf, vals, 0, key_count, nvals, QF_NO_LOCK);
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {
 		int ret = qf_insert(&qf, vals[i], 0, key_count, QF_NO_LOCK);
@@ -134,6 +132,7 @@ int main(int argc, char **argv)
 #endif
 
 	/* Write the CQF to disk and read it back. */
+	/*
 	char filename[] = "/tmp/mycqf_serialized.cqf";
 	fprintf(stdout, "Serializing the CQF to disk.\n");
 	uint64_t total_size = qf_serialize(&qf, filename);
@@ -157,7 +156,7 @@ int main(int argc, char **argv)
 			abort();
 		}
 	}
-
+	*/
 	fprintf(stdout, "Testing iterator and unique indexes.\n");
 	/* Initialize an iterator and validate counts. */
 	QFi qfi;

@@ -43,7 +43,10 @@
 
 #define DISTANCE_FROM_HOME_SLOT_CUTOFF 1000
 #define BILLION 1000000000L
-
+#define CUDA_CHECK(ans)                                                                  \
+    {                                                                                    \
+        gpuAssert((ans), __FILE__, __LINE__);                                            \
+    }
 #ifdef DEBUG
 #define PRINT_DEBUG 1
 #else
@@ -56,212 +59,21 @@
 #define DEBUG_DUMP(qf) \
 	do { if (PRINT_DEBUG) qf_dump_metadata(qf); } while (0)
 
-static __inline__ unsigned long long rdtsc(void)
+__device__ static __inline__ unsigned long long rdtsc(void)
 {
 	unsigned hi, lo;
 	__asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
 	return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
 }
 
-#ifdef LOG_WAIT_TIME
-static inline bool qf_spin_lock(QF *qf, volatile int *lock, uint64_t idx,
-																uint8_t flag)
-{
-	struct timespec start, end;
-	bool ret;
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
-	if (GET_WAIT_FOR_LOCK(flag) != QF_WAIT_FOR_LOCK) {
-		ret = !__sync_lock_test_and_set(lock, 1);
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);
-		qf->runtimedata->wait_times[idx].locks_acquired_single_attempt++;
-		qf->runtimedata->wait_times[idx].total_time_single += BILLION * (end.tv_sec -
-																												start.tv_sec) +
-			end.tv_nsec - start.tv_nsec;
-	} else {
-		if (!__sync_lock_test_and_set(lock, 1)) {
-			clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);
-			qf->runtimedata->wait_times[idx].locks_acquired_single_attempt++;
-			qf->runtimedata->wait_times[idx].total_time_single += BILLION * (end.tv_sec -
-																													start.tv_sec) +
-			end.tv_nsec - start.tv_nsec;
-		} else {
-			while (__sync_lock_test_and_set(lock, 1))
-				while (*lock);
-			clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);
-			qf->runtimedata->wait_times[idx].total_time_spinning += BILLION * (end.tv_sec -
-																														start.tv_sec) +
-				end.tv_nsec - start.tv_nsec;
-		}
-		ret = true;
-	}
-	qf->runtimedata->wait_times[idx].locks_taken++;
-
-	return ret;
-
-	/*start = rdtsc();*/
-	/*if (!__sync_lock_test_and_set(lock, 1)) {*/
-		/*clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);*/
-		/*qf->runtimedata->wait_times[idx].locks_acquired_single_attempt++;*/
-		/*qf->runtimedata->wait_times[idx].total_time_single += BILLION * (end.tv_sec -
-		 * start.tv_sec) + end.tv_nsec - start.tv_nsec;*/
-	/*} else {*/
-		/*while (__sync_lock_test_and_set(lock, 1))*/
-			/*while (*lock);*/
-		/*clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);*/
-		/*qf->runtimedata->wait_times[idx].total_time_spinning += BILLION * (end.tv_sec -
-		 * start.tv_sec) + end.tv_nsec - start.tv_nsec;*/
-	/*}*/
-
-	/*end = rdtsc();*/
-	/*qf->runtimedata->wait_times[idx].locks_taken++;*/
-	/*return;*/
-}
-#else
-/**
- * Try to acquire a lock once and return even if the lock is busy.
- * If spin flag is set, then spin until the lock is available.
- */
-static inline bool qf_spin_lock(volatile int *lock, uint8_t flag)
-{
-	if (GET_WAIT_FOR_LOCK(flag) != QF_WAIT_FOR_LOCK) {
-		return !__sync_lock_test_and_set(lock, 1);
-	} else {
-		while (__sync_lock_test_and_set(lock, 1))
-			while (*lock);
-		return true;
-	}
-
-	return false;
-}
-#endif
-
-static inline void qf_spin_unlock(volatile int *lock)
-{
-	__sync_lock_release(lock);
-	return;
-}
-
-static bool qf_lock(QF *qf, uint64_t hash_bucket_index, bool small, uint8_t
-										runtime_lock)
-{
-	uint64_t hash_bucket_lock_offset  = hash_bucket_index % NUM_SLOTS_TO_LOCK;
-	if (small) {
-#ifdef LOG_WAIT_TIME
-		if (!qf_spin_lock(qf, &qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK],
-											hash_bucket_index/NUM_SLOTS_TO_LOCK,
-											runtime_lock))
-			return false;
-		if (NUM_SLOTS_TO_LOCK - hash_bucket_lock_offset <= CLUSTER_SIZE) {
-			if (!qf_spin_lock(qf, &qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK+1],
-												hash_bucket_index/NUM_SLOTS_TO_LOCK+1,
-												runtime_lock)) {
-				qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK]);
-				return false;
-			}
-		}
-#else
-		if (!qf_spin_lock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK],
-											runtime_lock))
-			return false;
-		if (NUM_SLOTS_TO_LOCK - hash_bucket_lock_offset <= CLUSTER_SIZE) {
-			if (!qf_spin_lock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK+1],
-												runtime_lock)) {
-				qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK]);
-				return false;
-			}
-		}
-#endif
-	} else {
-#ifdef LOG_WAIT_TIME
-		if (hash_bucket_index >= NUM_SLOTS_TO_LOCK && hash_bucket_lock_offset <=
-				CLUSTER_SIZE) {
-			if (!qf_spin_lock(qf,
-												&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK-1],
-												runtime_lock))
-				return false;
-		}
-		if (!qf_spin_lock(qf,
-											&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK],
-											runtime_lock)) {
-			if (hash_bucket_index >= NUM_SLOTS_TO_LOCK && hash_bucket_lock_offset <=
-					CLUSTER_SIZE)
-				qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK-1]);
-			return false;
-		}
-		if (!qf_spin_lock(qf, &qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK+1],
-											runtime_lock)) {
-			qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK]);
-			if (hash_bucket_index >= NUM_SLOTS_TO_LOCK && hash_bucket_lock_offset <=
-					CLUSTER_SIZE)
-				qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK-1]);
-			return false;
-		}
-#else
-		if (hash_bucket_index >= NUM_SLOTS_TO_LOCK && hash_bucket_lock_offset <=
-				CLUSTER_SIZE) {
-			if
-				(!qf_spin_lock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK-1],
-											 runtime_lock))
-				return false;
-		}
-		if (!qf_spin_lock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK],
-											runtime_lock)) {
-			if (hash_bucket_index >= NUM_SLOTS_TO_LOCK && hash_bucket_lock_offset <=
-					CLUSTER_SIZE)
-				qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK-1]);
-			return false;
-		}
-		if (!qf_spin_lock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK+1],
-											runtime_lock)) {
-			qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK]);
-			if (hash_bucket_index >= NUM_SLOTS_TO_LOCK && hash_bucket_lock_offset <=
-					CLUSTER_SIZE)
-				qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK-1]);
-			return false;
-		}
-#endif
-	}
-	return true;
-}
-
-static void qf_unlock(QF *qf, uint64_t hash_bucket_index, bool small)
-{
-	uint64_t hash_bucket_lock_offset  = hash_bucket_index % NUM_SLOTS_TO_LOCK;
-	if (small) {
-		if (NUM_SLOTS_TO_LOCK - hash_bucket_lock_offset <= CLUSTER_SIZE) {
-			qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK+1]);
-		}
-		qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK]);
-	} else {
-		qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK+1]);
-		qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK]);
-		if (hash_bucket_index >= NUM_SLOTS_TO_LOCK && hash_bucket_lock_offset <=
-				CLUSTER_SIZE)
-			qf_spin_unlock(&qf->runtimedata->locks[hash_bucket_index/NUM_SLOTS_TO_LOCK-1]);
-	}
-}
-
-/*static void modify_metadata(QF *qf, uint64_t *metadata, int cnt)*/
-/*{*/
-/*#ifdef LOG_WAIT_TIME*/
-	/*qf_spin_lock(qf, &qf->runtimedata->metadata_lock,*/
-							 /*qf->runtimedata->num_locks, QF_WAIT_FOR_LOCK);*/
-/*#else*/
-	/*qf_spin_lock(&qf->runtimedata->metadata_lock, QF_WAIT_FOR_LOCK);*/
-/*#endif*/
-	/**metadata = *metadata + cnt;*/
-	/*qf_spin_unlock(&qf->runtimedata->metadata_lock);*/
-	/*return;*/
-/*}*/
-
-static void modify_metadata(pc_t *metadata, int cnt)
+__device__ static void modify_metadata(pc_t *metadata, int cnt)
 {
 	pc_add(metadata, cnt);
 	return;
 }
 
-static inline int popcnt(uint64_t val)
+__device__ static inline int popcnt(uint64_t val)
 {
 	asm("popcnt %[val], %[val]"
 			: [val] "+r" (val)
@@ -270,7 +82,7 @@ static inline int popcnt(uint64_t val)
 	return val;
 }
 
-static inline int64_t bitscanreverse(uint64_t val)
+__device__ static inline int64_t bitscanreverse(uint64_t val)
 {
 	if (val == 0) {
 		return -1;
@@ -283,7 +95,7 @@ static inline int64_t bitscanreverse(uint64_t val)
 	}
 }
 
-static inline int popcntv(const uint64_t val, int ignore)
+__device__ static inline int popcntv(const uint64_t val, int ignore)
 {
 	if (ignore % 64)
 		return popcnt (val & ~BITMASK(ignore % 64));
@@ -293,7 +105,7 @@ static inline int popcntv(const uint64_t val, int ignore)
 
 // Returns the number of 1s up to (and including) the pos'th bit
 // Bits are numbered from 0
-static inline int bitrank(uint64_t val, int pos) {
+__device__ static inline int bitrank(uint64_t val, int pos) {
 	val = val & ((2ULL << pos) - 1);
 	asm("popcnt %[val], %[val]"
 			: [val] "+r" (val)
@@ -401,7 +213,7 @@ const uint8_t kSelectInByte[2048] = {
 	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7
 };
 
-static inline uint64_t _select64(uint64_t x, int k)
+__device__ static inline uint64_t _select64(uint64_t x, int k)
 {
 	if (k >= popcnt(x)) { return 64; }
 	
@@ -424,7 +236,7 @@ static inline uint64_t _select64(uint64_t x, int k)
 
 // Returns the position of the rank'th 1.  (rank = 0 returns the 1st 1)
 // Returns 64 if there are fewer than rank+1 1s.
-static inline uint64_t bitselect(uint64_t val, int rank) {
+__device__ static inline uint64_t bitselect(uint64_t val, int rank) {
 #ifdef __SSE4_2_
 	uint64_t i = 1ULL << rank;
 	asm("pdep %[val], %[mask], %[val]"
@@ -439,18 +251,18 @@ static inline uint64_t bitselect(uint64_t val, int rank) {
 	return _select64(val, rank);
 }
 
-static inline uint64_t bitselectv(const uint64_t val, int ignore, int rank)
+__device__ static inline uint64_t bitselectv(const uint64_t val, int ignore, int rank)
 {
 	return bitselect(val & ~BITMASK(ignore % 64), rank);
 }
 
-static inline int is_runend(const QF *qf, uint64_t index)
+__device__ static inline int is_runend(const QF *qf, uint64_t index)
 {
 	return (METADATA_WORD(qf, runends, index) >> ((index % QF_SLOTS_PER_BLOCK) %
 																								64)) & 1ULL;
 }
 
-static inline int is_occupied(const QF *qf, uint64_t index)
+__device__ static inline int is_occupied(const QF *qf, uint64_t index)
 {
 	return (METADATA_WORD(qf, occupieds, index) >> ((index % QF_SLOTS_PER_BLOCK) %
 																									64)) & 1ULL;
@@ -458,13 +270,13 @@ static inline int is_occupied(const QF *qf, uint64_t index)
 
 #if QF_BITS_PER_SLOT == 8 || QF_BITS_PER_SLOT == 16 || QF_BITS_PER_SLOT == 32 || QF_BITS_PER_SLOT == 64
 
-static inline uint64_t get_slot(const QF *qf, uint64_t index)
+__device__ static inline uint64_t get_slot(const QF *qf, uint64_t index)
 {
 	assert(index < qf->metadata->xnslots);
 	return get_block(qf, index / QF_SLOTS_PER_BLOCK)->slots[index % QF_SLOTS_PER_BLOCK];
 }
 
-static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
+__device__ static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
 {
 	assert(index < qf->metadata->xnslots);
 	get_block(qf, index / QF_SLOTS_PER_BLOCK)->slots[index % QF_SLOTS_PER_BLOCK] =
@@ -475,7 +287,7 @@ static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
 
 /* Little-endian code ....  Big-endian is TODO */
 
-static inline uint64_t get_slot(const QF *qf, uint64_t index)
+__device__ static inline uint64_t get_slot(const QF *qf, uint64_t index)
 {
 	/* Should use __uint128_t to support up to 64-bit remainders, but gcc seems
 	 * to generate buggy code.  :/  */
@@ -488,7 +300,7 @@ static inline uint64_t get_slot(const QF *qf, uint64_t index)
 															8)) & BITMASK(QF_BITS_PER_SLOT));
 }
 
-static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
+__device__ static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
 {
 	/* Should use __uint128_t to support up to 64-bit remainders, but gcc seems
 	 * to generate buggy code.  :/  */
@@ -512,7 +324,7 @@ static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
 
 /* Little-endian code ....  Big-endian is TODO */
 
-static inline uint64_t get_slot(const QF *qf, uint64_t index)
+__device__ static inline uint64_t get_slot(const QF *qf, uint64_t index)
 {
 	assert(index < qf->metadata->xnslots);
 	/* Should use __uint128_t to support up to 64-bit remainders, but gcc seems
@@ -521,7 +333,7 @@ static inline uint64_t get_slot(const QF *qf, uint64_t index)
 	return (uint64_t)(((*p) >> (((index % QF_SLOTS_PER_BLOCK) *qf->metadata->bits_per_slot) % 8)) & BITMASK(qf->metadata->bits_per_slot));
 }
 
-static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
+__device__ static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
 {
 	assert(index < qf->metadata->xnslots);
 	/* Should use __uint128_t to support up to 64-bit remainders, but gcc seems
@@ -540,9 +352,9 @@ static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
 
 #endif
 
-static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index);
+__device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index);
 
-static inline uint64_t block_offset(const QF *qf, uint64_t blockidx)
+__device__ static inline uint64_t block_offset(const QF *qf, uint64_t blockidx)
 {
 	/* If we have extended counters and a 16-bit (or larger) offset
 		 field, then we can safely ignore the possibility of overflowing
@@ -555,7 +367,7 @@ static inline uint64_t block_offset(const QF *qf, uint64_t blockidx)
 		blockidx + 1;
 }
 
-static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index)
+__device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index)
 {
 	uint64_t bucket_block_index       = hash_bucket_index / QF_SLOTS_PER_BLOCK;
 	uint64_t bucket_intrablock_offset = hash_bucket_index % QF_SLOTS_PER_BLOCK;
@@ -606,7 +418,7 @@ static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index)
 		return runend_index;
 }
 
-static inline int offset_lower_bound(const QF *qf, uint64_t slot_index)
+__device__ static inline int offset_lower_bound(const QF *qf, uint64_t slot_index)
 {
 	const qfblock * b = get_block(qf, slot_index / QF_SLOTS_PER_BLOCK);
 	const uint64_t slot_offset = slot_index % QF_SLOTS_PER_BLOCK;
@@ -620,25 +432,25 @@ static inline int offset_lower_bound(const QF *qf, uint64_t slot_index)
 	return boffset - slot_offset + popcnt(occupieds);
 }
 
-static inline int is_empty(const QF *qf, uint64_t slot_index)
+__device__ static inline int is_empty(const QF *qf, uint64_t slot_index)
 {
 	return offset_lower_bound(qf, slot_index) == 0;
 }
 
-static inline int might_be_empty(const QF *qf, uint64_t slot_index)
+__device__ static inline int might_be_empty(const QF *qf, uint64_t slot_index)
 {
 	return !is_occupied(qf, slot_index)
 		&& !is_runend(qf, slot_index);
 }
 
-static inline int probably_is_empty(const QF *qf, uint64_t slot_index)
+__device__ static inline int probably_is_empty(const QF *qf, uint64_t slot_index)
 {
 	return get_slot(qf, slot_index) == 0
 		&& !is_occupied(qf, slot_index)
 		&& !is_runend(qf, slot_index);
 }
 
-static inline uint64_t find_first_empty_slot(QF *qf, uint64_t from)
+__device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_t from)
 {
 	do {
 		int t = offset_lower_bound(qf, from);
@@ -650,7 +462,7 @@ static inline uint64_t find_first_empty_slot(QF *qf, uint64_t from)
 	return from;
 }
 
-static inline uint64_t shift_into_b(const uint64_t a, const uint64_t b,
+__device__ static inline uint64_t shift_into_b(const uint64_t a, const uint64_t b,
 																		const int bstart, const int bend,
 																		const int amount)
 {
@@ -663,7 +475,7 @@ static inline uint64_t shift_into_b(const uint64_t a, const uint64_t b,
 
 #if QF_BITS_PER_SLOT == 8 || QF_BITS_PER_SLOT == 16 || QF_BITS_PER_SLOT == 32 || QF_BITS_PER_SLOT == 64
 
-static inline void shift_remainders(QF *qf, uint64_t start_index, uint64_t
+__device__ static inline void shift_remainders(QF *qf, uint64_t start_index, uint64_t
 																		empty_index)
 {
 	uint64_t start_block  = start_index / QF_SLOTS_PER_BLOCK;
@@ -692,7 +504,7 @@ static inline void shift_remainders(QF *qf, uint64_t start_index, uint64_t
 
 #define REMAINDER_WORD(qf, i) ((uint64_t *)&(get_block(qf, (i)/qf->metadata->bits_per_slot)->slots[8 * ((i) % qf->metadata->bits_per_slot)]))
 
-static inline void shift_remainders(QF *qf, const uint64_t start_index, const
+__device__ static inline void shift_remainders(QF *qf, const uint64_t start_index, const
 																		uint64_t empty_index)
 {
 	uint64_t last_word = (empty_index + 1) * qf->metadata->bits_per_slot / 64;
@@ -715,7 +527,7 @@ static inline void shift_remainders(QF *qf, const uint64_t start_index, const
 
 #endif
 
-static inline void qf_dump_block(const QF *qf, uint64_t i)
+__device__ static inline void qf_dump_block(const QF *qf, uint64_t i)
 {
 	uint64_t j;
 
@@ -750,7 +562,7 @@ static inline void qf_dump_block(const QF *qf, uint64_t i)
 	printf("\n");
 }
 
-void qf_dump_metadata(const QF *qf) {
+__device__ void qf_dump_metadata(const QF *qf) {
 	printf("Slots: %lu Occupied: %lu Elements: %lu Distinct: %lu\n",
 				 qf->metadata->nslots,
 				 qf->metadata->noccupied_slots,
@@ -763,7 +575,7 @@ void qf_dump_metadata(const QF *qf) {
 				 qf->metadata->bits_per_slot);
 }
 
-void qf_dump(const QF *qf)
+__device__ void qf_dump(const QF *qf)
 {
 	uint64_t i;
 
@@ -778,7 +590,7 @@ void qf_dump(const QF *qf)
 
 }
 
-static inline void find_next_n_empty_slots(QF *qf, uint64_t from, uint64_t n,
+__device__ static inline void find_next_n_empty_slots(QF *qf, uint64_t from, uint64_t n,
 																					 uint64_t *indices)
 {
 	while (n) {
@@ -787,7 +599,7 @@ static inline void find_next_n_empty_slots(QF *qf, uint64_t from, uint64_t n,
 	}
 }
 
-static inline void shift_slots(QF *qf, int64_t first, uint64_t last, uint64_t
+__device__ static inline void shift_slots(QF *qf, int64_t first, uint64_t last, uint64_t
 															 distance)
 {
 	int64_t i;
@@ -798,7 +610,7 @@ static inline void shift_slots(QF *qf, int64_t first, uint64_t last, uint64_t
 			set_slot(qf, i + distance, get_slot(qf, i));
 }
 
-static inline void shift_runends(QF *qf, int64_t first, uint64_t last,
+__device__ static inline void shift_runends(QF *qf, int64_t first, uint64_t last,
 																 uint64_t distance)
 {
 	assert(last < qf->metadata->xnslots && distance < 64);
@@ -827,7 +639,7 @@ static inline void shift_runends(QF *qf, int64_t first, uint64_t last,
 
 }
 
-static inline bool insert_replace_slots_and_shift_remainders_and_runends_and_offsets(QF		*qf, 
+__device__ static inline bool insert_replace_slots_and_shift_remainders_and_runends_and_offsets(QF		*qf,
 																																										 int		 operation, 
 																																										 uint64_t		 bucket_index,
 																																										 uint64_t		 overwrite_index,
@@ -908,7 +720,7 @@ static inline bool insert_replace_slots_and_shift_remainders_and_runends_and_off
 	return true;
 }
 
-static inline int remove_replace_slots_and_shift_remainders_and_runends_and_offsets(QF		        *qf,
+__device__ static inline int remove_replace_slots_and_shift_remainders_and_runends_and_offsets(QF		        *qf,
 																																										 int		 operation,
 																																										 uint64_t		 bucket_index,
 																																										 uint64_t		 overwrite_index,
@@ -1025,7 +837,7 @@ static inline int remove_replace_slots_and_shift_remainders_and_runends_and_offs
 	 >2 xs:   xbc...cx  for x != 0, b < x, c != 0, x
 	 >3 0s:   0c...c00  for c != 0
 	 */
-static inline uint64_t *encode_counter(QF *qf, uint64_t remainder, uint64_t
+__device__ static inline uint64_t *encode_counter(QF *qf, uint64_t remainder, uint64_t
 																			 counter, uint64_t *slots)
 {
 	uint64_t digit = remainder;
@@ -1085,7 +897,7 @@ static inline uint64_t *encode_counter(QF *qf, uint64_t remainder, uint64_t
 
 /* Returns the length of the encoding. 
 REQUIRES: index points to first slot of a counter. */
-static inline uint64_t decode_counter(const QF *qf, uint64_t index, uint64_t *remainder, uint64_t *count)
+__device__ static inline uint64_t decode_counter(const QF *qf, uint64_t index, uint64_t *remainder, uint64_t *count)
 {
 	uint64_t base;
 	uint64_t rem;
@@ -1159,7 +971,7 @@ static inline uint64_t decode_counter(const QF *qf, uint64_t index, uint64_t *re
 /* return the next slot which corresponds to a 
  * different element 
  * */
-static inline uint64_t next_slot(QF *qf, uint64_t current) 
+__device__ static inline uint64_t next_slot(QF *qf, uint64_t current)
 {
 	uint64_t rem = get_slot(qf, current);
 	current++;
@@ -1170,7 +982,7 @@ static inline uint64_t next_slot(QF *qf, uint64_t current)
 	return current;
 }
 
-static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
+__device__ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
 {
 	int ret_distance = 0;
 	uint64_t hash_remainder           = hash & BITMASK(qf->metadata->bits_per_slot);
@@ -1407,7 +1219,7 @@ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
 	return ret_distance;
 }
 
-static inline int insert(QF *qf, __uint128_t hash, uint64_t count, uint8_t
+__device__ static inline int insert(QF *qf, __uint128_t hash, uint64_t count, uint8_t
 												 runtime_lock)
 {
 	int ret_distance = 0;
@@ -1515,7 +1327,7 @@ static inline int insert(QF *qf, __uint128_t hash, uint64_t count, uint8_t
 	return ret_distance;
 }
 
-inline static int _remove(QF *qf, __uint128_t hash, uint64_t count, uint8_t
+__device__ inline static int _remove(QF *qf, __uint128_t hash, uint64_t count, uint8_t
 													runtime_lock)
 {
 	int ret_numfreedslots = 0;
@@ -1577,7 +1389,7 @@ inline static int _remove(QF *qf, __uint128_t hash, uint64_t count, uint8_t
  * Code that uses the above to implement key-value-counter operations. *
  ***********************************************************************/
 
-uint64_t qf_init(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t value_bits,
+__host__ uint64_t qf_init(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t value_bits,
 								 enum qf_hashmode hash, uint32_t seed, void* buffer, uint64_t
 								 buffer_len)
 {
@@ -1663,7 +1475,7 @@ uint64_t qf_init(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t value_bits
 	return total_num_bytes;
 }
 
-uint64_t qf_use(QF* qf, void* buffer, uint64_t buffer_len)
+__device__ uint64_t qf_use(QF* qf, void* buffer, uint64_t buffer_len)
 {
 	qf->metadata = (qfmetadata *)(buffer);
 	if (qf->metadata->total_size_in_bytes + sizeof(qfmetadata) > buffer_len) {
@@ -1697,7 +1509,7 @@ uint64_t qf_use(QF* qf, void* buffer, uint64_t buffer_len)
 	return sizeof(qfmetadata) + qf->metadata->total_size_in_bytes;
 }
 
-void *qf_destroy(QF *qf)
+__device__ void *qf_destroy(QF *qf)
 {
 	assert(qf->runtimedata != NULL);
 	if (qf->runtimedata->locks != NULL)
@@ -1711,7 +1523,7 @@ void *qf_destroy(QF *qf)
 	return (void*)qf->metadata;
 }
 
-bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
+__host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 							 value_bits, enum qf_hashmode hash, uint32_t seed)
 {
 	uint64_t total_num_bytes = qf_init(qf, nslots, key_bits, value_bits,
@@ -1738,7 +1550,7 @@ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 		return false;
 }
 
-bool qf_free(QF *qf)
+__host__ bool qf_free(QF *qf)
 {
 	assert(qf->metadata != NULL);
 	void *buffer = qf_destroy(qf);
@@ -1750,7 +1562,7 @@ bool qf_free(QF *qf)
 	return false;
 }
 
-void qf_copy(QF *dest, const QF *src)
+__host__ void qf_copy(QF *dest, const QF *src)
 {
 	DEBUG_CQF("%s\n","Source CQF");
 	DEBUG_DUMP(src);
@@ -1761,7 +1573,7 @@ void qf_copy(QF *dest, const QF *src)
 	DEBUG_DUMP(dest);
 }
 
-void qf_reset(QF *qf)
+__host__ void qf_reset(QF *qf)
 {
 	qf->metadata->nelts = 0;
 	qf->metadata->ndistinct_elts = 0;
@@ -1779,7 +1591,7 @@ void qf_reset(QF *qf)
 #endif
 }
 
-int64_t qf_resize_malloc(QF *qf, uint64_t nslots)
+__host__ int64_t qf_resize_malloc(QF *qf, uint64_t nslots)
 {
 	QF new_qf;
 	if (!qf_malloc(&new_qf, nslots, qf->metadata->key_bits,
@@ -1851,7 +1663,7 @@ uint64_t qf_resize(QF* qf, uint64_t nslots, void* buffer, uint64_t buffer_len)
 	return init_size;
 }
 
-void qf_set_auto_resize(QF* qf, bool enabled)
+__host__ __device__ void qf_set_auto_resize(QF* qf, bool enabled)
 {
 	if (enabled)
 		qf->runtimedata->auto_resize = 1;
@@ -1861,7 +1673,7 @@ void qf_set_auto_resize(QF* qf, bool enabled)
 
         
 
-int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
+__device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 							flags)
 {
 	// We fill up the CQF up to 95% load factor.
@@ -1930,21 +1742,6 @@ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 GPU Modifications
 --------------------------*/
 
-#include "include/gqf_call.cuh"
-
-extern C{
-	#include "include/gqf.h"
-#include "include/gqf_int.h"
-#include "include/gqf_file.h"
-#include "hashutil.h"
-
-}
-#define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
-#define CUDA_CHECK(ans)                                                                  \
-    {                                                                                    \
-        gpuAssert((ans), __FILE__, __LINE__);                                            \
-    }
-
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 	//TODO: INIT QF IN GPU MEMORY
 	float* d_qf;
@@ -1953,7 +1750,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 
 	float* d_vals;
 
-	CUDA_CHECK(cudaMalloc(&d_vals, sizeof(uint64_t) * nvals);
+	CUDA_CHECK(cudaMalloc(&d_vals, sizeof(uint64_t) * nvals));
 	CUDA_CHECK(cudaMemcpy(&d_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
 
 	int block_size = 512;
@@ -1990,6 +1787,7 @@ __device__ uint16_t unlock(uint16_t* lock, int index) {
 }
 
 __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16t* locks, uint8_t flags) {
+	//todo: number of threads
 	uint64_t evenness = 1;
 	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
 	evenness = 0;
@@ -2019,8 +1817,9 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 						fprintf(stderr, "TRY_ONCE_LOCK failed.\n");
 					else
 						fprintf(stderr, "Does not recognise return value.\n");
-					i++;
+					
 				}
+				i++;
 			}
 
 		}
@@ -2034,111 +1833,7 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 	return;
 }
 
-#include "include/gqf_call.cuh"
-
-extern C{
-	#include "include/gqf.h"
-#include "include/gqf_int.h"
-#include "include/gqf_file.h"
-#include "hashutil.h"
-
-}
-#define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
-#define CUDA_CHECK(ans)                                                                  \
-    {                                                                                    \
-        gpuAssert((ans), __FILE__, __LINE__);                                            \
-    }
-
-__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
-	//TODO: INIT QF IN GPU MEMORY
-	float* d_qf;
-	CUDA_CHECK(CudaMalloc(&d_qf, sizeof(QF)));
-	CUDA_CHECK(CudaMemcpy(&d_qf), qf, sizeof(QF), cudaMemcpyHostToDevice));
-
-	float* d_vals;
-
-	CUDA_CHECK(cudaMalloc(&d_vals, sizeof(uint64_t) * nvals);
-	CUDA_CHECK(cudaMemcpy(&d_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
-
-	int block_size = 512;
-	int num_blocks = (nvals + block_size - 1) / block_size;
-	hash_all << num_blocks, block_size >> (d_vals, nvals, nhashbits);
-
-	float* d_lock;
-	int num_locks = qf->metadata->nslots / 4096;
-	CUDA_CHECK(cudaMalloc(&d_lock, sizeof(uint16_t) * num_locks));
-	CUDA_CHECK(cudaMemSet(d_lock, 0, sizeof(unit16_t) * num_locks));
-	qf_bulk_insert(qf, d_vals, 0, 1, nvals, d_lock, QF_NO_LOCK);
-
-}
-
-__global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
-	int stride = blockDim.x * gridDim.x;
-	for (int i = idx; i < nvals; i += stride) {
-		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
-	}
-	return;
-}
-
-
-__device__ uint16_t get_lock(uint16_t* lock, int index) {
-	//set lock to 1 to claim
-	//returns 0 if success
-	return atomicCAS(lock[index], 0, 1);
-}
-
-__device__ uint16_t unlock(uint16_t* lock, int index) {
-	//set lock to 0 to release
-	return atomicCAS(lock[index], 1, 0);
-}
-
-__host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16t* locks, uint8_t flags) {
-	uint64_t evenness = 1;
-	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
-	evenness = 0;
-	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
-
-}
-__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16t* locks, int evenness, uint8_t flags) {
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
-	int n_threads = blockDim.x * gridDim.x;
-	//start and end points in the keys array
-	int start = nvals * idx / n_threads;
-	int end = nvals * (idx + 1) / n_threads;
-	int i = start;
-	while (i < end) {
-		uint64_t key = keys[i];
-		int64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
-		uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
-		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-		if (hash_bucket_index % 2 == evenness) {
-			if (get_lock(locks, hash_bucket_index) == 0) {
-				int ret = qf_insert(&qf, keys[i], 0, 1, QF_NO_LOCK);
-				if (ret < 0) {
-					fprintf(stderr, "failed insertion for key: %lx %d.\n", vals[i], 50);
-					if (ret == QF_NO_SPACE)
-						fprintf(stderr, "CQF is full.\n");
-					else if (ret == QF_COULDNT_LOCK)
-						fprintf(stderr, "TRY_ONCE_LOCK failed.\n");
-					else
-						fprintf(stderr, "Does not recognise return value.\n");
-					i++;
-				}
-			}
-
-		}
-		else {
-			i++;
-		}
-		//TODO: Lock the right thing
-
-	}
-	return;
-
-}
-
-void qf_insert_from_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint8_t
+__host__ void qf_insert_from_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint8_t
 	flags) {
 	int tid = 1;
 
@@ -2210,7 +1905,7 @@ void qf_insert_from_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, 
 		}
 	}
 }
-int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
+__host__ __device__ int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								 flags)
 {
 	if (count == 0)
@@ -2230,7 +1925,7 @@ int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 	return ret;
 }
 
-int qf_remove(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
+__host__ __device__ int qf_remove(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 							flags)
 {
 	if (count == 0)
@@ -2248,7 +1943,7 @@ int qf_remove(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 	return _remove(qf, hash, count, flags);
 }
 
-int qf_delete_key_value(QF *qf, uint64_t key, uint64_t value, uint8_t flags)
+__host__ __device__ int qf_delete_key_value(QF *qf, uint64_t key, uint64_t value, uint8_t flags)
 {
 	uint64_t count = qf_count_key_value(qf, key, value, flags);
 	if (count == 0)
@@ -2266,7 +1961,7 @@ int qf_delete_key_value(QF *qf, uint64_t key, uint64_t value, uint8_t flags)
 	return _remove(qf, hash, count, flags);
 }
 
-uint64_t qf_count_key_value(const QF *qf, uint64_t key, uint64_t value,
+__host__ __device__ uint64_t qf_count_key_value(const QF *qf, uint64_t key, uint64_t value,
 														uint8_t flags)
 {
 	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
@@ -2304,7 +1999,7 @@ uint64_t qf_count_key_value(const QF *qf, uint64_t key, uint64_t value,
 	return 0;
 }
 
-uint64_t qf_query(const QF *qf, uint64_t key, uint64_t *value, uint8_t flags)
+__host__ __device__ uint64_t qf_query(const QF *qf, uint64_t key, uint64_t *value, uint8_t flags)
 {
 	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
 		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
@@ -2343,7 +2038,7 @@ uint64_t qf_query(const QF *qf, uint64_t key, uint64_t *value, uint8_t flags)
 	return 0;
 }
 
-int64_t qf_get_unique_index(const QF *qf, uint64_t key, uint64_t value,
+__host__ __device__ int64_t qf_get_unique_index(const QF *qf, uint64_t key, uint64_t value,
 														uint8_t flags)
 {
 	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
