@@ -131,11 +131,10 @@
 
 	// The below struct is used to instrument the code.
 	// It is not used in normal operations of the CQF.
-	typedef struct {
+	typedef struct cluster_data; {
 		uint64_t start_index;
 		uint16_t length;
-	} cluster_data;
-
+	} 
 	typedef struct quotient_filter_iterator {
 		const QF *qf;
 		uint64_t run;
