@@ -1663,7 +1663,7 @@ uint64_t qf_resize(QF* qf, uint64_t nslots, void* buffer, uint64_t buffer_len)
 	return init_size;
 }
 
-__host__ __device__ void qf_set_auto_resize(QF* qf, bool enabled)
+__host__  void qf_set_auto_resize(QF* qf, bool enabled)
 {
 	if (enabled)
 		qf->runtimedata->auto_resize = 1;

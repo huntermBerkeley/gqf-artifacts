@@ -121,7 +121,7 @@
 	/* Turn on automatic resizing.  Resizing is performed by calling
 		 qf_resize_malloc, so the CQF must meet the requirements of that
 		 function. */
-	__host__ __device__ void qf_set_auto_resize(QF* qf, bool enabled);
+	__host__ void qf_set_auto_resize(QF* qf, bool enabled);
 
 	/***********************************
    Functions for modifying the CQF.
