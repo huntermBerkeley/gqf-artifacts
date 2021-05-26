@@ -29,8 +29,7 @@
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
 #define CUDA_CHECK(ans)(gpuAssert((ans), __FILE__, __LINE__))
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv){
 	if (argc < 3) {
 		fprintf(stderr, "Please specify the log of the number of slots and the number of remainder bits in the CQF.\n");
 		exit(1);
@@ -44,7 +43,6 @@ int main(int argc, char **argv)
 	uint64_t nvals = 95*nslots/100;
 	uint64_t key_count = 1;
 	uint64_t *vals;
-	uint64_t* hashes;
 
 	/* Initialise the CQF */
 	if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, 0)) {
@@ -62,7 +60,6 @@ int main(int argc, char **argv)
 	qf_set_auto_resize(&qf,false);
 	/* Generate random values */
 	vals = (uint64_t*)malloc(nvals*sizeof(vals[0]));
-	hashes = (uint64_t*)malloc(nvals * sizeof(hashes[0]));
 	RAND_bytes((unsigned char *)vals, sizeof(*vals) * nvals);
 	srand(0);
 	
@@ -73,7 +70,7 @@ int main(int argc, char **argv)
 	}
 	*/
 	/* Insert keys in the CQF */
-	qf_kernel(&qf, vals, nvals, nhashbits)
+	qf_kernel(qf, vals, nvals, nhashbits);
 
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {
