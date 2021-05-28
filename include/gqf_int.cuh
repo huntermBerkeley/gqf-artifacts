@@ -16,6 +16,9 @@
 #include "gqf.cuh"
 #include "partitioned_counter.cuh"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define MAGIC_NUMBER 1018874902021329732
 
@@ -132,6 +135,9 @@
 		cluster_data *c_info;
 	} quotient_filter_iterator;
 
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* _GQF_INT_CUH_ */
