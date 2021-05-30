@@ -202,7 +202,7 @@ extern "C" {
 	/* Return the number of times key has been inserted, with the given
 		 value, into qf.
 		 May return QF_COULDNT_LOCK if called with QF_TRY_LOCK.  */
-	__host__ __device__ uint64_t qf_count_key_value(const QF *qf, uint64_t key, uint64_t value,
+	__host__ uint64_t qf_count_key_value(const QF *qf, uint64_t key, uint64_t value,
 															uint8_t flags);
 
 	/* Returns a unique index corresponding to the key in the CQF.  Note
