@@ -35,13 +35,12 @@ extern "C" {
 #define QF_SLOTS_PER_BLOCK (1ULL << QF_BLOCK_OFFSET_BITS)
 #define QF_METADATA_WORDS_PER_BLOCK ((QF_SLOTS_PER_BLOCK + 63) / 64)
 
-	typedef struct __attribute__ ((__packed__)) qfblock {
+	typedef struct{
 		/* Code works with uint16_t, uint32_t, etc, but uint8_t seems just as fast as
 		 * anything else */
-		uint8_t offset; 
+		uint8_t offset;
 		uint64_t occupieds[QF_METADATA_WORDS_PER_BLOCK];
 		uint64_t runends[QF_METADATA_WORDS_PER_BLOCK];
-
 #if QF_BITS_PER_SLOT == 8
 		uint8_t  slots[QF_SLOTS_PER_BLOCK];
 #elif QF_BITS_PER_SLOT == 16
@@ -55,7 +54,7 @@ extern "C" {
 #else
 		uint8_t   slots[];
 #endif
-	} qfblock;
+	}  __attribute__((__packed__)) qfblock;
 
 	struct __attribute__ ((__packed__)) qfblock;
 	typedef struct qfblock qfblock;

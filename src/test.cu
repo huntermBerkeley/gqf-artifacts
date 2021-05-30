@@ -70,7 +70,7 @@ int main(int argc, char **argv){
 	}
 	*/
 	/* Insert keys in the CQF */
-	qf_kernel(qf, vals, nvals, nhashbits);
+	qf_kernel(&qf, vals, nvals, nhashbits);
 
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {
@@ -144,8 +144,9 @@ int main(int argc, char **argv){
 							vals[i], count);
 			abort();
 		}
+		*/
 	}
-	*/
+	
 	fprintf(stdout, "Testing iterator and unique indexes.\n");
 	/* Initialize an iterator and validate counts. */
 	QFi qfi;
