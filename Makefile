@@ -34,6 +34,7 @@ CUFLAGS = -arch=sm_70 -rdc=true -I. -Iinclude
 
 LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) -lpthread -lssl -lcrypto -lm
 
+   
 #
 # declaration of dependencies
 #
