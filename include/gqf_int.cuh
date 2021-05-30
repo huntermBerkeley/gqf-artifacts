@@ -56,8 +56,8 @@ extern "C" {
 #endif
 	}  __attribute__((__packed__)) qfblock;
 
-	struct __attribute__ ((__packed__)) qfblock;
-	typedef struct qfblock qfblock;
+//	struct __attribute__ ((__packed__)) qfblock;
+//	typedef struct qfblock qfblock;
 
   typedef struct file_info {
 		int fd;

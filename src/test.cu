@@ -24,10 +24,10 @@
 #include "include/gqf_file.cuh"
 #include "hashutil.cuh"
 #include "include/gqf.cuh"
+#include "src/gqf.cu"
 
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
-#define CUDA_CHECK(ans)(gpuAssert((ans), __FILE__, __LINE__))
 
 int main(int argc, char **argv){
 	if (argc < 3) {

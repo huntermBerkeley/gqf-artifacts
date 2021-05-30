@@ -1761,7 +1761,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	//TODO: INIT QF IN GPU MEMORY
 	float* d_qf;
 	CUDA_CHECK(CudaMalloc(&d_qf, sizeof(QF)));
-	CUDA_CHECK(CudaMemcpy(&d_qf), qf, sizeof(QF), cudaMemcpyHostToDevice));
+	CUDA_CHECK(CudaMemcpy(&d_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
 
 	float* d_vals;
 
