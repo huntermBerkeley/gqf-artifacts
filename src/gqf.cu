@@ -73,14 +73,14 @@ __device__ static inline qfblock* get_block(const QF* qf, uint64_t block_index)
 			qf->metadata->bits_per_slot / 8));
 }
 #endif
-
+/*
 __device__ static __inline__ unsigned long long rdtsc(void)
 {
 	unsigned hi, lo;
 	__asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
 	return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
 }
-
+*/
 
 __device__ static void modify_metadata(pc_t *metadata, int cnt)
 {
@@ -388,9 +388,7 @@ __device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_ind
 	uint64_t bucket_intrablock_offset = hash_bucket_index % QF_SLOTS_PER_BLOCK;
 	uint64_t bucket_blocks_offset = block_offset(qf, bucket_block_index);
 
-	uint64_t bucket_intrablock_rank   = bitrank(get_block(qf,
-																				bucket_block_index)->occupieds[0],
-																				bucket_intrablock_offset);
+	uint64_t bucket_intrablock_rank   = bitrank(get_block(qf, bucket_block_index)->occupieds[0], bucket_intrablock_offset);
 
 	if (bucket_intrablock_rank == 0) {
 		if (bucket_blocks_offset <= bucket_intrablock_offset)
@@ -1801,7 +1799,7 @@ __device__ uint16_t unlock(uint16_t* lock, int index) {
 	return atomicCAS(lock[index], 1, 0);
 }
 
-__host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16t* locks, uint8_t flags) {
+__host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16_t* locks, uint8_t flags) {
 	//todo: number of threads
 	uint64_t evenness = 1;
 	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
@@ -1809,7 +1807,7 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
 
 }
-__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16t* locks, int evenness, uint8_t flags) {
+__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16_t* locks, int evenness, uint8_t flags) {
 	int idx = threadIdx.x + blockDim.x * blockIdx.x;
 	int n_threads = blockDim.x * gridDim.x;
 	//start and end points in the keys array
