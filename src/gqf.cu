@@ -997,7 +997,7 @@ __device__ static inline uint64_t next_slot(QF *qf, uint64_t current)
 	return current;
 }
 
-__device__ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_lock)
+__device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t runtime_lock)
 {
 	int ret_distance = 0;
 	uint64_t hash_remainder           = hash & BITMASK(qf->metadata->bits_per_slot);
@@ -1234,7 +1234,7 @@ __device__ static inline int insert1(QF *qf, __uint128_t hash, uint8_t runtime_l
 	return ret_distance;
 }
 
-__device__ static inline int insert(QF *qf, __uint128_t hash, uint64_t count, uint8_t
+__device__ static inline int insert(QF *qf, __uint64_t hash, uint64_t count, uint8_t
 												 runtime_lock)
 {
 	int ret_distance = 0;
@@ -1342,7 +1342,7 @@ __device__ static inline int insert(QF *qf, __uint128_t hash, uint64_t count, ui
 	return ret_distance;
 }
 
-__device__ inline static int _remove(QF *qf, __uint128_t hash, uint64_t count, uint8_t
+__device__ inline static int _remove(QF *qf, __uint64_t hash, uint64_t count, uint8_t
 													runtime_lock)
 {
 	int ret_numfreedslots = 0;
@@ -2098,7 +2098,7 @@ enum qf_hashmode qf_get_hashmode(const QF *qf) {
 uint64_t qf_get_hash_seed(const QF *qf) {
 	return qf->metadata->seed;
 }
-__uint128_t qf_get_hash_range(const QF *qf) {
+__uint64_t qf_get_hash_range(const QF *qf) {
 	return qf->metadata->range;
 }
 

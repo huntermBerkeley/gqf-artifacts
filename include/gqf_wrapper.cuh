@@ -24,18 +24,18 @@ extern inline int gqf_init(uint64_t nbits, uint64_t num_hash_bits)
 	return 0;
 }
 
-extern inline int gqf_insert(__uint128_t val, uint64_t count)
+extern inline int gqf_insert(__uint64_t val, uint64_t count)
 {
 	qf_insert(&g_quotient_filter, val, 0, count, QF_NO_LOCK);
 	return 0;
 }
 
-extern inline int gqf_lookup(__uint128_t val)
+extern inline int gqf_lookup(__uint64_t val)
 {
 	return qf_count_key_value(&g_quotient_filter, val, 0, 0);
 }
 
-extern inline __uint128_t gqf_range()
+extern inline __uint64_t gqf_range()
 {
 	return g_quotient_filter.metadata->range;
 }
