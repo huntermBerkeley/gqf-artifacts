@@ -47,7 +47,15 @@
 #define BILLION 1000000000L
 #define CUDA_CHECK(ans)                                                                  \
         gpuAssert((ans), __FILE__, __LINE__); 
-
+inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true)
+{
+	if (code != cudaSuccess)
+	{
+		fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+		if (abort)
+			exit(code);
+}
+}
 
 
 #ifdef DEBUG
@@ -1840,8 +1848,8 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 	QF* d_qf;
-	CUDA_CHECK(CudaMalloc(&d_qf, sizeof(QF)));
-	CUDA_CHECK(CudaMemcpy(&d_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMalloc(&d_qf, sizeof(QF)));
+	CUDA_CHECK(cudaMemcpy(&d_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
 
 	uint64_t* d_vals;
 
