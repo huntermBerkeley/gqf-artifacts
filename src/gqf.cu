@@ -7,9 +7,10 @@
  * ============================================================================
  */
 
-#include<cuda.h>
+#include <cuda.h>
+#include <cuda_runtime_api.h>
 #include <stdlib.h>
-# include <assert.h>
+#include <assert.h>
 #include <string.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -47,7 +48,18 @@
 #define CUDA_CHECK(ans)                                                                  \
     {                                                                                    \
         gpuAssert((ans), __FILE__, __LINE__);                                            \
+
     }
+	inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true)
+	{
+		if (code != cudaSuccess)
+		{
+			fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+			if (abort)
+				exit(code);
+		}
+	}
+
 #ifdef DEBUG
 #define PRINT_DEBUG 1
 #else
@@ -1826,6 +1838,15 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 
 }
 
+__global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
+	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	int stride = blockDim.x * gridDim.x;
+	for (int i = idx; i < nvals; i += stride) {
+		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
+	}
+	return;
+}
+
 
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 	QF* d_qf;
@@ -1847,15 +1868,6 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	CUDA_CHECK(cudaMemSet(d_lock, 0, sizeof(unsigned int) * num_locks));
 	qf_bulk_insert(qf, d_vals, 0, 1, nvals, d_lock, QF_NO_LOCK);
 
-}
-
-__global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
-	int stride = blockDim.x * gridDim.x;
-	for (int i = idx; i < nvals; i += stride) {
-		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
-	}
-	return;
 }
 
 __host__ __device__ int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
