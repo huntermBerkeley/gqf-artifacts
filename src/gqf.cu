@@ -579,7 +579,7 @@ __device__ static inline void qf_dump_block(const QF *qf, uint64_t i)
 	printf("\n");
 }
 
-__device__ void qf_dump_metadata(const QF *qf) {
+__host__ void qf_dump_metadata(const QF *qf) {
 	printf("Slots: %lu Occupied: %lu Elements: %lu Distinct: %lu\n",
 				 qf->metadata->nslots,
 				 qf->metadata->noccupied_slots,
@@ -592,7 +592,7 @@ __device__ void qf_dump_metadata(const QF *qf) {
 				 qf->metadata->bits_per_slot);
 }
 
-__device__ void qf_dump(const QF *qf)
+__host__ void qf_dump(const QF *qf)
 {
 	uint64_t i;
 
@@ -1776,8 +1776,8 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 
 	float* d_lock;
 	int num_locks = qf->metadata->nslots / 4096;
-	CUDA_CHECK(cudaMalloc(&d_lock, sizeof(uint16_t) * num_locks));
-	CUDA_CHECK(cudaMemSet(d_lock, 0, sizeof(unit16_t) * num_locks));
+	CUDA_CHECK(cudaMalloc(&d_lock, sizeof(unsigned int) * num_locks));
+	CUDA_CHECK(cudaMemSet(d_lock, 0, sizeof(unsigned int) * num_locks));
 	qf_bulk_insert(qf, d_vals, 0, 1, nvals, d_lock, QF_NO_LOCK);
 
 }
@@ -1793,19 +1793,57 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 
 //TODO: it might expect a short int instead of uint16_t
 //TODO: needs to be 32 bits (whoops)
-__device__ uint16_t get_lock(uint16_t* lock, int index) {
+__device__ uint16_t get_lock(unsigned int* lock, int index) {
 	//set lock to 1 to claim
 	//returns 0 if success
-	uint16_t zero = 0;
-	uint16_t one = 1;
+	unsigned int zero = 0;
+	unsigned int one = 1;
 	return atomicCAS(lock[index], zero, one);
 }
 
 __device__ uint16_t unlock(uint16_t* lock, int index) {
 	//set lock to 0 to release
-	uint16_t zero = 0;
-	uint16_t one = 1;
-	return atomicCAS(lock[index], 1, 0);
+	unsigned int = 0;
+	unsigned int = 1;
+	return atomicCAS(lock[index], one, zero);
+}
+
+__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16_t* locks, int evenness, uint8_t flags) {
+	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	int n_threads = blockDim.x * gridDim.x;
+	//start and end points in the keys array
+	int start = nvals * idx / n_threads;
+	int end = nvals * (idx + 1) / n_threads;
+	int i = start;
+	while (i < end) {
+		uint64_t key = keys[i];
+		uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
+		uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
+		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
+		unsigned int lock_index = 0;
+		if (hash_bucket_index % 2 == evenness) {
+			if (get_lock(locks, hash_bucket_index) == lock_index) {
+				int ret = qf_insert(&qf, keys[i], 0, 1, QF_NO_LOCK);
+				if (ret < 0) {
+					fprintf(stderr, "failed insertion for key: %lx %d.\n", vals[i], 50);
+					if (ret == QF_NO_SPACE)
+						fprintf(stderr, "CQF is full.\n");
+					else if (ret == QF_COULDNT_LOCK)
+						fprintf(stderr, "TRY_ONCE_LOCK failed.\n");
+					else
+						fprintf(stderr, "Does not recognise return value.\n");
+
+				}
+				i++;
+			}
+		}
+		else {
+
+			i++;
+		}
+		//TODO: Lock the right thing
+	}
+	return;
 }
 
 __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16_t* locks, uint8_t flags) {
@@ -1816,117 +1854,7 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
 
 }
-__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16_t* locks, int evenness, uint8_t flags) {
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
-	int n_threads = blockDim.x * gridDim.x;
-	//start and end points in the keys array
-	int start = nvals * idx / n_threads;
-	int end = nvals * (idx + 1) / n_threads;
-	int i = start;
-	while (i < end) {
-		uint64_t key = keys[i];
-		int64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
-		uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
-		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-		if (hash_bucket_index % 2 == evenness) {
-			if (get_lock(locks, hash_bucket_index) == 0) {
-				int ret = qf_insert(&qf, keys[i], 0, 1, QF_NO_LOCK);
-				if (ret < 0) {
-					fprintf(stderr, "failed insertion for key: %lx %d.\n", vals[i], 50);
-					if (ret == QF_NO_SPACE)
-						fprintf(stderr, "CQF is full.\n");
-					else if (ret == QF_COULDNT_LOCK)
-						fprintf(stderr, "TRY_ONCE_LOCK failed.\n");
-					else
-						fprintf(stderr, "Does not recognise return value.\n");
-					
-				}
-				i++;
-			}
 
-		}
-		else {
-
-			i++;
-		}
-		//TODO: Lock the right thing
-
-	}
-	return;
-}
-
-__host__ void qf_insert_from_gpu(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint8_t
-	flags) {
-	int tid = 1;
-
-	// We fill up the CQF up to 95% load factor.
-	// This is a very conservative check.
-	
-	for (int i = 0; i < nvals; i++) {
-		uint64_t key = keys[i];
-		
-		//implement resizing alter
-		/*
-		if (qf_get_num_occupied_slots(qf) >= qf->metadata->nslots * 0.95) {
-			if (qf->runtimedata->auto_resize) {
-				if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) < 0)
-				{
-					fprintf(stderr, "Resizing the failed.\n");
-					return;
-				}
-			}
-			else
-				return;
-		}
-		*/
-		if (count == 0)
-			return;
-		/*
-		* Hashing has to happen beforethis
-		if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
-			if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
-				key = MurmurHash64A(((void*)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
-			else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
-				key = hash_64(key, BITMASK(qf->metadata->key_bits));
-		}
-		*/
-		uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
-		int ret;
-		if (count == 1)
-			ret = insert1(qf, hash, flags);
-		else
-			ret = insert(qf, hash, count, flags);
-
-		// check for fullness based on the distance from the home slot to the slot
-		// in which the key is inserted
-		if (ret == QF_NO_SPACE || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
-			float load_factor = qf_get_num_occupied_slots(qf) /
-				(float)qf->metadata->nslots;
-			fprintf(stdout, "Load factor: %lf\n", load_factor);
-			if (qf->runtimedata->auto_resize) {
-				fprintf(stdout, "Resizing the CQF.\n");
-				if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) > 0)
-				{
-					if (ret == QF_NO_SPACE) {
-						if (count == 1)
-							ret = insert1(qf, hash, flags);
-						else
-							ret = insert(qf, hash, count, flags);
-					}
-					fprintf(stderr, "Resize finished.\n");
-				}
-				else {
-					fprintf(stderr, "Resize failed\n");
-					ret = QF_NO_SPACE;
-				}
-			}
-			else {
-				fprintf(stderr, "The CQF is filling up.\n");
-				ret = QF_NO_SPACE;
-			}
-		}
-	}
-}
 __host__ __device__ int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								 flags)
 {
