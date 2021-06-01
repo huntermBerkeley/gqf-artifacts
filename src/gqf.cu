@@ -1777,7 +1777,7 @@ __device__ uint16_t unlock(uint32_t* lock, int index) {
 	return atomicCAS(&lock[index], one, zero);
 }
 
-__global__ int qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint32_t* locks, int evenness, uint8_t flags) {
+__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint32_t* locks, int evenness, uint8_t flags) {
 	int idx = threadIdx.x + blockDim.x * blockIdx.x;
 	int n_threads = blockDim.x * gridDim.x;
 	//start and end points in the keys array
@@ -1820,9 +1820,9 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 	uint64_t evenness = 1;
 	int num_blocks = 1;
 	int block_size = 1;
-	int o = qf_insert_evenness << num_blocks, block_size >> (qf, keys, value, count, nvals, locks, evenness, flags);
+	qf_insert_evenness << num_blocks, block_size >> (qf, keys, value, count, nvals, locks, evenness, flags);
 	evenness = 0;
-	o = qf_insert_evenness << num_blocks, block_size >> (qf, keys, value, count, nvals, locks, evenness, flags);
+	qf_insert_evenness << num_blocks, block_size >> (qf, keys, value, count, nvals, locks, evenness, flags);
 
 }
 
