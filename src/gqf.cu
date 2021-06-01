@@ -1822,9 +1822,9 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 	uint64_t evenness = 1;
 	int num_blocks = 1;
 	int block_size = 1;
-	qf_insert_evenness << num_blocks, block_size >> (qf, keys, value, count, nvals, locks, evenness, flags);
+	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
 	evenness = 0;
-	qf_insert_evenness << num_blocks, block_size >> (qf, keys, value, count, nvals, locks, evenness, flags);
+	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
 
 }
 
@@ -1850,7 +1850,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 
 	int block_size = 512;
 	int num_blocks = (nvals + block_size - 1) / block_size;
-	hash_all << num_blocks, block_size >> (d_vals, nvals, nhashbits);
+	hash_all <<< num_blocks, block_size >>> (d_vals, nvals, nhashbits);
 
 	uint32_t* d_lock;
 	int num_locks = qf->metadata->nslots / 4096;
