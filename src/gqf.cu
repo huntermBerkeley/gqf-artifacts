@@ -46,10 +46,8 @@
 #define DISTANCE_FROM_HOME_SLOT_CUTOFF 1000
 #define BILLION 1000000000L
 #define CUDA_CHECK(ans)                                                                  \
-    {                                                                                    \
-        gpuAssert((ans), __FILE__, __LINE__);                                            \
+        gpuAssert((ans), __FILE__, __LINE__); 
 
-    }
 
 
 #ifdef DEBUG
