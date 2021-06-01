@@ -145,9 +145,10 @@ int main(int argc, char **argv){
 			abort();
 		}
 		*/
-	}
-	QF file_qf = &qf;
-	fprintf(stdout, "Testing iterator and unique indexes.\n");
+	//}
+	QF file_qf = qf;
+	//fprintf(stdout, "Testing iterator and unique indexes.\n");
+	printf("Testing iterator and uq indexes");
 	/* Initialize an iterator and validate counts. */
 	QFi qfi;
 	qf_iterator_from_position(&file_qf, &qfi, 0);
