@@ -180,7 +180,7 @@ extern "C" {
 	/*******************************************
 	GPU functions
 	******************************/
-	__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
+	__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits);
 
 	/****************************************
    Query functions
