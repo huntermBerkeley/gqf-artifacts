@@ -1762,11 +1762,11 @@ GPU Modifications
 
 //TODO: it might expect a short int instead of uint16_t
 //TODO: needs to be 32 bits (whoops)
-__device__ uint16_t get_lock(unsigned int* lock, int index) {
+__device__ uint16_t get_lock(uint32_t* lock, int index) {
 	//set lock to 1 to claim
 	//returns 0 if success
-	unsigned int zero = 0;
-	unsigned int one = 1;
+	uint32_t zero = 0;
+	uint32_t one = 1;
 	return atomicCAS(&lock[index], zero, one);
 }
 
@@ -1791,8 +1791,8 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
 		unsigned int lock_index = 0;
 		if (hash_bucket_index % 2 == evenness) {
-			if (get_lock(locks, hash_bucket_index) == lock_index) {
-				int ret = qf_insert(&qf, keys[i], 0, 1, QF_NO_LOCK);
+			if (get_lock(locks, lock_index) == 0) {
+				int ret = qf_insert(qf, keys[i], 0, 1, QF_NO_LOCK);
 				if (ret < 0) {
 					fprintf(stderr, "failed insertion for key: %lx %d.\n", vals[i], 50);
 					if (ret == QF_NO_SPACE)
@@ -1818,19 +1818,21 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16_t* locks, uint8_t flags) {
 	//todo: number of threads
 	uint64_t evenness = 1;
-	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
+	num_blocks = 1;
+	block_size = 1;
+	qf_insert_evenness << num_blocks, block_size >> (qf, keys, value, count, nvals, locks, evenness, flags);
 	evenness = 0;
-	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
+	qf_insert_evenness << num_blocks, block_size >> (qf, keys, value, count, nvals, locks, evenness, flags);
 
 }
 
 
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
-	float* d_qf;
+	QF* d_qf;
 	CUDA_CHECK(CudaMalloc(&d_qf, sizeof(QF)));
 	CUDA_CHECK(CudaMemcpy(&d_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
 
-	float* d_vals;
+	uint64_t* d_vals;
 
 	CUDA_CHECK(cudaMalloc(&d_vals, sizeof(uint64_t) * nvals));
 	CUDA_CHECK(cudaMemcpy(&d_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
