@@ -48,8 +48,6 @@
 #define CUDA_CHECK(ans)                                                                  \
         gpuAssert((ans), __FILE__, __LINE__); 
 
-
-
 #ifdef DEBUG
 #define PRINT_DEBUG 1
 #else
@@ -1840,8 +1838,8 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 	QF* d_qf;
-	CUDA_CHECK(CudaMalloc(&d_qf, sizeof(QF)));
-	CUDA_CHECK(CudaMemcpy(&d_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMalloc(&d_qf, sizeof(QF)));
+	CUDA_CHECK(cudaMemcpy(&d_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
 
 	uint64_t* d_vals;
 
@@ -1855,7 +1853,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	uint32_t* d_lock;
 	int num_locks = qf->metadata->nslots / 4096;
 	CUDA_CHECK(cudaMalloc(&d_lock, sizeof(unsigned int) * num_locks));
-	CUDA_CHECK(cudaMemSet(d_lock, 0, sizeof(unsigned int) * num_locks));
+	CUDA_CHECK(cudaMemset(d_lock, 0, sizeof(unsigned int) * num_locks));
 	qf_bulk_insert(qf, d_vals, 0, 1, nvals, d_lock, QF_NO_LOCK);
 
 }
