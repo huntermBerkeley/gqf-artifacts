@@ -146,7 +146,7 @@ int main(int argc, char **argv){
 		}
 		*/
 	}
-	QF file_qf = qf;
+	QF file_qf = &qf;
 	fprintf(stdout, "Testing iterator and unique indexes.\n");
 	/* Initialize an iterator and validate counts. */
 	QFi qfi;
