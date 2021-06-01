@@ -1759,37 +1759,6 @@ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, u
 GPU Modifications
 --------------------------*/
 
-__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
-	//TODO: INIT QF IN GPU MEMORY
-	float* d_qf;
-	CUDA_CHECK(CudaMalloc(&d_qf, sizeof(QF)));
-	CUDA_CHECK(CudaMemcpy(&d_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
-
-	float* d_vals;
-
-	CUDA_CHECK(cudaMalloc(&d_vals, sizeof(uint64_t) * nvals));
-	CUDA_CHECK(cudaMemcpy(&d_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
-
-	int block_size = 512;
-	int num_blocks = (nvals + block_size - 1) / block_size;
-	hash_all << num_blocks, block_size >> (d_vals, nvals, nhashbits);
-
-	float* d_lock;
-	int num_locks = qf->metadata->nslots / 4096;
-	CUDA_CHECK(cudaMalloc(&d_lock, sizeof(unsigned int) * num_locks));
-	CUDA_CHECK(cudaMemSet(d_lock, 0, sizeof(unsigned int) * num_locks));
-	qf_bulk_insert(qf, d_vals, 0, 1, nvals, d_lock, QF_NO_LOCK);
-
-}
-
-__global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
-	int stride = blockDim.x * gridDim.x;
-	for (int i = idx; i < nvals; i += stride) {
-		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
-	}
-	return;
-}
 
 //TODO: it might expect a short int instead of uint16_t
 //TODO: needs to be 32 bits (whoops)
@@ -1798,14 +1767,14 @@ __device__ uint16_t get_lock(unsigned int* lock, int index) {
 	//returns 0 if success
 	unsigned int zero = 0;
 	unsigned int one = 1;
-	return atomicCAS(lock[index], zero, one);
+	return atomicCAS(&lock[index], zero, one);
 }
 
 __device__ uint16_t unlock(uint16_t* lock, int index) {
 	//set lock to 0 to release
-	unsigned int = 0;
-	unsigned int = 1;
-	return atomicCAS(lock[index], one, zero);
+	unsigned int zero = 0;
+	unsigned int one = 1;
+	return atomicCAS(&lock[index], one, zero);
 }
 
 __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint16_t* locks, int evenness, uint8_t flags) {
@@ -1853,6 +1822,38 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 	evenness = 0;
 	qf_insert_evenness(qf, keys, value, count, nvals, locks, evenness, flags);
 
+}
+
+
+__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
+	float* d_qf;
+	CUDA_CHECK(CudaMalloc(&d_qf, sizeof(QF)));
+	CUDA_CHECK(CudaMemcpy(&d_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
+
+	float* d_vals;
+
+	CUDA_CHECK(cudaMalloc(&d_vals, sizeof(uint64_t) * nvals));
+	CUDA_CHECK(cudaMemcpy(&d_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
+
+	int block_size = 512;
+	int num_blocks = (nvals + block_size - 1) / block_size;
+	hash_all << num_blocks, block_size >> (d_vals, nvals, nhashbits);
+
+	float* d_lock;
+	int num_locks = qf->metadata->nslots / 4096;
+	CUDA_CHECK(cudaMalloc(&d_lock, sizeof(unsigned int) * num_locks));
+	CUDA_CHECK(cudaMemSet(d_lock, 0, sizeof(unsigned int) * num_locks));
+	qf_bulk_insert(qf, d_vals, 0, 1, nvals, d_lock, QF_NO_LOCK);
+
+}
+
+__global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
+	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	int stride = blockDim.x * gridDim.x;
+	for (int i = idx; i < nvals; i += stride) {
+		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
+	}
+	return;
 }
 
 __host__ __device__ int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
