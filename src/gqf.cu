@@ -57,7 +57,6 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
 }
 }
 
-
 #ifdef DEBUG
 #define PRINT_DEBUG 1
 #else
@@ -1863,7 +1862,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	uint32_t* d_lock;
 	int num_locks = qf->metadata->nslots / 4096;
 	CUDA_CHECK(cudaMalloc(&d_lock, sizeof(unsigned int) * num_locks));
-	CUDA_CHECK(cudaMemSet(d_lock, 0, sizeof(unsigned int) * num_locks));
+	CUDA_CHECK(cudaMemset(d_lock, 0, sizeof(unsigned int) * num_locks));
 	qf_bulk_insert(qf, d_vals, 0, 1, nvals, d_lock, QF_NO_LOCK);
 
 }
