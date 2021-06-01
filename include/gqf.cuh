@@ -10,6 +10,7 @@
 #ifndef _GQF_CUH_
 #define _GQF_CUH_
 
+#include <cuda.h>
 #include <inttypes.h>
 #include <stdbool.h>
 
