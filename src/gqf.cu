@@ -88,12 +88,15 @@ __device__ static void modify_metadata(pc_t *metadata, int cnt)
 	return;
 }
 
+/*changing sizes of register based on https://docs.nvidia.com/cuda/inline-ptx-assembly/index.html
+l is for "l" = .u64 reg
+*/
 __device__ static inline int popcnt(uint64_t val)
 {
 	asm("popcnt %[val], %[val]"
-			: [val] "+r" (val)
+			: [val] "+l" (val)
 			:
-			: "cc");
+			: );
 	return val;
 }
 
@@ -103,9 +106,9 @@ __device__ static inline int64_t bitscanreverse(uint64_t val)
 		return -1;
 	} else {
 		asm("bsr %[val], %[val]"
-				: [val] "+r" (val)
-				:
-				: "cc");
+			: [val] "+l" (val)
+			:
+			: );
 		return val;
 	}
 }
@@ -123,9 +126,9 @@ __device__ static inline int popcntv(const uint64_t val, int ignore)
 __device__ static inline int bitrank(uint64_t val, int pos) {
 	val = val & ((2ULL << pos) - 1);
 	asm("popcnt %[val], %[val]"
-			: [val] "+r" (val)
+			: [val] "+l" (val)
 			:
-			: "cc");
+			: );
 	return val;
 }
 
@@ -1224,11 +1227,11 @@ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t runtime_lo
 		METADATA_WORD(qf, occupieds, hash_bucket_index) |= 1ULL <<
 			(hash_bucket_block_offset % 64);
 	}
-
+	/*
 	if (GET_NO_LOCK(runtime_lock) != QF_NO_LOCK) {
-		qf_unlock(qf, hash_bucket_index, /*small*/ true);
+		qf_unlock(qf, hash_bucket_index, true);
 	}
-
+	*/
 	return ret_distance;
 }
 
@@ -1348,11 +1351,12 @@ __device__ inline static int _remove(QF *qf, __uint64_t hash, uint64_t count, ui
 	uint64_t hash_bucket_index        = hash >> qf->metadata->bits_per_slot;
 	uint64_t current_remainder, current_count, current_end;
 	uint64_t new_values[67];
-
+	/*
 	if (GET_NO_LOCK(runtime_lock) != QF_NO_LOCK) {
-		if (!qf_lock(qf, hash_bucket_index, /*small*/ false, runtime_lock))
+		if (!qf_lock(qf, hash_bucket_index,  false, runtime_lock))
 			return -2;
 	}
+	*/
 
 	/* Empty bucket */
 	if (!is_occupied(qf, hash_bucket_index))
@@ -1390,11 +1394,11 @@ __device__ inline static int _remove(QF *qf, __uint64_t hash, uint64_t count, ui
 	// update the nelements.
 	modify_metadata(&qf->runtimedata->pc_nelts, -count);
 	/*qf->metadata->nelts -= count;*/
-
+	/*
 	if (GET_NO_LOCK(runtime_lock) != QF_NO_LOCK) {
-		qf_unlock(qf, hash_bucket_index, /*small*/ false);
+		qf_unlock(qf, hash_bucket_index, false);
 	}
-
+	*/
 	return ret_numfreedslots;
 }
 
@@ -1488,7 +1492,7 @@ __host__ uint64_t qf_init(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t v
 	return total_num_bytes;
 }
 
-__device__ uint64_t qf_use(QF* qf, void* buffer, uint64_t buffer_len)
+__host__ uint64_t qf_use(QF* qf, void* buffer, uint64_t buffer_len)
 {
 	qf->metadata = (qfmetadata *)(buffer);
 	if (qf->metadata->total_size_in_bytes + sizeof(qfmetadata) > buffer_len) {
@@ -1522,7 +1526,7 @@ __device__ uint64_t qf_use(QF* qf, void* buffer, uint64_t buffer_len)
 	return sizeof(qfmetadata) + qf->metadata->total_size_in_bytes;
 }
 
-__device__ void *qf_destroy(QF *qf)
+__host__ void *qf_destroy(QF *qf)
 {
 	assert(qf->runtimedata != NULL);
 	if (qf->runtimedata->locks != NULL)
@@ -1611,8 +1615,7 @@ __host__ int64_t qf_resize_malloc(QF *qf, uint64_t nslots)
 								 qf->metadata->value_bits, qf->metadata->hash_mode,
 								 qf->metadata->seed))
 		return -1;
-	if (qf->runtimedata->auto_resize)
-		qf_set_auto_resize(&new_qf, true);
+	if (qf->runtimedata->auto_resize) qf_set_auto_resize(&new_qf, true);
 
 	// copy keys from qf into new_qf
 	QFi qfi;
@@ -1787,15 +1790,20 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 	return;
 }
 
-
+//TODO: it might expect a short int instead of uint16_t
+//TODO: needs to be 32 bits (whoops)
 __device__ uint16_t get_lock(uint16_t* lock, int index) {
 	//set lock to 1 to claim
 	//returns 0 if success
-	return atomicCAS(lock[index], 0, 1);
+	uint16_t zero = 0;
+	uint16_t one = 1;
+	return atomicCAS(lock[index], zero, one);
 }
 
 __device__ uint16_t unlock(uint16_t* lock, int index) {
 	//set lock to 0 to release
+	uint16_t zero = 0;
+	uint16_t one = 1;
 	return atomicCAS(lock[index], 1, 0);
 }
 
