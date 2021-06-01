@@ -1,6 +1,6 @@
 !.gitignore
 !.*.sh
-
+.vs/*
 *.cqf
 *.o
 *.file
