@@ -195,7 +195,6 @@ int main(int argc, char **argv){
 
 		i++;
 		qfi_next(&qfi);
-	}
 
 	/* remove some counts  (or keys) and validate. */
 	fprintf(stdout, "Testing remove/delete_key.\n");
