@@ -32,7 +32,7 @@ CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT) $(ARCH) -m64 -I. -Iinclude
 
 CUFLAGS = -arch=sm_70 -rdc=true -I. -Iinclude
 
-LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) -lpthread -lssl -lcrypto -lm
+LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) -lpthread -lssl -lcrypto -lm -lcuda
 
    
 #
