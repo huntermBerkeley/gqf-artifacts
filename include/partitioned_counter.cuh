@@ -10,6 +10,7 @@
 #ifndef _PARTITIONED_COUNTER_CUH_
 #define _PARTITIONED_COUNTER_CUH_
 
+#include <cuda.h>
 #include <inttypes.h>
 #include <stdbool.h>
 
