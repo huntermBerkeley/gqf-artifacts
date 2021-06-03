@@ -103,10 +103,7 @@ l is for "l" = .u64 reg
 */
 __device__ static inline int popcnt(uint64_t val)
 {
-	asm("popcnt %[val], %[val]"
-			: [val] "+l" (val)
-			:
-			: );
+	val = __popcll(val);
 	return val;
 }
 
@@ -135,10 +132,7 @@ __device__ static inline int popcntv(const uint64_t val, int ignore)
 // Bits are numbered from 0
 __device__ static inline int bitrank(uint64_t val, int pos) {
 	val = val & ((2ULL << pos) - 1);
-	asm("popcnt %[val], %[val]"
-			: [val] "+l" (val)
-			:
-			: );
+	val = __pop_cll(val);
 	return val;
 }
 
