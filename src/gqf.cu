@@ -351,7 +351,7 @@ __host__ __device__ static inline uint64_t _select64(uint64_t x, int k)
 #ifdef __CUDA_ARCH__
 	return place + gpukSelectInByte[((x >> place) & 0xFF) | (byteRank << 8)];
 #else
-	returnplace + hostkSelectInByte[((x >> place) & 0xFF) | (byteRank << 8)];
+	return place + hostkSelectInByte[((x >> place) & 0xFF) | (byteRank << 8)];
 #endif // __CUDA_ARCH__
 
 	
