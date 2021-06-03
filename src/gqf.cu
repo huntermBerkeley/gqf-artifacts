@@ -132,7 +132,7 @@ __device__ static inline int popcntv(const uint64_t val, int ignore)
 // Bits are numbered from 0
 __device__ static inline int bitrank(uint64_t val, int pos) {
 	val = val & ((2ULL << pos) - 1);
-	val = __pop_cll(val);
+	val = __popcll(val);
 	return val;
 }
 
