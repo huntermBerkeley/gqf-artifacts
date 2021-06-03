@@ -716,7 +716,8 @@ __device__ static inline bool insert_replace_slots_and_shift_remainders_and_rune
 				break;
 			default:
 				printf("Invalid operation %d\n", operation);
-				gpu();
+				__threadfence();         // ensure store issued before trap
+				asm("trap;");
 		}
 
 		uint64_t npreceding_empties = 0;
