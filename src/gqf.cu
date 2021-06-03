@@ -51,7 +51,7 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
 {
 	if (code != cudaSuccess)
 	{
-		fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+		printf("GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
 		if (abort)
 			exit(code);
 }
@@ -64,7 +64,7 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
 #endif
 
 #define DEBUG_CQF(fmt, ...) \
-	do { if (PRINT_DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+	do { if (PRINT_DEBUG) printf( fmt, __VA_ARGS__); } while (0)
 
 #define DEBUG_DUMP(qf) \
 	do { if (PRINT_DEBUG) qf_dump_metadata(qf); } while (0)
@@ -721,7 +721,7 @@ __device__ static inline bool insert_replace_slots_and_shift_remainders_and_rune
 											QF_SLOTS_PER_BLOCK) % 64));
 				break;
 			default:
-				fprintf(stderr, "Invalid operation %d\n", operation);
+				printf("Invalid operation %d\n", operation);
 				abort();
 		}
 

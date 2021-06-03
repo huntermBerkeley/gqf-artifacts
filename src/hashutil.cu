@@ -20,7 +20,7 @@
 
 // 64-bit hash for 64-bit platforms
 
-uint64_t MurmurHash64A ( const void * key, int len, unsigned int seed )
+__host__ __device__ uint64_t MurmurHash64A ( const void * key, int len, unsigned int seed )
 {
 	const uint64_t m = 0xc6a4a7935bd1e995;
 	const int r = 47;
@@ -66,7 +66,7 @@ uint64_t MurmurHash64A ( const void * key, int len, unsigned int seed )
 
 // 64-bit hash for 32-bit platforms
 
-uint64_t MurmurHash64B ( const void * key, int len, unsigned int seed )
+__host__ __device__ uint64_t MurmurHash64B ( const void * key, int len, unsigned int seed )
 {
 	const unsigned int m = 0x5bd1e995;
 	const int r = 24;
@@ -129,7 +129,7 @@ uint64_t MurmurHash64B ( const void * key, int len, unsigned int seed )
 // Thomas Wang's integer hash functions. See
 // <https://gist.github.com/lh3/59882d6b96166dfc3d8d> for a snapshot.
 
-uint64_t hash_64(uint64_t key, uint64_t mask)
+__host__ __device__ uint64_t hash_64(uint64_t key, uint64_t mask)
 {
 	key = (~key + (key << 21)) & mask; // key = (key << 21) - key - 1;
 	key = key ^ key >> 24;
@@ -143,7 +143,7 @@ uint64_t hash_64(uint64_t key, uint64_t mask)
 
 // The inversion of hash_64(). Modified from
 // <https://naml.us/blog/tag/invertible>
-uint64_t hash_64i(uint64_t key, uint64_t mask)
+__host__ __device__ uint64_t hash_64i(uint64_t key, uint64_t mask)
 {
 	uint64_t tmp;
 
