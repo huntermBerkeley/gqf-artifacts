@@ -54,7 +54,7 @@ void pc_destructor(pc_t *pc)
 	free(lc);
 }
 	
-_host__ __device__ void pc_add(pc_t *pc, int64_t count) {
+__host__ __device__ void pc_add(pc_t *pc, int64_t count) {
 	int cpuid = sched_getcpu();
 	uint32_t counter_id = cpuid % pc->num_counters;
 	int64_t cur_count =
