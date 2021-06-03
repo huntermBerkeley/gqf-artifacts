@@ -1211,7 +1211,7 @@ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t runtime_lo
 					METADATA_WORD(qf, runends, insert_index)   &= ~(1ULL <<((insert_index %QF_SLOTS_PER_BLOCK) %64));
 					break;
 				default:
-					fprintf(stderr, "Invalid operation %d\n", operation);
+					printf("Invalid operation %d\n", operation);
 					abort();
 			}
 			/* 
@@ -1631,7 +1631,7 @@ __host__ int64_t qf_resize_malloc(QF *qf, uint64_t nslots)
 		qfi_next(&qfi);
 		int ret = qf_insert(&new_qf, key, value, count, QF_NO_LOCK | QF_KEY_IS_HASH);
 		if (ret < 0) {
-			fprintf(stderr, "Failed to insert key: %ld into the new CQF.\n", key);
+			printf("Failed to insert key: %ld into the new CQF.\n", key);
 			return ret;
 		}
 		ret_numkeys++;
@@ -1672,7 +1672,7 @@ uint64_t qf_resize(QF* qf, uint64_t nslots, void* buffer, uint64_t buffer_len)
 		qfi_next(&qfi);
 		int ret = qf_insert(&new_qf, key, value, count, QF_NO_LOCK | QF_KEY_IS_HASH);
 		if (ret < 0) {
-			fprintf(stderr, "Failed to insert key: %ld into the new CQF.\n", key);
+			printf("Failed to insert key: %ld into the new CQF.\n", key);
 			abort();
 		}
 	} while(!qfi_end(&qfi));
@@ -1797,13 +1797,13 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 			if (get_lock(locks, lock_index) == 0) {
 				int ret = qf_insert(qf, keys[i], 0, 1, QF_NO_LOCK);
 				if (ret < 0) {
-					fprintf(stderr, "failed insertion for key: %lx %d.\n", keys[i], 50);
+					printf("failed insertion for key: %lx %d.\n", keys[i], 50);
 					if (ret == QF_NO_SPACE)
-						fprintf(stderr, "CQF is full.\n");
+						printf("CQF is full.\n");
 					else if (ret == QF_COULDNT_LOCK)
-						fprintf(stderr, "TRY_ONCE_LOCK failed.\n");
+						printf("TRY_ONCE_LOCK failed.\n");
 					else
-						fprintf(stderr, "Does not recognise return value.\n");
+						printf("Does not recognise return value.\n");
 
 				}
 				i++;
