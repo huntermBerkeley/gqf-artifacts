@@ -92,7 +92,7 @@ __device__ static __inline__ unsigned long long rdtsc(void)
 }
 */
 
-__device__ static void modify_metadata(pc_t *metadata, int cnt)
+__host__ __device__ static void modify_metadata(pc_t *metadata, int cnt)
 {
 	pc_add(metadata, cnt);
 	return;
@@ -103,7 +103,14 @@ l is for "l" = .u64 reg
 */
 __host__ __device__ static inline int popcnt(uint64_t val)
 {
+#ifdef __CUDA_ARCH__
 	val = __popcll(val);
+#else
+	asm("popcnt %[val], %[val]"
+		: [val] "+r" (val)
+		:
+		: "cc");
+#endif
 	return val;
 }
 
@@ -120,7 +127,7 @@ __device__ static inline int64_t bitscanreverse(uint64_t val)
 	}
 }
 
-__device__ static inline int popcntv(const uint64_t val, int ignore)
+__host__ __device__ static inline int popcntv(const uint64_t val, int ignore)
 {
 	if (ignore % 64)
 		return popcnt (val & ~BITMASK(ignore % 64));
@@ -132,7 +139,14 @@ __device__ static inline int popcntv(const uint64_t val, int ignore)
 // Bits are numbered from 0
 __host__ __device__ static inline int bitrank(uint64_t val, int pos) {
 	val = val & ((2ULL << pos) - 1);
+#ifdef __CUDA_ARCH__
 	val = __popcll(val);
+#else 
+	asm("popcnt %[val], %[val]"
+		: [val] "+r" (val)
+		:
+		: "cc");
+#endif
 	return val;
 }
 
@@ -235,7 +249,7 @@ __device__ __constant__ uint8_t kSelectInByte[2048] = {
 	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7
 };
 
-__device__ static inline uint64_t _select64(uint64_t x, int k)
+__host__ __device__ static inline uint64_t _select64(uint64_t x, int k)
 {
 	if (k >= popcnt(x)) { return 64; }
 	
@@ -273,7 +287,7 @@ __host__ __device__ static inline uint64_t bitselect(uint64_t val, int rank) {
 	return _select64(val, rank);
 }
 
-__device__ static inline uint64_t bitselectv(const uint64_t val, int ignore, int rank)
+__host__ __device__ static inline uint64_t bitselectv(const uint64_t val, int ignore, int rank)
 {
 	return bitselect(val & ~BITMASK(ignore % 64), rank);
 }
@@ -292,13 +306,13 @@ __host__ __device__ static inline int is_occupied(const QF *qf, uint64_t index)
 
 #if QF_BITS_PER_SLOT == 8 || QF_BITS_PER_SLOT == 16 || QF_BITS_PER_SLOT == 32 || QF_BITS_PER_SLOT == 64
 
-__device__ static inline uint64_t get_slot(const QF *qf, uint64_t index)
+__host__ __device__ static inline uint64_t get_slot(const QF *qf, uint64_t index)
 {
 	assert(index < qf->metadata->xnslots);
 	return get_block(qf, index / QF_SLOTS_PER_BLOCK)->slots[index % QF_SLOTS_PER_BLOCK];
 }
 
-__device__ static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
+__host__ __device__ static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
 {
 	assert(index < qf->metadata->xnslots);
 	get_block(qf, index / QF_SLOTS_PER_BLOCK)->slots[index % QF_SLOTS_PER_BLOCK] =
@@ -309,7 +323,7 @@ __device__ static inline void set_slot(const QF *qf, uint64_t index, uint64_t va
 
 /* Little-endian code ....  Big-endian is TODO */
 
-__device__ static inline uint64_t get_slot(const QF *qf, uint64_t index)
+__host__ __device__ static inline uint64_t get_slot(const QF *qf, uint64_t index)
 {
 	/* Should use __uint128_t to support up to 64-bit remainders, but gcc seems
 	 * to generate buggy code.  :/  */
@@ -322,7 +336,7 @@ __device__ static inline uint64_t get_slot(const QF *qf, uint64_t index)
 															8)) & BITMASK(QF_BITS_PER_SLOT));
 }
 
-__device__ static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
+__host__ __device__ static inline void set_slot(const QF *qf, uint64_t index, uint64_t value)
 {
 	/* Should use __uint128_t to support up to 64-bit remainders, but gcc seems
 	 * to generate buggy code.  :/  */
@@ -376,7 +390,7 @@ __device__ static inline void set_slot(const QF *qf, uint64_t index, uint64_t va
 
 __host__ __device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index);
 
-__device__ static inline uint64_t block_offset(const QF *qf, uint64_t blockidx)
+__host__ __device__ static inline uint64_t block_offset(const QF *qf, uint64_t blockidx)
 {
 	/* If we have extended counters and a 16-bit (or larger) offset
 		 field, then we can safely ignore the possibility of overflowing
@@ -452,12 +466,12 @@ __device__ static inline int offset_lower_bound(const QF *qf, uint64_t slot_inde
 	return boffset - slot_offset + popcnt(occupieds);
 }
 
-__device__ static inline int is_empty(const QF *qf, uint64_t slot_index)
+__host__ __device__ static inline int is_empty(const QF *qf, uint64_t slot_index)
 {
 	return offset_lower_bound(qf, slot_index) == 0;
 }
 
-__device__ static inline int might_be_empty(const QF *qf, uint64_t slot_index)
+__host__ __device__ static inline int might_be_empty(const QF *qf, uint64_t slot_index)
 {
 	return !is_occupied(qf, slot_index)
 		&& !is_runend(qf, slot_index);
@@ -470,7 +484,7 @@ __device__ static inline int probably_is_empty(const QF *qf, uint64_t slot_index
 		&& !is_runend(qf, slot_index);
 }
 
-__device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_t from)
+__host__ __device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_t from)
 {
 	do {
 		int t = offset_lower_bound(qf, from);
@@ -495,7 +509,7 @@ __device__ static inline uint64_t shift_into_b(const uint64_t a, const uint64_t 
 
 #if QF_BITS_PER_SLOT == 8 || QF_BITS_PER_SLOT == 16 || QF_BITS_PER_SLOT == 32 || QF_BITS_PER_SLOT == 64
 
-__device__ static inline void shift_remainders(QF *qf, uint64_t start_index, uint64_t
+__host__ __device__ static inline void shift_remainders(QF *qf, uint64_t start_index, uint64_t
 																		empty_index)
 {
 	uint64_t start_block  = start_index / QF_SLOTS_PER_BLOCK;
@@ -524,7 +538,7 @@ __device__ static inline void shift_remainders(QF *qf, uint64_t start_index, uin
 
 #define REMAINDER_WORD(qf, i) ((uint64_t *)&(get_block(qf, (i)/qf->metadata->bits_per_slot)->slots[8 * ((i) % qf->metadata->bits_per_slot)]))
 
-__device__ static inline void shift_remainders(QF *qf, const uint64_t start_index, const
+__host__ __device__ static inline void shift_remainders(QF *qf, const uint64_t start_index, const
 																		uint64_t empty_index)
 {
 	uint64_t last_word = (empty_index + 1) * qf->metadata->bits_per_slot / 64;
@@ -547,7 +561,7 @@ __device__ static inline void shift_remainders(QF *qf, const uint64_t start_inde
 
 #endif
 
-__device__ static inline void qf_dump_block(const QF *qf, uint64_t i)
+__host__  static inline void qf_dump_block(const QF *qf, uint64_t i)
 {
 	uint64_t j;
 
@@ -630,7 +644,7 @@ __device__ static inline void shift_slots(QF *qf, int64_t first, uint64_t last, 
 			set_slot(qf, i + distance, get_slot(qf, i));
 }
 
-__device__ static inline void shift_runends(QF *qf, int64_t first, uint64_t last,
+__host__ __device__ static inline void shift_runends(QF *qf, int64_t first, uint64_t last,
 																 uint64_t distance)
 {
 	assert(last < qf->metadata->xnslots && distance < 64);
@@ -659,7 +673,7 @@ __device__ static inline void shift_runends(QF *qf, int64_t first, uint64_t last
 
 }
 
-__device__ static inline bool insert_replace_slots_and_shift_remainders_and_runends_and_offsets(QF		*qf,
+__host__ __device__ static inline bool insert_replace_slots_and_shift_remainders_and_runends_and_offsets(QF		*qf,
 																																										 int		 operation, 
 																																										 uint64_t		 bucket_index,
 																																										 uint64_t		 overwrite_index,
@@ -716,8 +730,12 @@ __device__ static inline bool insert_replace_slots_and_shift_remainders_and_rune
 				break;
 			default:
 				printf("Invalid operation %d\n", operation);
+#ifdef __CUDA_ARCH__
 				__threadfence();         // ensure store issued before trap
 				asm("trap;");
+#else
+				abort()
+#endif
 		}
 
 		uint64_t npreceding_empties = 0;
@@ -858,7 +876,7 @@ __device__ static inline int remove_replace_slots_and_shift_remainders_and_runen
 	 >2 xs:   xbc...cx  for x != 0, b < x, c != 0, x
 	 >3 0s:   0c...c00  for c != 0
 	 */
-__device__ static inline uint64_t *encode_counter(QF *qf, uint64_t remainder, uint64_t
+__host__ __device__ static inline uint64_t *encode_counter(QF *qf, uint64_t remainder, uint64_t
 																			 counter, uint64_t *slots)
 {
 	uint64_t digit = remainder;
