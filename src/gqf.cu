@@ -71,12 +71,12 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
 
 
 #if QF_BITS_PER_SLOT > 0
-__device__ static inline qfblock* get_block(const QF* qf, uint64_t block_index)
+__host__ __device__ static inline qfblock* get_block(const QF* qf, uint64_t block_index)
 {
 	return &qf->blocks[block_index];
 }
 #else
-__device__ static inline qfblock* get_block(const QF* qf, uint64_t block_index)
+__host__ __device__ static inline qfblock* get_block(const QF* qf, uint64_t block_index)
 {
 	return (qfblock*)(((char*)qf->blocks)
 		+ block_index * (sizeof(qfblock) + QF_SLOTS_PER_BLOCK *
@@ -101,7 +101,7 @@ __device__ static void modify_metadata(pc_t *metadata, int cnt)
 /*changing sizes of register based on https://docs.nvidia.com/cuda/inline-ptx-assembly/index.html
 l is for "l" = .u64 reg
 */
-__device__ static inline int popcnt(uint64_t val)
+__host__ __device__ static inline int popcnt(uint64_t val)
 {
 	val = __popcll(val);
 	return val;
@@ -130,7 +130,7 @@ __device__ static inline int popcntv(const uint64_t val, int ignore)
 
 // Returns the number of 1s up to (and including) the pos'th bit
 // Bits are numbered from 0
-__device__ static inline int bitrank(uint64_t val, int pos) {
+__host__ __device__ static inline int bitrank(uint64_t val, int pos) {
 	val = val & ((2ULL << pos) - 1);
 	val = __popcll(val);
 	return val;
@@ -258,7 +258,7 @@ __device__ static inline uint64_t _select64(uint64_t x, int k)
 
 // Returns the position of the rank'th 1.  (rank = 0 returns the 1st 1)
 // Returns 64 if there are fewer than rank+1 1s.
-__device__ static inline uint64_t bitselect(uint64_t val, int rank) {
+__host__ __device__ static inline uint64_t bitselect(uint64_t val, int rank) {
 #ifdef __SSE4_2_
 	uint64_t i = 1ULL << rank;
 	asm("pdep %[val], %[mask], %[val]"
@@ -278,13 +278,13 @@ __device__ static inline uint64_t bitselectv(const uint64_t val, int ignore, int
 	return bitselect(val & ~BITMASK(ignore % 64), rank);
 }
 
-__device__ static inline int is_runend(const QF *qf, uint64_t index)
+__host__ __device__ static inline int is_runend(const QF *qf, uint64_t index)
 {
 	return (METADATA_WORD(qf, runends, index) >> ((index % QF_SLOTS_PER_BLOCK) %
 																								64)) & 1ULL;
 }
 
-__device__ static inline int is_occupied(const QF *qf, uint64_t index)
+__host__ __device__ static inline int is_occupied(const QF *qf, uint64_t index)
 {
 	return (METADATA_WORD(qf, occupieds, index) >> ((index % QF_SLOTS_PER_BLOCK) %
 																									64)) & 1ULL;
@@ -374,7 +374,7 @@ __device__ static inline void set_slot(const QF *qf, uint64_t index, uint64_t va
 
 #endif
 
-__device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index);
+__host__ __device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index);
 
 __device__ static inline uint64_t block_offset(const QF *qf, uint64_t blockidx)
 {
@@ -387,9 +387,9 @@ __device__ static inline uint64_t block_offset(const QF *qf, uint64_t blockidx)
 
 	return run_end(qf, QF_SLOTS_PER_BLOCK * blockidx - 1) - QF_SLOTS_PER_BLOCK *
 		blockidx + 1;
-}
+} 
 
-__device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index)
+__host__ __device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_bucket_index)
 {
 	uint64_t bucket_block_index       = hash_bucket_index / QF_SLOTS_PER_BLOCK;
 	uint64_t bucket_intrablock_offset = hash_bucket_index % QF_SLOTS_PER_BLOCK;
@@ -610,7 +610,7 @@ __host__ void qf_dump(const QF *qf)
 
 }
 
-__device__ static inline void find_next_n_empty_slots(QF *qf, uint64_t from, uint64_t n,
+__host__ __device__ static inline void find_next_n_empty_slots(QF *qf, uint64_t from, uint64_t n,
 																					 uint64_t *indices)
 {
 	while (n) {
@@ -918,7 +918,7 @@ __device__ static inline uint64_t *encode_counter(QF *qf, uint64_t remainder, ui
 
 /* Returns the length of the encoding. 
 REQUIRES: index points to first slot of a counter. */
-__device__ static inline uint64_t decode_counter(const QF *qf, uint64_t index, uint64_t *remainder, uint64_t *count)
+__host__ __device__ static inline uint64_t decode_counter(const QF *qf, uint64_t index, uint64_t *remainder, uint64_t *count)
 {
 	uint64_t base;
 	uint64_t rem;
@@ -1003,7 +1003,7 @@ __device__ static inline uint64_t next_slot(QF *qf, uint64_t current)
 	return current;
 }
 
-__device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t runtime_lock)
+__host__ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t runtime_lock)
 {
 	int ret_distance = 0;
 	uint64_t hash_remainder           = hash & BITMASK(qf->metadata->bits_per_slot);
@@ -1241,7 +1241,7 @@ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t runtime_lo
 	return ret_distance;
 }
 
-__device__ static inline int insert(QF *qf, __uint64_t hash, uint64_t count, uint8_t
+__host__ __device__ static inline int insert(QF *qf, __uint64_t hash, uint64_t count, uint8_t
 												 runtime_lock)
 {
 	int ret_distance = 0;
@@ -1349,7 +1349,7 @@ __device__ static inline int insert(QF *qf, __uint64_t hash, uint64_t count, uin
 	return ret_distance;
 }
 
-__device__ inline static int _remove(QF *qf, __uint64_t hash, uint64_t count, uint8_t
+__host__ __device__ inline static int _remove(QF *qf, __uint64_t hash, uint64_t count, uint8_t
 													runtime_lock)
 {
 	int ret_numfreedslots = 0;
@@ -1675,8 +1675,7 @@ uint64_t qf_resize(QF* qf, uint64_t nslots, void* buffer, uint64_t buffer_len)
 		int ret = qf_insert(&new_qf, key, value, count, QF_NO_LOCK | QF_KEY_IS_HASH);
 		if (ret < 0) {
 			printf("Failed to insert key: %ld into the new CQF.\n", key);
-			__threadfence();         // ensure store issued before trap
-			asm("trap;");            // kill kernel with error
+			abort();          // kill kernel with error
 		}
 	} while(!qfi_end(&qfi));
 
@@ -1696,7 +1695,7 @@ __host__  void qf_set_auto_resize(QF* qf, bool enabled)
 
         
 
-__device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
+__host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 							flags)
 {
 	// We fill up the CQF up to 95% load factor.
