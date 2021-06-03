@@ -716,7 +716,7 @@ __device__ static inline bool insert_replace_slots_and_shift_remainders_and_rune
 				break;
 			default:
 				printf("Invalid operation %d\n", operation);
-				abort();
+				gpu();
 		}
 
 		uint64_t npreceding_empties = 0;
@@ -1212,7 +1212,8 @@ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t runtime_lo
 					break;
 				default:
 					printf("Invalid operation %d\n", operation);
-					abort();
+					__threadfence();         // ensure store issued before trap
+					asm("trap;");            // kill kernel with error
 			}
 			/* 
 			 * Increment the offset for each block between the hash bucket index
@@ -1673,7 +1674,8 @@ uint64_t qf_resize(QF* qf, uint64_t nslots, void* buffer, uint64_t buffer_len)
 		int ret = qf_insert(&new_qf, key, value, count, QF_NO_LOCK | QF_KEY_IS_HASH);
 		if (ret < 0) {
 			printf("Failed to insert key: %ld into the new CQF.\n", key);
-			abort();
+			__threadfence();         // ensure store issued before trap
+			asm("trap;");            // kill kernel with error
 		}
 	} while(!qfi_end(&qfi));
 
