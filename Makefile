@@ -32,7 +32,9 @@ CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT) $(ARCH) -m64 -I. -Iinclude
 
 CUFLAGS = -arch=sm_70 -rdc=true -I. -Iinclude
 
-LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) -lpthread -lssl -lcrypto -lm -lcuda
+CUDALINK = -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64 -L/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib6
+
+LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) $(CUDALINK) -lpthread -lssl -lcrypto -lm -lcuda
 
    
 #
