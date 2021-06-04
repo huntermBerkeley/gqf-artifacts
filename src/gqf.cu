@@ -91,13 +91,13 @@ __device__ static __inline__ unsigned long long rdtsc(void)
 	return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
 }
 */
-
+/*
 __host__ __device__ static void modify_metadata(pc_t *metadata, int cnt)
 {
 	pc_add(metadata, cnt);
 	return;
 }
-
+*/
 /*changing sizes of register based on https://docs.nvidia.com/cuda/inline-ptx-assembly/index.html
 l is for "l" = .u64 reg
 */
@@ -841,7 +841,7 @@ __host__ __device__ static inline bool insert_replace_slots_and_shift_remainders
 	for (i = 0; i < total_remainders; i++)
 		set_slot(qf, overwrite_index + i, remainders[i]);
 
-	modify_metadata(&qf->runtimedata->pc_noccupied_slots, ninserts);
+	//modify_metadata(&qf->runtimedata->pc_noccupied_slots, ninserts);
 
 	return true;
 }
@@ -940,10 +940,10 @@ __host__ __device__ static inline int remove_replace_slots_and_shift_remainders_
 	}
 
 	int num_slots_freed = old_length - total_remainders;
-	modify_metadata(&qf->runtimedata->pc_noccupied_slots, -num_slots_freed);
+	//modify_metadata(&qf->runtimedata->pc_noccupied_slots, -num_slots_freed);
 	/*qf->metadata->noccupied_slots -= (old_length - total_remainders);*/
 	if (!total_remainders) {
-		modify_metadata(&qf->runtimedata->pc_ndistinct_elts, -1);
+		//modify_metadata(&qf->runtimedata->pc_ndistinct_elts, -1);
 		/*qf->metadata->ndistinct_elts--;*/
 	}
 
@@ -1507,7 +1507,7 @@ __host__ __device__ inline static int _remove(QF *qf, __uint64_t hash, uint64_t 
 																																		current_end - runstart_index + 1);
 
 	// update the nelements.
-	modify_metadata(&qf->runtimedata->pc_nelts, -count);
+	//modify_metadata(&qf->runtimedata->pc_nelts, -count);
 	/*qf->metadata->nelts -= count;*/
 	/*
 	if (GET_NO_LOCK(runtime_lock) != QF_NO_LOCK) {
