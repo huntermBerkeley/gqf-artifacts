@@ -34,7 +34,7 @@ CUFLAGS = -arch=sm_70 -rdc=true -I. -Iinclude
 
 CUDALINK = -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64 -L/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib6
 
-LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) $(CUDALINK) -lpthread -lssl -lcrypto -lm -lcuda
+LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) $(CUDALINK) -lpthread -lssl -lcrypto -lm -lcuda -lcudart
 
    
 #

@@ -24,7 +24,7 @@
 #include "include/gqf_file.cuh"
 #include "hashutil.cuh"
 #include "include/gqf.cuh"
-#include "src/gqf.cu"
+//#include "src/gqf.cu"
 
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
