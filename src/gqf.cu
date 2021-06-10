@@ -846,7 +846,7 @@ __host__ __device__ static inline bool insert_replace_slots_and_shift_remainders
 	return true;
 }
 
-__host__ __device__ static inline int remove_replace_slots_and_shift_remainders_and_runends_and_offsets(QF		        *qf,
+__host__ __device__ static inline int remove_replace_slots_and_shift_remainders_and_runends_and_offsets(QF *qf,
 																																										 int		 operation,
 																																										 uint64_t		 bucket_index,
 																																										 uint64_t		 overwrite_index,
@@ -1836,8 +1836,9 @@ __host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t
 	int ret;
 	if (count == 1)
 		ret = insert1(qf, hash, flags);
-	else
-		ret = insert(qf, hash, count, flags);
+	//for now count is always 1
+	//else
+		//ret = insert(qf, hash, count, flags);
 
 	// check for fullness based on the distance from the home slot to the slot
 	// in which the key is inserted
@@ -1919,6 +1920,7 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 
 				}
 				i++;
+				unlock(locks, lock_index)
 			}
 		}
 		else {
