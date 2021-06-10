@@ -1920,7 +1920,7 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 
 				}
 				i++;
-				unlock(locks, lock_index)
+				unlock(locks, lock_index);
 			}
 		}
 		else {
