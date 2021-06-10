@@ -44,7 +44,7 @@ int pc_init(pc_t *pc, int64_t *global_counter, uint32_t num_counters,
 	
 void pc_destructor(pc_t *pc);
 	
-__host__ __device__ void pc_add(pc_t *pc, int64_t count);
+void pc_add(pc_t *pc, int64_t count);
 
 void pc_sync(pc_t *pc);
 
