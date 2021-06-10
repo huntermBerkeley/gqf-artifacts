@@ -5,7 +5,7 @@ ifdef D
 	OPT=
 else
 	DEBUG=
-	OPT=-Ofast
+	OPT=-O3
 endif
 
 ifdef NH
@@ -25,8 +25,8 @@ OBJDIR=obj
 
 CC = gcc -std=gnu11
 CXX = g++ -std=c++11
-CU = nvcc -x cu
-LD= gcc -std=gnu11
+CU = nvcc -dc -x cu
+LD = nvcc
 
 CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT) $(ARCH) -m64 -I. -Iinclude
 
