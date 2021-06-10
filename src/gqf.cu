@@ -1655,7 +1655,7 @@ __host__ void *qf_destroy(QF *qf)
 	return (void*)qf->metadata;
 }
 
-__host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
+__host__ uint64_t qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 							 value_bits, enum qf_hashmode hash, uint32_t seed)
 {
 	uint64_t total_num_bytes = qf_init(qf, nslots, key_bits, value_bits,
@@ -1677,11 +1677,17 @@ __host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 															 buffer, total_num_bytes);
 
 	if (init_size == total_num_bytes)
-		return true;
+		return total_num_bytes;
 	else
-		return false;
+		return -1;
 }
-
+__host__ QF copy_qf_to_device(QF* qf) {
+	QF d_qf;
+	CUDA_CHECK(cudaMemcpy(&d_qf->runtime_data, qf->runtime_data, sizeof(qfruntime), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(&d_qf->metadata, qf->metadata, sizeof(metadata), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(&d_qf->blocks, qf->blocks, qf->metadata->total_size_in_bytes, cudaMemcpyHostToDevice));
+	return d_qf;
+}
 __host__ bool qf_free(QF *qf)
 {
 	assert(qf->metadata != NULL);
@@ -1954,7 +1960,7 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 
 
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
-	QF* d_qf;
+	QF d_qf = copy_qf_to_device(qf);
 	CUDA_CHECK(cudaMalloc(&d_qf, sizeof(QF)));
 	CUDA_CHECK(cudaMemcpy(&d_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
 
