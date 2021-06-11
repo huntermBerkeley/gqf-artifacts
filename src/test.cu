@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
 	qf_iterator_from_position(&file_qf, &qfi, 0);
 	QF unique_idx;
 	if (!qf_malloc(&unique_idx, file_qf.metadata->nslots, nhashbits, 0,
-		QF_HASH_NONE, 0)) {
+		QF_HASH_NONE, false, 0)) {
 		fprintf(stderr, "Can't allocate set.\n");
 		abort();
 	}
