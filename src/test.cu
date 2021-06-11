@@ -45,8 +45,7 @@ int main(int argc, char** argv) {
 	uint64_t* vals;
 
 	/* Initialise the CQF */
-	uint64_t num_bytes = qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, 0);
-	if (num_bytes<0) {
+	if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, false 0)) {
 		fprintf(stderr, "Can't allocate CQF.\n");
 		abort();
 	}
@@ -70,8 +69,9 @@ int main(int argc, char** argv) {
 		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
 	}
 	*/
+	
 	/* Insert keys in the CQF */
-	qf_kernel(&qf, vals, nvals, nhashbits);
+	qf_kernel(&qf, vals, nvals, nhashbits, nslots);
 
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {

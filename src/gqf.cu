@@ -1655,13 +1655,19 @@ __host__ void *qf_destroy(QF *qf)
 	return (void*)qf->metadata;
 }
 
-__host__ uint64_t qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
-							 value_bits, enum qf_hashmode hash, uint32_t seed)
+__host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
+							 value_bits, enum qf_hashmode hash, bool on_device, uint32_t seed)
 {
 	uint64_t total_num_bytes = qf_init(qf, nslots, key_bits, value_bits,
 																		 hash, seed, NULL, 0);
-
-	void *buffer = malloc(total_num_bytes);
+	if (on_device) {
+		void* buffer;
+		CUDA_CHECK(cudaMalloc(&buffer, total_num_bytes));
+	}
+	else {
+		void* buffer = malloc(total_num_bytes);
+	}
+	
 	if (buffer == NULL) {
 		perror("Couldn't allocate memory for the CQF.");
 		exit(EXIT_FAILURE);
@@ -1681,12 +1687,11 @@ __host__ uint64_t qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 	else
 		return -1;
 }
-__host__ QF copy_qf_to_device(QF* qf) {
-	QF d_qf;
-	CUDA_CHECK(cudaMemcpy(&d_qf->runtime_data, qf->runtime_data, sizeof(qfruntime), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(&d_qf->metadata, qf->metadata, sizeof(metadata), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(&d_qf->blocks, qf->blocks, qf->metadata->total_size_in_bytes, cudaMemcpyHostToDevice));
-	return d_qf;
+__host__ void copy_qf_to_device(QF* host, QF* device) {
+	CUDA_CHECK(cudaMemcpy(device->runtime_data, host->runtime_data, sizeof(qfruntime), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(device->metadata, host->metadata, sizeof(metadata), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(device->blocks, host->blocks, host->metadata->total_size_in_bytes, cudaMemcpyHostToDevice));
+	
 }
 __host__ bool qf_free(QF *qf)
 {
@@ -1734,7 +1739,7 @@ __host__ int64_t qf_resize_malloc(QF *qf, uint64_t nslots)
 	QF new_qf;
 	if (!qf_malloc(&new_qf, nslots, qf->metadata->key_bits,
 								 qf->metadata->value_bits, qf->metadata->hash_mode,
-								 qf->metadata->seed))
+								 false, qf->metadata->seed))
 		return -1;
 	if (qf->runtimedata->auto_resize) qf_set_auto_resize(&new_qf, true);
 
@@ -1959,10 +1964,13 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 }
 
 
-__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
-	QF d_qf = copy_qf_to_device(qf);
-	CUDA_CHECK(cudaMalloc(&d_qf, sizeof(QF)));
-	CUDA_CHECK(cudaMemcpy(&d_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
+__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
+	
+
+	if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true 0)) {
+		fprintf(stderr, "Can't allocate CQF.\n");
+		abort();
+	}
 
 	uint64_t* d_vals;
 
