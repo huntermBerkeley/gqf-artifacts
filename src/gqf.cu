@@ -1659,13 +1659,14 @@ __host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 							 value_bits, enum qf_hashmode hash, bool on_device, uint32_t seed)
 {
 	uint64_t total_num_bytes = qf_init(qf, nslots, key_bits, value_bits,
-																		 hash, seed, NULL, 0);
+																	 hash, seed, NULL, 0);
+	void* buffer
 	if (on_device) {
-		void* buffer;
+		
 		CUDA_CHECK(cudaMalloc(&buffer, total_num_bytes));
 	}
 	else {
-		void* buffer = malloc(total_num_bytes);
+		buffer = malloc(total_num_bytes);
 	}
 	
 	if (buffer == NULL) {
@@ -1688,7 +1689,7 @@ __host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 		return -1;
 }
 __host__ void copy_qf_to_device(QF* host, QF* device) {
-	CUDA_CHECK(cudaMemcpy(device->runtime_data, host->runtime_data, sizeof(qfruntime), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(device->runtimedata, host->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemcpy(device->metadata, host->metadata, sizeof(metadata), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemcpy(device->blocks, host->blocks, host->metadata->total_size_in_bytes, cudaMemcpyHostToDevice));
 	
@@ -1967,7 +1968,7 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 
-	if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true 0)) {
+	if (!qf_malloc(qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true, 0)) {
 		fprintf(stderr, "Can't allocate CQF.\n");
 		abort();
 	}
