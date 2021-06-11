@@ -111,7 +111,7 @@ extern "C" {
 	
 	/* Initialize the CQF and allocate memory for the CQF. */
 	__host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
-								 value_bits, enum qf_hashmode hash, bool, on_device, uint32_t seed);
+								 value_bits, enum qf_hashmode hash, bool on_device, uint32_t seed);
 
 	__host__ bool qf_free(QF *qf);
 
