@@ -1660,7 +1660,7 @@ __host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 {
 	uint64_t total_num_bytes = qf_init(qf, nslots, key_bits, value_bits,
 																	 hash, seed, NULL, 0);
-	void* buffer
+	void* buffer;
 	if (on_device) {
 		
 		CUDA_CHECK(cudaMalloc(&buffer, total_num_bytes));
@@ -1688,12 +1688,15 @@ __host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 	else
 		return -1;
 }
+/*
+* I don't use this now and it's causing an error so I'll deal with it later.
 __host__ void copy_qf_to_device(QF* host, QF* device) {
 	CUDA_CHECK(cudaMemcpy(device->runtimedata, host->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemcpy(device->metadata, host->metadata, sizeof(metadata), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemcpy(device->blocks, host->blocks, host->metadata->total_size_in_bytes, cudaMemcpyHostToDevice));
 	
 }
+*/
 __host__ bool qf_free(QF *qf)
 {
 	assert(qf->metadata != NULL);
