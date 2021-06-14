@@ -1980,8 +1980,8 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF _qf;
-	CUDA_CHECK(cudaMalloc(&_qf, sizeof(QF)));
-	CUDA_CHECK(cudaMemcpy((void*)_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMalloc((void*) &_qf, sizeof(QF)));
+	CUDA_CHECK(cudaMemcpy((void*) _qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
 	if (!qf_malloc(&_qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true, 0)) {
 		fprintf(stderr, "Can't allocate CQF.\n");
 		abort();
