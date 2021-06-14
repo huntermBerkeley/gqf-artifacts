@@ -1588,8 +1588,7 @@ __host__ uint64_t qf_init(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t v
 	qf->runtimedata->container_resize = qf_resize_malloc;
 	/* initialize all the locks to 0 */
 	qf->runtimedata->metadata_lock = 0;
-	qf->runtimedata->locks = (volatile int *)calloc(qf->runtimedata->num_locks,
-																					sizeof(volatile int));
+	qf->runtimedata->locks = (volatile int *)calloc(qf->runtimedata->num_locks, sizeof(volatile int));
 	if (qf->runtimedata->locks == NULL) {
 		perror("Couldn't allocate memory for runtime locks.");
 		exit(EXIT_FAILURE);
@@ -1673,8 +1672,18 @@ __host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 		perror("Couldn't allocate memory for the CQF.");
 		exit(EXIT_FAILURE);
 	}
-
-	qf->runtimedata = (qfruntime *)calloc(sizeof(qfruntime), 1);
+	qfruntime* rt;
+	if (on_device) {
+		
+		CUDA_CHECK(cudaMalloc(&rt, sizeof(qfruntime)));
+		qf->runtimedata = rt ;
+		CUDA_CHECK(cudaMemset(qf->runtimedata, 0, sizeof(qfruntime)));
+		
+	}
+	else {
+		qf->runtimedata = (qfruntime*)calloc(sizeof(qfruntime), 1);
+	}
+	
 	if (qf->runtimedata == NULL) {
 		perror("Couldn't allocate memory for runtime data.");
 		exit(EXIT_FAILURE);
@@ -1970,17 +1979,20 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
-
-	if (!qf_malloc(qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true, 0)) {
+	QF _qf;
+	CUDA_CHECK(cudaMalloc(&_qf, sizeof(QF)));
+	CUDA_CHECK(cudaMemcpy(_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
+	if (!qf_malloc(_qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true, 0)) {
 		fprintf(stderr, "Can't allocate CQF.\n");
 		abort();
 	}
 
-	uint64_t* d_vals;
+	//copy batch of items to insert
+	uint64_t* _vals;
+	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
+	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
 
-	CUDA_CHECK(cudaMalloc(&d_vals, sizeof(uint64_t) * nvals));
-	CUDA_CHECK(cudaMemcpy(&d_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
-
+	//hash items
 	int block_size = 512;
 	int num_blocks = (nvals + block_size - 1) / block_size;
 	hash_all <<< num_blocks, block_size >>> (d_vals, nvals, nhashbits);
@@ -1990,6 +2002,8 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	CUDA_CHECK(cudaMalloc(&d_lock, sizeof(unsigned int) * num_locks));
 	CUDA_CHECK(cudaMemset(d_lock, 0, sizeof(unsigned int) * num_locks));
 	qf_bulk_insert(qf, d_vals, 0, 1, nvals, d_lock, QF_NO_LOCK);
+
+	//todo: copy back to 
 
 }
 
