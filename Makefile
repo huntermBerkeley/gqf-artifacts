@@ -23,6 +23,8 @@ LOC_SRC=src
 LOC_TEST=test
 OBJDIR=obj
 
+
+
 CC = gcc -std=gnu11
 CXX = g++ -std=c++11
 CU = nvcc -dc -x cu
@@ -34,7 +36,7 @@ CUFLAGS = -arch=sm_70 -rdc=true -I. -Iinclude
 
 CUDALINK = -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64 -L/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib6
 
-LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) $(CUDALINK) -lpthread -lssl -lcrypto -lm -lcuda -lcudart
+LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) $(CUDALINK) -arch=sm_70 -lpthread -lssl -lcrypto -lm -lcuda -lcudart
 
    
 #
