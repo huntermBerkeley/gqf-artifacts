@@ -1588,6 +1588,7 @@ __host__ uint64_t qf_init(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t v
 	qf->runtimedata->container_resize = qf_resize_malloc;
 	/* initialize all the locks to 0 */
 	qf->runtimedata->metadata_lock = 0;
+	//etodo: copy this to GPU
 	qf->runtimedata->locks = (volatile int *)calloc(qf->runtimedata->num_locks, sizeof(volatile int));
 	if (qf->runtimedata->locks == NULL) {
 		perror("Couldn't allocate memory for runtime locks.");
@@ -1659,31 +1660,18 @@ __host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 {
 	uint64_t total_num_bytes = qf_init(qf, nslots, key_bits, value_bits,
 																	 hash, seed, NULL, 0);
-	void* buffer;
-	if (on_device) {
-		
-		CUDA_CHECK(cudaMalloc(&buffer, total_num_bytes));
-	}
-	else {
-		buffer = malloc(total_num_bytes);
-	}
+
+	void* buffer = malloc(total_num_bytes);
+	
 	
 	if (buffer == NULL) {
 		perror("Couldn't allocate memory for the CQF.");
 		exit(EXIT_FAILURE);
 	}
-	qfruntime* rt;
-	if (on_device) {
-		
-		CUDA_CHECK(cudaMalloc(&rt, sizeof(qfruntime)));
-		qf->runtimedata = rt ;
-		CUDA_CHECK(cudaMemset(qf->runtimedata, 0, sizeof(qfruntime)));
-		
-	}
-	else {
-		qf->runtimedata = (qfruntime*)calloc(sizeof(qfruntime), 1);
-	}
+
+	qf->runtimedata = (qfruntime*)calloc(sizeof(qfruntime), 1);
 	
+
 	if (qf->runtimedata == NULL) {
 		perror("Couldn't allocate memory for runtime data.");
 		exit(EXIT_FAILURE);
@@ -1697,15 +1685,9 @@ __host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 	else
 		return -1;
 }
-/*
-* I don't use this now and it's causing an error so I'll deal with it later.
-__host__ void copy_qf_to_device(QF* host, QF* device) {
-	CUDA_CHECK(cudaMemcpy(device->runtimedata, host->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(device->metadata, host->metadata, sizeof(metadata), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(device->blocks, host->blocks, host->metadata->total_size_in_bytes, cudaMemcpyHostToDevice));
-	
-}
-*/
+
+
+
 __host__ bool qf_free(QF *qf)
 {
 	assert(qf->metadata != NULL);
@@ -1975,8 +1957,14 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 	}
 	return;
 }
+/*
+__host__ void copy_qf_to_device(QF* host, QF* device) {
+	CUDA_CHECK(cudaMemcpy(device->runtimedata, host->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(device->metadata, host->metadata, sizeof(metadata), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(device->blocks, host->blocks, host->metadata->total_size_in_bytes, cudaMemcpyHostToDevice));
 
-
+}
+*/
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF* _qf;
