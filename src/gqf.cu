@@ -1965,16 +1965,40 @@ __host__ void copy_qf_to_device(QF* host, QF* device) {
 
 }
 */
+typedef struct quotient_filter {
+	qfruntime* runtimedata;
+	qfmetadata* metadata;
+	qfblock* blocks;
+} quotient_filter;
+
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF _qf;
-	printf("in kernel");
+	printf("in kernel\n");
 	fflush(stdout);
 	CUDA_CHECK(cudaMalloc((void**) &_qf, sizeof(QF)));
-	printf("1");
+	printf("1\n");
 	fflush(stdout);
+	qfruntime* _runtime;
+	qfmetadata* _metadata;
+	qfblock* _blocks;
+
+	CUDA_CHECK(cudaMalloc((void**)&_runtime, sizeof(qfruntime)));
+	CUDA_CHECK(cudaMalloc((void**)&_metadata, sizeof(qfmetadata)));
+	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf));
+	printf("CUDAMALLOC THE COMPONENTS\n");
+	fflush(stdout);
+	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(_metadata, qf->metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
+	printf("memcpy THE struct\n");
+	fflush(stdout);
+	_qf->runtimedata = _runtime;
+	_qf->metadata = _metdata;
+	_qf->blocks = _blocks;
+	//etodo: locks
+
 //	CUDA_CHECK(cudaMemcpy((void**) _qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
-	printf("2");
 	/*
 	if (!qf_malloc(&_qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true, 0)) {
 		fprintf(stderr, "Can't allocate CQF.\n");
