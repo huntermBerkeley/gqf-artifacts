@@ -1967,17 +1967,20 @@ __host__ void copy_qf_to_device(QF* host, QF* device) {
 */
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
-	QF* _qf;
-//	CUDA_CHECK(cudaMalloc((void**) &_qf, sizeof(QF)));
+	QF _qf;
+	printf("in kernel");
+	fflush(stdout);
+	CUDA_CHECK(cudaMalloc((void**) &_qf, sizeof(QF)));
 	printf("1");
+	fflush(stdout);
 //	CUDA_CHECK(cudaMemcpy((void**) _qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
 	printf("2");
-	cudaDeviceSynchronize();
-	if (!qf_malloc(_qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true, 0)) {
+	/*
+	if (!qf_malloc(&_qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true, 0)) {
 		fprintf(stderr, "Can't allocate CQF.\n");
 		abort();
 	}
-
+*/
 	//copy batch of items to insert
 	uint64_t* _vals;
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
