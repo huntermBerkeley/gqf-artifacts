@@ -1979,10 +1979,13 @@ __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
-	QF _qf;
-	CUDA_CHECK(cudaMalloc((void*) &_qf, sizeof(QF)));
-	CUDA_CHECK(cudaMemcpy((void*) _qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
-	if (!qf_malloc(&_qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true, 0)) {
+	QF* _qf;
+//	CUDA_CHECK(cudaMalloc((void**) &_qf, sizeof(QF)));
+	printf("1");
+//	CUDA_CHECK(cudaMemcpy((void**) _qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
+	printf("2");
+	cudaDeviceSynchronize();
+	if (!qf_malloc(_qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true, 0)) {
 		fprintf(stderr, "Can't allocate CQF.\n");
 		abort();
 	}
@@ -1991,11 +1994,12 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	uint64_t* _vals;
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
 	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
-
+	cudaDeviceSynchronize();
 	//hash items
 	int block_size = 512;
 	int num_blocks = (nvals + block_size - 1) / block_size;
 	hash_all <<< num_blocks, block_size >>> (_vals, nvals, nhashbits);
+cudaDeviceSynchronize();
 
 	uint32_t* _lock;
 	int num_locks = qf->metadata->nslots / 4096;

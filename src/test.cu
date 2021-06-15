@@ -33,6 +33,7 @@ int main(int argc, char** argv) {
 	if (argc < 3) {
 		fprintf(stderr, "Please specify the log of the number of slots and the number of remainder bits in the CQF.\n");
 		exit(1);
+	
 	}
 	QF qf;
 	uint64_t qbits = atoi(argv[1]);
@@ -70,7 +71,9 @@ int main(int argc, char** argv) {
 	}
 	*/
 	
+
 	/* Insert keys in the CQF */
+	printf("starting kernel");
 	qf_kernel(&qf, vals, nvals, nhashbits, nslots);
 
 	/*
@@ -229,3 +232,4 @@ int main(int argc, char** argv) {
 		fprintf(stdout, "Validated the CQF.\n");
 	}
 }
+

@@ -1,0 +1,3 @@
+srun -N 1 -n 1 ./test
+srun: error: cgpu13: task 0: Segmentation fault
+srun: Terminating job step 2000723.0
