@@ -1965,11 +1965,6 @@ __host__ void copy_qf_to_device(QF* host, QF* device) {
 
 }
 */
-typedef struct quotient_filter {
-	qfruntime* runtimedata;
-	qfmetadata* metadata;
-	qfblock* blocks;
-} quotient_filter;
 
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
@@ -1985,7 +1980,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 
 	CUDA_CHECK(cudaMalloc((void**)&_runtime, sizeof(qfruntime)));
 	CUDA_CHECK(cudaMalloc((void**)&_metadata, sizeof(qfmetadata)));
-	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf));
+	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf)));
 	printf("CUDAMALLOC THE COMPONENTS\n");
 	fflush(stdout);
 	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
@@ -1993,8 +1988,8 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
 	printf("memcpy THE struct\n");
 	fflush(stdout);
-	_qf->runtimedata = _runtime;
-	_qf->metadata = _metdata;
+	&_qf->runtimedata = _runtime;
+	_qf->metadata = _metadata;
 	_qf->blocks = _blocks;
 	//etodo: locks
 
