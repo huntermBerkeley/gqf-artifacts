@@ -2019,7 +2019,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	//hash items
 	int block_size = 1024;
 	int num_blocks = (nvals + block_size - 1) / block_size;
-	hash_all <<< num_blocks, block_size >>> (_vals, hashes, nvals, nhashbits);
+	hash_all <<< num_blocks, block_size >>> (_vals, _hashed, nvals, nhashbits);
 	printf("hashed\n");
 	fflush(stdout);
 
