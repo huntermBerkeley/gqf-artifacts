@@ -62,6 +62,9 @@ int main(int argc, char** argv) {
 	/* Generate random values */
 	vals = (uint64_t*)malloc(nvals * sizeof(vals[0]));
 	RAND_bytes((unsigned char*)vals, sizeof(*vals) * nvals);
+	uint64_t* _vals;
+	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
+	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
 	srand(0);
 
 	/*
