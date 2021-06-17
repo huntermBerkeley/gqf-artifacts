@@ -1957,7 +1957,11 @@ __global__ void hash_all(uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint6
 	hashes[idx] = hash_64(vals[idx], BITMASK(nhashbits));
 	return;
 }
-
+__host__ void set_qf(QF* qf, qfruntime* _runtime, qfmetadata* _metadata, qfblock* _blocks) {
+	qf->runtimedata = _runtime;
+	qf->metadata = _metadata;
+	qf->blocks = _blocks;
+}
 
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
@@ -1982,11 +1986,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	printf("memcpy THE struct\n");
 	//printf("%lx", _qf->runtimedata);
 	//fflush(stdout);
-	&temp_qf->runtimedata = _runtime;
-	printf("rt\n");
-	fflush(stdout);
-	&temp_qf->metadata = _metadata;
-	&temp_qf->blocks = _blocks;
+	set_qf(&temp_qf, _runtime, _metadata, _blocks);
 	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
 	CUDA_CHECK(cudaMemcpy((void**)_qf, temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
 	printf("assign device qf pointers\n");
