@@ -1992,20 +1992,11 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	printf("assign device qf pointers\n");
 	fflush(stdout);
 	//etodo: locks
-
-//	CUDA_CHECK(cudaMemcpy((void**) _qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
-	/*
-	if (!qf_malloc(&_qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, true, 0)) {
-		fprintf(stderr, "Can't allocate CQF.\n");
-		abort();
-	}
-*/
-	//copy batch of items to insert
 	uint64_t* _vals;
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
 	printf("mallocbutnotmemcpy\n");
 	fflush(stdout);
-	cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice);
+	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
 	printf("memcpy before mallocing hashed\n");
 	fflush(stdout);
 	uint64_t* _hashed;
@@ -2029,10 +2020,15 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	cudaDeviceSynchronize();
 	printf("locks copied\n");
 	fflush(stdout);
-	qf_bulk_insert(qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
-
+	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
+	printf("finished the inserts\n");
+	fflush(stdout);
+	CUDA_CHECK(cudaMemcpy(_qf->runtimedata, qf->runtimedata, sizeof(qfruntime) , cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(_qf->metadata, qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(_qf->blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
 	//todo: copy back to 
-
+	printf("copied back to host\n");
+	fflush(stdout);
 }
 
 __host__ __device__ int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
