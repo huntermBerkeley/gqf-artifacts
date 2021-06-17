@@ -1972,7 +1972,6 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	QF* temp_qf;
 	printf("in kernel\n");
 	fflush(stdout);
-	temp_qf = malloc(sizeof(QF));
 	printf("1\n");
 	fflush(stdout);
 	qfruntime* _runtime;
