@@ -1990,7 +1990,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	//printf("%lx", _qf->runtimedata);
 	//fflush(stdout);
 	temp_qf->runtimedata = _runtime;
-	printf("rt");
+	printf("rt\n");
 	fflush(stdout);
 	temp_qf->metadata = _metadata;
 	temp_qf->blocks = _blocks;
@@ -2010,6 +2010,8 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	//copy batch of items to insert
 	uint64_t* _vals;
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
+	printf("mallocbutnotmemcpy\n");
+	fflush(stdout);
 	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
 	uint64_t* _hashed;
 	CUDA_CHECK(cudaMalloc(&_hashed, sizeof(uint64_t) * nvals));
