@@ -1969,10 +1969,10 @@ __host__ void copy_qf_to_device(QF* host, QF* device) {
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF* _qf;
+	QF* temp_qf;
 	printf("in kernel\n");
 	fflush(stdout);
-	CUDA_CHECK(cudaMalloc((void**) &_qf, sizeof(QF)));
-	CUDA_CHECK(cudaMemcpy((void**) _qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
+	temp_qf = malloc(sizeof(QF));
 	printf("1\n");
 	fflush(stdout);
 	qfruntime* _runtime;
@@ -1990,11 +1990,13 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	printf("memcpy THE struct\n");
 	printf("%lx", _qf->runtimedata);
 	fflush(stdout);
-	_qf->runtimedata = _runtime;
+	temp_qf->runtimedata = _runtime;
 	printf("rt");
 	fflush(stdout);
-	_qf->metadata = _metadata;
-	_qf->blocks = _blocks;
+	temp_qf->metadata = _metadata;
+	temp_qf->blocks = _blocks;
+	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
+	CUDA_CHECK(cudaMemcpy((void**)_qf, temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
 	printf("assign device qf pointers");
 	fflush(stdout);
 	//etodo: locks
