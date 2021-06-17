@@ -2023,12 +2023,12 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	printf("finished the inserts\n");
 	fflush(stdout);
-	qfruntime* runtime;
-	qfmetadata* metadata;
-	qfblock* blocks;
-	CUDA_CHECK(cudaMemcpy(runtime, _qf->runtimedata, sizeof(qfruntime) , cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(metadata, _qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(blocks, _qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
+	qfruntime runtime;
+	qfmetadata metadata;
+	qfblock blocks;
+	CUDA_CHECK(cudaMemcpy(&runtime, _qf->runtimedata, sizeof(qfruntime) , cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&metadata, _qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&blocks, _qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
 	qf->runtimedata = runtime;
 	qf->metadata = metadata;
 	qf->blocks = blocks;
