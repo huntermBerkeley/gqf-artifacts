@@ -1988,8 +1988,8 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	CUDA_CHECK(cudaMemcpy(_metadata, qf->metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
 	printf("memcpy THE struct\n");
-	printf("%lx", _qf->runtimedata);
-	fflush(stdout);
+	//printf("%lx", _qf->runtimedata);
+	//fflush(stdout);
 	temp_qf->runtimedata = _runtime;
 	printf("rt");
 	fflush(stdout);
