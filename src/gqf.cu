@@ -1957,14 +1957,7 @@ __global__ void hash_all(uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint6
 	hashes[idx] = hash_64(vals[idx], BITMASK(nhashbits));
 	return;
 }
-/*
-__host__ void copy_qf_to_device(QF* host, QF* device) {
-	CUDA_CHECK(cudaMemcpy(device->runtimedata, host->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(device->metadata, host->metadata, sizeof(metadata), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(device->blocks, host->blocks, host->metadata->total_size_in_bytes, cudaMemcpyHostToDevice));
 
-}
-*/
 
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
@@ -2012,7 +2005,9 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
 	printf("mallocbutnotmemcpy\n");
 	fflush(stdout);
-	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
+	cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice);
+	printf("memcpy before mallocing hashed\n");
+	fflush(stdout);
 	uint64_t* _hashed;
 	CUDA_CHECK(cudaMalloc(&_hashed, sizeof(uint64_t) * nvals));
 	cudaDeviceSynchronize();
