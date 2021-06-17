@@ -2010,6 +2010,8 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	fflush(stdout);
 	uint64_t* _hashed;
 	CUDA_CHECK(cudaMalloc(&_hashed, sizeof(uint64_t) * nvals));
+	printf("malloced the hash\n");
+	fflush(stdout);
 	cudaDeviceSynchronize();
 	printf("vals are on device\n");
 	fflush(stdout);
