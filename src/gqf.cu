@@ -1949,13 +1949,12 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 
 }
 
-__global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
+__global__ void hash_all(uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint64_t nhashbits) {
 	int idx = threadIdx.x + blockDim.x * blockIdx.x;
-	if idx >= nvals{
+	if (idx >= nvals){
 		return;
 	}
-	uint64_t hash_val = hash_64(vals[idx], BITMASK(nhashbits));
-	vals[idx] = hash_val;
+	hashes[idx] = hash_64(vals[idx], BITMASK(nhashbits));
 	return;
 }
 /*
@@ -2012,13 +2011,15 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	uint64_t* _vals;
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
 	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
+	uint64_t* _hashed;
+	CUDA_CHECK(cudaMalloc(&_hashed, sizeof(uint64_t) * nvals));
 	cudaDeviceSynchronize();
 	printf("vals are on device\n");
 	fflush(stdout);
 	//hash items
 	int block_size = 1024;
 	int num_blocks = (nvals + block_size - 1) / block_size;
-	hash_all <<< num_blocks, block_size >>> (_vals, nvals, nhashbits);
+	hash_all <<< num_blocks, block_size >>> (_vals, hashes, nvals, nhashbits);
 	printf("hashed\n");
 	fflush(stdout);
 
