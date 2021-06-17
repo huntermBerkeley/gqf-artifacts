@@ -1952,8 +1952,7 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 __global__ void hash_all(uint64_t* vals, uint64_t nvals, uint64_t nhashbits) {
 	int idx = threadIdx.x + blockDim.x * blockIdx.x;
 	int stride = blockDim.x * gridDim.x;
-	printf("legal sizes %d", idx);
-	fflush(stdout);
+	printf("legal id %d, %d", idx, stride);
 	for (int i = idx; i < nvals; i += stride) {
 		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
 	}
