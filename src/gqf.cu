@@ -1962,7 +1962,7 @@ __global__ void hash_all(uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint6
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF* _qf;
-	QF* temp_qf;
+	QF temp_qf;
 	printf("in kernel\n");
 	fflush(stdout);
 	printf("1\n");
@@ -1982,11 +1982,11 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	printf("memcpy THE struct\n");
 	//printf("%lx", _qf->runtimedata);
 	//fflush(stdout);
-	temp_qf->runtimedata = _runtime;
+	&temp_qf->runtimedata = _runtime;
 	printf("rt\n");
 	fflush(stdout);
-	temp_qf->metadata = _metadata;
-	temp_qf->blocks = _blocks;
+	&temp_qf->metadata = _metadata;
+	&temp_qf->blocks = _blocks;
 	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
 	CUDA_CHECK(cudaMemcpy((void**)_qf, temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
 	printf("assign device qf pointers\n");
@@ -2012,7 +2012,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	CUDA_CHECK(cudaMalloc(&_hashed, sizeof(uint64_t) * nvals));
 	printf("malloced the hash\n");
 	fflush(stdout);
-	cudaDeviceSynchronize();
+	//cudaDeviceSynchronize();
 	printf("vals are on device\n");
 	fflush(stdout);
 	//hash items
