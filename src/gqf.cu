@@ -1996,7 +1996,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	temp_qf->blocks = _blocks;
 	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
 	CUDA_CHECK(cudaMemcpy((void**)_qf, temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
-	printf("assign device qf pointers");
+	printf("assign device qf pointers\n");
 	fflush(stdout);
 	//etodo: locks
 
@@ -2011,17 +2011,21 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	uint64_t* _vals;
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
 	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
-	cudaDeviceSynchronize();
+	printf("vals are on device\n");
+	fflush(stdout);
 	//hash items
 	int block_size = 512;
 	int num_blocks = (nvals + block_size - 1) / block_size;
 	hash_all <<< num_blocks, block_size >>> (_vals, nvals, nhashbits);
-cudaDeviceSynchronize();
+	printf("hashed\n");
+	fflush(stdout);
 
 	uint32_t* _lock;
 	int num_locks = qf->metadata->nslots / 4096;
 	CUDA_CHECK(cudaMalloc(&_lock, sizeof(unsigned int) * num_locks));
 	CUDA_CHECK(cudaMemset(_lock, 0, sizeof(unsigned int) * num_locks));
+	printf("locks copied\n");
+	fflush(stdout);
 	qf_bulk_insert(qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 
 	//todo: copy back to 
