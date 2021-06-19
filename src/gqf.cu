@@ -2026,9 +2026,11 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	qfruntime runtime;
 	qfmetadata metadata;
 	qfblock blocks;
-	CUDA_CHECK(cudaMemcpy(&runtime, _qf->runtimedata, sizeof(qfruntime) , cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&metadata, _qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&blocks, _qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
+//copy back to host
+	CUDA_CHECK(cudaMemcpy(&temp_qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&runtime, temp_qf->runtimedata, sizeof(qfruntime) , cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&metadata, temp_qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&blocks, temp_qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
 	qf->runtimedata = runtime;
 	qf->metadata = metadata;
 	qf->blocks = blocks;
