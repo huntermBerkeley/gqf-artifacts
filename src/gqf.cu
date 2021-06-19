@@ -1963,6 +1963,21 @@ __host__ void set_qf(QF* qf, qfruntime* _runtime, qfmetadata* _metadata, qfblock
 	qf->blocks = _blocks;
 }
 
+__host__ void copy_to_host(QF* host, QF* device, QF* temp) {
+	qfruntime runtime;
+	qfmetadata metadata;
+	qfblock blocks;
+	//copy back to host
+	CUDA_CHECK(cudaMemcpy(&temp, device, sizeof(QF), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&runtime, &temp->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&metadata, &temp->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&blocks, &temp->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
+	qf->runtimedata = runtime;
+	qf->metadata = metadata;
+	qf->blocks = blocks;
+
+}
+
 __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF* _qf;
@@ -2023,17 +2038,7 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	printf("finished the inserts\n");
 	fflush(stdout);
-	qfruntime runtime;
-	qfmetadata metadata;
-	qfblock blocks;
-//copy back to host
-	CUDA_CHECK(cudaMemcpy(&temp_qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&runtime, &temp_qf->runtimedata, sizeof(qfruntime) , cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&metadata, &temp_qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&blocks, &temp_qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
-	qf->runtimedata = runtime;
-	qf->metadata = metadata;
-	qf->blocks = blocks;
+	copy_to_host(qf, _qf, &temp_qf);
 	//todo: copy back to 
 	printf("copied back to host\n");
 	fflush(stdout);
