@@ -1974,9 +1974,9 @@ __host__ void copy_to_host(QF* host, QF* device, QF* temp) {
 	cudaDeviceSynchronize(); //need metadata to copy for qf_get_total_size_in_bytes
 	CUDA_CHECK(cudaMemcpy(&blocks, &temp->blocks, qf_get_total_size_in_bytes(temp), cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize();
-	host->runtimedata = runtime;
-	host->metadata = metadata;
-	host->blocks = blocks;
+	host->runtimedata = &runtime;
+	host->metadata = &metadata;
+	host->blocks = &blocks;
 
 }
 
