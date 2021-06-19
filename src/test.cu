@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 
 	/* Insert keys in the CQF */
 	printf("starting kernel");
-	qf_kernel(&qf, vals, nvals, nhashbits, nslots);
+	qf_gpu_launch(&qf, vals, nvals, nhashbits, nslots);
 
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {

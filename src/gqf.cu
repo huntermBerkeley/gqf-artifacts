@@ -1980,9 +1980,10 @@ __host__ void copy_to_host(QF* host, QF* device, QF* temp) {
 
 }
 
-__host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
+__host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF* _qf;
+
 	QF temp_qf;
 	printf("in kernel\n");
 	fflush(stdout);
@@ -1992,10 +1993,11 @@ __host__ void  qf_kernel(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashb
 	qfmetadata* _metadata;
 	qfblock* _blocks;
 
+
 	CUDA_CHECK(cudaMalloc((void**)&_runtime, sizeof(qfruntime)));
 	CUDA_CHECK(cudaMalloc((void**)&_metadata, sizeof(qfmetadata)));
 	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf)));
-	printf("CUDAMALLOC THE COMPONENTS\n");
+	printf("CUDAMALLOC THE COMPONENTS %lu\n", qf_get_total_size_in_bytes(qf));
 	fflush(stdout);
 	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemcpy(_metadata, qf->metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice));
