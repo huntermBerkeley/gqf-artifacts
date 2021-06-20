@@ -1930,7 +1930,6 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 			}
 		}
 		else {
-
 			i++;
 		}
 		//TODO: Lock the right thing
@@ -1946,7 +1945,6 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
 	evenness = 0;
 	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
-
 }
 
 __global__ void hash_all(uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint64_t nhashbits) {
@@ -1969,8 +1967,8 @@ __host__ void copy_to_host(QF* host, QF* device, QF* temp) {
 	qfblock blocks;
 	//copy back to host
 	CUDA_CHECK(cudaMemcpy(&temp, device, sizeof(QF), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&runtime, &temp->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&metadata, &temp->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&runtime, temp->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&metadata, temp->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize(); //need metadata to copy for qf_get_total_size_in_bytes
 	CUDA_CHECK(cudaMemcpy(&blocks, &temp->blocks, qf_get_total_size_in_bytes(temp), cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize();
