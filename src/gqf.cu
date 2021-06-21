@@ -1968,6 +1968,7 @@ __host__ void copy_to_host(QF* host, QF* device) {
 	QF temp;
 	QF* temp_add = &temp;
 	//copy back to host
+	//may need to resize host qf before copying back when we start to support resizing.
 	CUDA_CHECK(cudaMemcpy(&temp, device, sizeof(QF), cudaMemcpyDeviceToHost));
 	CUDA_CHECK(cudaMemcpy(&runtime, temp_add->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
 	CUDA_CHECK(cudaMemcpy(&metadata, temp_add->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
@@ -2042,7 +2043,8 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	printf("finished the inserts\n");
 	fflush(stdout);
-	CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
+	QF* host_qf = malloc(sizeof(QF));
+	CUDA_CHECK(cudaMemcpy(host_qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
 	copy_to_host(qf, _qf);
 	//todo: copy back to 
 	printf("copied back to host\n");
