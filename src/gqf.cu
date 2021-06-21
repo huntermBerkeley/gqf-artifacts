@@ -542,12 +542,14 @@ __host__ __device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_b
 __host__ __device__ static inline int offset_lower_bound(const QF *qf, uint64_t slot_index)
 {
 	const qfblock * b = get_block(qf, slot_index / QF_SLOTS_PER_BLOCK);
+	printf("past get_block\n");
 	const uint64_t slot_offset = slot_index % QF_SLOTS_PER_BLOCK;
 	const uint64_t boffset = b->offset;
 	const uint64_t occupieds = b->occupieds[0] & BITMASK(slot_offset+1);
 	assert(QF_SLOTS_PER_BLOCK == 64);
 	if (boffset <= slot_offset) {
 		const uint64_t runends = (b->runends[0] & BITMASK(slot_offset)) >> boffset;
+		printf("past runends\n");
 		return popcnt(occupieds) - popcnt(runends);
 	}
 	return boffset - slot_offset + popcnt(occupieds);
