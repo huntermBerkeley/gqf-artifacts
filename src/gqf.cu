@@ -1984,7 +1984,13 @@ __host__ void copy_to_host(QF* host, QF* device) {
 __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF* _qf;
+	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
+	CUDA_CHECK(cudaMemcpy((void**)_qf, qf, sizeof(QF), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
 
+
+
+	//end min example
 	QF temp_qf;
 	printf("in kernel\n");
 	fflush(stdout);
