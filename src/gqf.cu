@@ -1120,6 +1120,7 @@ __host__ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t r
 			return QF_COULDNT_LOCK;
 	}
 	*/
+	printf("INSERting1\n")
 	if (is_empty(qf, hash_bucket_index) /* might_be_empty(qf, hash_bucket_index) && runend_index == hash_bucket_index */) {
 		METADATA_WORD(qf, runends, hash_bucket_index) |= 1ULL <<
 			(hash_bucket_block_offset % 64);
