@@ -2002,20 +2002,20 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	qfblock* _blocks;
 
 
-	CUDA_CHECK(cudaMalloc((void**)&_runtime, sizeof(qfruntime)));
-	CUDA_CHECK(cudaMalloc((void**)&_metadata, sizeof(qfmetadata)));
-	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf)));
+	CUDA_CHECK(cudaMalloc((void**)&_runtime, 4*sizeof(qfruntime)));
+	CUDA_CHECK(cudaMalloc((void**)&_metadata, 4*sizeof(qfmetadata)));
+	CUDA_CHECK(cudaMalloc((void**)&_blocks, 4*qf_get_total_size_in_bytes(qf)));
 	printf("CUDAMALLOC THE COMPONENTS %lu\n", qf_get_total_size_in_bytes(qf));
 	fflush(stdout);
-	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(_metadata, qf->metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, 4*sizeof(qfruntime), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(_metadata, qf->metadata, 4*sizeof(qfmetadata), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, 4*qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
 	printf("memcpy THE struct\n");
 	//printf("%lx", _qf->runtimedata);
 	//fflush(stdout);
 	set_qf(&temp_qf, _runtime, _metadata, _blocks);
-	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
-	CUDA_CHECK(cudaMemcpy((void**)_qf, &temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMalloc((void**)&_qf, 4*sizeof(QF)));
+	CUDA_CHECK(cudaMemcpy((void**)_qf, &temp_qf, 4*sizeof(QF), cudaMemcpyHostToDevice));
 	printf("assign device qf pointers\n");
 	fflush(stdout);
 	//etodo: locks
