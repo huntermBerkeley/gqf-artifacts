@@ -1966,12 +1966,13 @@ __host__ void copy_to_host(QF* host, QF* device) {
 	qfmetadata metadata;
 	qfblock blocks;
 	QF temp;
+	QF* temp_add = &temp;
 	//copy back to host
-	CUDA_CHECK(cudaMemcpy(temp, device, sizeof(QF), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&runtime, temp->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&metadata, temp->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&temp, device, sizeof(QF), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&runtime, temp_add->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&metadata, temp_add->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize(); //need metadata to copy for qf_get_total_size_in_bytes
-	CUDA_CHECK(cudaMemcpy(&blocks, &temp->blocks, qf_get_total_size_in_bytes(temp), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&blocks, temp_add->blocks, qf_get_total_size_in_bytes(temp_add), cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize();
 	host->runtimedata = &runtime;
 	host->metadata = &metadata;
@@ -2041,6 +2042,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	printf("finished the inserts\n");
 	fflush(stdout);
+	CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
 	copy_to_host(qf, _qf);
 	//todo: copy back to 
 	printf("copied back to host\n");
