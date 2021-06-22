@@ -2008,9 +2008,9 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	qfblock* _blocks;
 
 
-	CUDA_CHECK(cudaMalloc((void**)&_runtime, 4*sizeof(qfruntime)));
-	CUDA_CHECK(cudaMalloc((void**)&_metadata, 4*sizeof(qfmetadata)));
-	CUDA_CHECK(cudaMalloc((void**)&_blocks, 4*qf_get_total_size_in_bytes(qf)));
+	CUDA_CHECK(cudaMalloc((void**)&_runtime, sizeof(qfruntime)));
+	CUDA_CHECK(cudaMalloc((void**)&_metadata, sizeof(qfmetadata)));
+	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf)));
 	printf("CUDAMALLOC THE COMPONENTS %lu\n", qf_get_total_size_in_bytes(qf));
 	fflush(stdout);
 	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, 4*sizeof(qfruntime), cudaMemcpyHostToDevice));
