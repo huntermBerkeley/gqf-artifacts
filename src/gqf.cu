@@ -1908,10 +1908,11 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 	//start and end points in the keys array
 	int start = nvals * idx / n_threads;
 	int end = nvals * (idx + 1) / n_threads;
-	printf("start %d end %d", start, end);
+	printf("start %d end %d\n", start, end);
 	int i = start;
 	while (i < end) {
 		uint64_t key = keys[i];
+		printf("inserting key %d, %lu", i, key);
 		uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
 		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
 		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
