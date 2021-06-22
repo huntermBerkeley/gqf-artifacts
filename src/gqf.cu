@@ -1908,6 +1908,7 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 	//start and end points in the keys array
 	int start = nvals * idx / n_threads;
 	int end = nvals * (idx + 1) / n_threads;
+	printf("start %d end %d", start, end);
 	int i = start;
 	while (i < end) {
 		uint64_t key = keys[i];
