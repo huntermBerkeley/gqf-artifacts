@@ -1551,7 +1551,7 @@ __host__ uint64_t qf_init(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t v
 	assert(key_remainder_bits >= 2);
 
 	bits_per_slot = key_remainder_bits + value_bits;
-	assert (QF_BITS_PER_SLOT == 0 || QF_BITS_PER_SLOT == qf->metadata->bits_per_slot);
+	assert (QF_BITS_PER_SLOT == 0 || QF_BITS_PER_SLOT == bits_per_slot);
 	assert(bits_per_slot > 1);
 #if QF_BITS_PER_SLOT == 8 || QF_BITS_PER_SLOT == 16 || QF_BITS_PER_SLOT == 32 || QF_BITS_PER_SLOT == 64
 	size = nblocks * sizeof(qfblock);
