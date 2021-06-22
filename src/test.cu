@@ -94,14 +94,13 @@ int main(int argc, char** argv) {
 		}
 	}
 	*/
-
 	/* Lookup inserted keys and counts. */
 	for (uint64_t i = 0; i < nvals; i++) {
 		uint64_t count = qf_count_key_value(&qf, vals[i], 0, 0);
 		if (count < key_count) {
 			fprintf(stderr, "failed lookup after insertion for %lx %ld.\n", vals[i],
 				count);
-			abort();
+	//		abort();
 		}
 	}
 

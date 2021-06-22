@@ -542,6 +542,7 @@ __host__ __device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_b
 __host__ __device__ static inline int offset_lower_bound(const QF *qf, uint64_t slot_index)
 {
 	const qfblock * b = get_block(qf, slot_index / QF_SLOTS_PER_BLOCK);
+	printf("BLOCKADDR from get _block %p", (void*) b);
 	printf("offset lb; past get_block\n");
 	const uint64_t slot_offset = slot_index % QF_SLOTS_PER_BLOCK;
 	printf("1");
@@ -1943,6 +1944,7 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 			i++;
 		}
 		//TODO: Lock the right thing
+	printf("end of while i: %d\n", i);
 	}
 	printf("successful return from evenness\n");
 	return;
@@ -2025,7 +2027,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	//CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemset(_blocks, 0, qf_get_total_size_in_bytes(qf)));
 	//todo: copy the qfblock objects;
-	printf("BLOCKADDR %p", (void*) _blocks);
+	printf("BLOCKADDR %p\n", (void*) _blocks);
 	printf("memcpy THE struct\n");
 	//printf("%lx", _qf->runtimedata);
 	//fflush(stdout);
@@ -2061,9 +2063,11 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	CUDA_CHECK(cudaMalloc(&_lock, sizeof(unsigned int) * num_locks));
 	CUDA_CHECK(cudaMemset(_lock, 0, sizeof(unsigned int) * num_locks));
 	cudaDeviceSynchronize();
+	printf("LOCK_ADDR %p", (void*)_lock);
 	printf("locks copied\n");
 	fflush(stdout);
 	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
+	cudaDeviceSynchronize();
 	printf("finished the inserts\n");
 	fflush(stdout);
 	//CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
