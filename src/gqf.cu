@@ -544,11 +544,11 @@ __host__ __device__ static inline int offset_lower_bound(const QF *qf, uint64_t 
 	const qfblock * b = get_block(qf, slot_index / QF_SLOTS_PER_BLOCK);
 	printf("offset lb; past get_block\n");
 	const uint64_t slot_offset = slot_index % QF_SLOTS_PER_BLOCK;
-	printf("1"\n);
+	printf("1");
 	const uint64_t boffset = b->offset;
-	printf("2"\n);
+	printf("2");
 	const uint64_t occupieds = b->occupieds[0] & BITMASK(slot_offset+1);
-	printf("3"\n);
+	printf("3);
 	assert(QF_SLOTS_PER_BLOCK == 64);
 	if (boffset <= slot_offset) {
 		const uint64_t runends = (b->runends[0] & BITMASK(slot_offset)) >> boffset;
@@ -556,7 +556,7 @@ __host__ __device__ static inline int offset_lower_bound(const QF *qf, uint64_t 
 		return popcnt(occupieds) - popcnt(runends);
 	}
 	int b = popcnt(occupieds);
-	printf("4"\n);
+	printf("4\n");
 	return boffset - slot_offset + popcnt(occupieds);
 }
 
