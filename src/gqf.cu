@@ -2057,13 +2057,13 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	hash_all <<< num_blocks, block_size >>> (_vals, _hashed, nvals, nhashbits);
 	printf("hashed\n");
 	fflush(stdout);
-
+	
 	uint32_t* _lock;
-	int num_locks = qf->metadata->nslots / 4096;
-	CUDA_CHECK(cudaMalloc(&_lock, sizeof(unsigned int) * num_locks));
+	int num_locks = qf->metadata->nslots/4096 + 10;//todo: figure out nslots and why is 0
+  	cudaMalloc(&_lock, sizeof(uint32_t)*num_locks);
 	CUDA_CHECK(cudaMemset(_lock, 0, sizeof(unsigned int) * num_locks));
 	cudaDeviceSynchronize();
-	printf("LOCK_ADDR %p", (void*)_lock);
+	printf("LOCK_ADDR %p num_locks %d\n", (void**)_lock, num_locks);
 	printf("locks copied\n");
 	fflush(stdout);
 	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
