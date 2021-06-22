@@ -2023,7 +2023,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemcpy(_metadata, qf->metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice));
 	//CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemset(_blocks, 0, qf_get_total_size_in_bytes(qf));
+	CUDA_CHECK(cudaMemset(_blocks, 0, qf_get_total_size_in_bytes(qf)));
 	//todo: copy the qfblock objects;
 	printf("BLOCKADDR %p", (void*), _blocks);
 	printf("memcpy THE struct\n");
