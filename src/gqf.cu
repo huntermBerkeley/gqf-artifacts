@@ -1977,20 +1977,24 @@ __host__ void set_qf(QF* qf, qfruntime* _runtime, qfmetadata* _metadata, qfblock
 __host__ void copy_to_host(QF* host, QF* device) {
 	qfruntime runtime;
 	qfmetadata metadata;
-	qfblock blocks;
-	QF temp;
-	QF* temp_add = &temp;
+	qfblock* blocks = malloc(qf_get_total_size_in_bytes(device);
+	
 	//copy back to host
 	//may need to resize host qf before copying back when we start to support resizing.
+	CUDA_CHECK(cudaMemcpy(host->runtimedata, device->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(host->metadata, device->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(host->blocks, device->blocks, qf_get_total_size_in_bytes(device), cudaMemcpyDeviceToHost));
+	/*
 	CUDA_CHECK(cudaMemcpy(&temp, device, sizeof(QF), cudaMemcpyDeviceToHost));
 	CUDA_CHECK(cudaMemcpy(&runtime, temp_add->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
 	CUDA_CHECK(cudaMemcpy(&metadata, temp_add->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize(); //need metadata to copy for qf_get_total_size_in_bytes
 	CUDA_CHECK(cudaMemcpy(&blocks, temp_add->blocks, qf_get_total_size_in_bytes(temp_add), cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize();
+	
 	host->runtimedata = &runtime;
 	host->metadata = &metadata;
-	host->blocks = &blocks;
+	host->blocks = &blocks;*/
 
 }
 
