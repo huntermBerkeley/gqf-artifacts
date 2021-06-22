@@ -63,16 +63,19 @@ int main(int argc, char** argv) {
 	vals = (uint64_t*)malloc(nvals * sizeof(vals[0]));
 	RAND_bytes((unsigned char*)vals, sizeof(*vals) * nvals);
 	uint64_t* _vals;
-	cudaMalloc(&_vals, sizeof(uint64_t) * nvals);
-	cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice);
-	srand(0);
-
-	/*
 	for (uint64_t i = 0; i < nvals; i++) {
 		vals[i] = (1 * vals[i]) % qf.metadata->range;
-		vals[i] = hash_64(vals[i], BITMASK(nhashbits));
+		//vals[i] = hash_64(vals[i], BITMASK(nhashbits));
 	}
+	/*
+	cudaMalloc(&_vals, sizeof(uint64_t) * nvals);
+	cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice);
 	*/
+	srand(0);
+
+	
+	
+	
 	
 
 	/* Insert keys in the CQF */
