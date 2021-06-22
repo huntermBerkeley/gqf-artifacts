@@ -1977,7 +1977,7 @@ __host__ void set_qf(QF* qf, qfruntime* _runtime, qfmetadata* _metadata, qfblock
 __host__ void copy_to_host(QF* host, QF* device) {
 	qfruntime runtime;
 	qfmetadata metadata;
-	qfblock* blocks = malloc(qf_get_total_size_in_bytes(device);
+	//qfblock* blocks = malloc(qf_get_total_size_in_bytes(device));
 	
 	//copy back to host
 	//may need to resize host qf before copying back when we start to support resizing.

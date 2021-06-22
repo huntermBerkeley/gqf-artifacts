@@ -1,7 +1,7 @@
 TARGETS=test test_threadsafe test_pc bm
 
 ifdef D
-	DEBUG=-g
+	DEBUG=-g -G
 	OPT=
 else
 	DEBUG=
@@ -32,7 +32,7 @@ LD = nvcc
 
 CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT) $(ARCH) -m64 -I. -Iinclude
 
-CUFLAGS = -g -G -arch=sm_70 -rdc=true -I. -Iinclude
+CUFLAGS = $(DEBUG) -arch=sm_70 -rdc=true -I. -Iinclude
 
 CUDALINK = -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64 -L/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib6
 
