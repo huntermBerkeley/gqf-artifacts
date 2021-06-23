@@ -2015,9 +2015,7 @@ __host__ void copy_to_host(QF* host, QF* device) {
 
 __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
-	QF* _qf;
-	QF* temp_qf;
-	cudaMallocManaged((void**)&temp_qf,sizeof(QF));
+	QF _qf;
 	qfruntime* _runtime;
 	qfmetadata* _metadata;
 	qfblock* _blocks;
@@ -2028,12 +2026,14 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf)));
 	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemcpy(_metadata, qf->metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice));
-	//CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemset(_blocks, 0, qf_get_total_size_in_bytes(qf)));
-	set_qf(temp_qf, _runtime, _metadata, _blocks);
-	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
-	CUDA_CHECK(cudaMemcpy((void**)_qf, temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
-	//etodo: locks
+	CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
+	//CUDA_CHECK(cudaMemset(_blocks, 0, qf_get_total_size_in_bytes(qf)));
+	//set_qf(temp_qf, _runtime, _metadata, _blocks);
+	//set _qf to point to device
+	_qf.runtimedata = _runtime;
+	_qf.metadata = _metadata;
+	_qf.blocks = _blocks;
+	
 	uint64_t* _vals;
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
 	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
@@ -2051,9 +2051,10 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	CUDA_CHECK(cudaMemset(_lock, 0, sizeof(unsigned int) * num_locks));
 	cudaDeviceSynchronize();
 
-	qf_bulk_insert(temp_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
+	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	cudaDeviceSynchronize();
-	//to host
+	//copy arrays back to host
+	CUDA_CHECK(cudaMemcpy(qf.blocks, _qf.blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
 
 	//CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
 	//copy_to_host(qf, temp_qf);
