@@ -2060,7 +2060,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	//fflush(stdout);
 	set_qf(temp_qf, _runtime, _metadata, _blocks);
 	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
-	CUDA_CHECK(cudaMemcpy((void**)_qf, &temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy((void**)_qf, temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
 	printf("assign device qf pointers\n");
 	fflush(stdout);
 	//etodo: locks
