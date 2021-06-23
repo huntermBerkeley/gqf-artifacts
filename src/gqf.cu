@@ -2024,7 +2024,7 @@ __host__ void copy_to_host(QF* host, QF* device) {
 __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF* _qf;
-	QF* temp_qf = malloc(sizeof(QF);
+	QF* temp_qf = (QF*) malloc(sizeof(QF));
 	/*
 	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
 	CUDA_CHECK(cudaMemcpy((void**)_qf, &temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
