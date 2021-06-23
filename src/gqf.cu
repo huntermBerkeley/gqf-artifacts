@@ -542,22 +542,14 @@ __host__ __device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_b
 __host__ __device__ static inline int offset_lower_bound(const QF *qf, uint64_t slot_index)
 {
 	const qfblock * b = get_block(qf, slot_index / QF_SLOTS_PER_BLOCK);
-	printf("BLOCKADDR from get _block %p", (void*) b);
-	printf("offset lb; past get_block\n");
 	const uint64_t slot_offset = slot_index % QF_SLOTS_PER_BLOCK;
-	printf("1");
 	const uint64_t boffset = b->offset;
-	printf("2");
 	const uint64_t occupieds = b->occupieds[0] & BITMASK(slot_offset+1);
-	printf("3");
 	assert(QF_SLOTS_PER_BLOCK == 64);
 	if (boffset <= slot_offset) {
 		const uint64_t runends = (b->runends[0] & BITMASK(slot_offset)) >> boffset;
-		printf("past runends\n");
 		return popcnt(occupieds) - popcnt(runends);
 	}
-	int boacndios = popcnt(occupieds);
-	printf("4\n");
 	return boffset - slot_offset + popcnt(occupieds);
 }
 
@@ -2061,9 +2053,10 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 
 	qf_bulk_insert(temp_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	cudaDeviceSynchronize();
+	//to host
 
 	//CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
-	copy_to_host(qf, temp_qf);
+	//copy_to_host(qf, temp_qf);
 
 }
 
