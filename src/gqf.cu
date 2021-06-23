@@ -606,12 +606,10 @@ __device__ void* gpu_memmove(void* dst, const void* src, size_t n)
 {
 	//todo: allocate space per thread for this buffer before launching the kernel
 	void* temp_buffer;
-	CUDA_CHECK(cudaMalloc(&temp_buffer, n));
-	cudaStreamSynchronize(cudaStream_t cudaStreamPerThread);
-	CUDA_CHECK(cudaMemcpy(temp_buffer, src, n, cudaMemcpyDeviceToDevice));
-	cudaStreamSynchronize(cudaStream_t cudaStreamPerThread);
-	CUDA_CHECK(cudaMemcpy(dst, temp_buffer, n, cudaMemcpyDeviceToDevice));
-	CUDA_CHECK(cudaFree(temp_buffer));
+	cudaMalloc(&temp_buffer, n);
+	cudaMemcpyAsync(temp_buffer, src, n, cudaMemcpyDeviceToDevice);
+	cudaMemcpyAsync(dst, temp_buffer, n, cudaMemcpyDeviceToDevice);
+	cudaFree(temp_buffer);
 	return dst;
 
 }
