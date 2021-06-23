@@ -609,7 +609,7 @@ __device__ void* gpu_memmove(void* dst, const void* src, size_t n)
 	cudaMalloc(&temp_buffer, n);
 	cudaMemcpyAsync(temp_buffer, src, n, cudaMemcpyDeviceToDevice);
 	cudaMemcpyAsync(dst, temp_buffer, n, cudaMemcpyDeviceToDevice);
-	cudaFree(temp_buffer);
+	//cudaFree(temp_buffer);
 	return dst;
 
 }
