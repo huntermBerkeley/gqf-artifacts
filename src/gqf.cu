@@ -610,8 +610,9 @@ __device__ void* gpu_memmove(void* dst, const void* src, size_t n)
 	cudaStreamSynchronize(cudaStream_t cudaStreamPerThread);
 	CUDA_CHECK(cudaMemcpy(temp_buffer, src, n, cudaMemcpyDeviceToDevice));
 	cudaStreamSynchronize(cudaStream_t cudaStreamPerThread);
-	CUDA_CHECK(cudaMemcpy(dst, temp_buffer));
+	CUDA_CHECK(cudaMemcpy(dst, temp_buffer, n, cudaMemcpyDeviceToDevice));
 	CUDA_CHECK(cudaFree(temp_buffer));
+	return dst;
 
 }
 #if QF_BITS_PER_SLOT == 8 || QF_BITS_PER_SLOT == 16 || QF_BITS_PER_SLOT == 32 || QF_BITS_PER_SLOT == 64
