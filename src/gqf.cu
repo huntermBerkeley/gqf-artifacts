@@ -602,6 +602,18 @@ __host__ __device__ static inline uint64_t shift_into_b(const uint64_t a, const 
 	return a_component | b_shifted | (b & b_mask);
 }
 
+__device__ void* gpu_memmove(void* dst, const void* src, size_t n)
+{
+	//todo: allocate space per thread for this buffer before launching the kernel
+	void* temp_buffer;
+	CUDA_CHECK(cudaMalloc(&temp_buffer, n);
+	cudaStreamSynchronize(cudaStream_t cudaStreamPerThread);
+	CUDA_CHECK(cudaMemcpy(temp_buffer, src, n, cudaMemcpyDeviceToDevice));
+	cudaStreamSynchronize(cudaStream_t cudaStreamPerThread);
+	CUDA_CHECK(cudaMemcpy(dst, temp_buffer));
+	CUDA_CHECK(cudaFree(temp_buffer));
+
+}
 #if QF_BITS_PER_SLOT == 8 || QF_BITS_PER_SLOT == 16 || QF_BITS_PER_SLOT == 32 || QF_BITS_PER_SLOT == 64
 
 __host__ __device__ static inline void shift_remainders(QF *qf, uint64_t start_index, uint64_t
@@ -615,18 +627,30 @@ __host__ __device__ static inline void shift_remainders(QF *qf, uint64_t start_i
 	assert (start_index <= empty_index && empty_index < qf->metadata->xnslots);
 
 	while (start_block < empty_block) {
-		memmove(&get_block(qf, empty_block)->slots[1], 
-						&get_block(qf, empty_block)->slots[0],
-						empty_offset * sizeof(qf->blocks[0].slots[0]));
+#ifdef __CUDA_ARCH__
+		gpu_memmove(&get_block(qf, empty_block)->slots[1],
+			&get_block(qf, empty_block)->slots[0],
+			empty_offset * sizeof(qf->blocks[0].slots[0]));
+#else
+		memmove(&get_block(qf, empty_block)->slots[1],
+			&get_block(qf, empty_block)->slots[0],
+			empty_offset * sizeof(qf->blocks[0].slots[0]));
+#endif
+		
 		get_block(qf, empty_block)->slots[0] = get_block(qf,
 																			empty_block-1)->slots[QF_SLOTS_PER_BLOCK-1];
 		empty_block--;
 		empty_offset = QF_SLOTS_PER_BLOCK-1;
 	}
-
+#ifdef __CUDA_ARCH__
+	gpu_memmove(&get_block(qf, empty_block)->slots[start_offset + 1],
+		&get_block(qf, empty_block)->slots[start_offset],
+		(empty_offset - start_offset) * sizeof(qf->blocks[0].slots[0]));
+#else
 	memmove(&get_block(qf, empty_block)->slots[start_offset+1], 
 					&get_block(qf, empty_block)->slots[start_offset],
 					(empty_offset - start_offset) * sizeof(qf->blocks[0].slots[0]));
+#endif
 }
 
 #else
