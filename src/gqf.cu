@@ -2040,7 +2040,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
   	cudaMalloc(&_lock, sizeof(uint32_t)*num_locks);
 	CUDA_CHECK(cudaMemset(_lock, 0, sizeof(unsigned int) * num_locks));
 	cudaDeviceSynchronize();
-	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
+	qf_bulk_insert(qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	cudaDeviceSynchronize();
 	CUDA_CHECK(cudaMemcpy((void**)&temp_qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
 	
