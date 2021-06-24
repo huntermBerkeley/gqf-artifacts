@@ -2032,9 +2032,9 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	//set_qf(temp_qf, _runtime, _metadata, _blocks);
 	//set _qf to point to device
 	CUDA_CHECK(cudaMallocManaged((void**)&_qf, sizeof(QF)));
-	_qf.runtimedata = _runtime;
-	_qf.metadata = _metadata;
-	_qf.blocks = _blocks;
+	_qf->runtimedata = _runtime;
+	_qf->metadata = _metadata;
+	_qf->blocks = _blocks;
 	
 	uint64_t* _vals;
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
