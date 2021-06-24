@@ -2044,7 +2044,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	CUDA_CHECK(cudaMemcpy((void**)&temp_qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
 	
 	CUDA_CHECK(cudaMemcpy((void*)qf->metadata, temp_qf.metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(qf->blocks, temp_qf.blocks, qf_get_total_size_in_bytes(temp_qf), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy((void*)qf->blocks, temp_qf.blocks, qf_get_total_size_in_bytes(temp_qf), cudaMemcpyDeviceToHost));
 	
 	//copy arrays back to host
 	printf("Returning");
