@@ -2055,8 +2055,9 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 
 	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	cudaDeviceSynchronize();
-	printf("%p is loc; size is %d", _qf->runtimedata, sizeof(qfruntime));
-	printf("%p is loc; size is %d", qf->runtimedata, sizeof(qfruntime));
+	printf("%p is loc; size is %d\n", _qf->runtimedata, sizeof(qfruntime));
+	printf("%p is loc; size is %d\n", qf->runtimedata, sizeof(qfruntime));
+
 	CUDA_CHECK(cudaMemcpy(qf->runtimedata, _qf->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
 	CUDA_CHECK(cudaMemcpy(qf->metadata, _qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
 	CUDA_CHECK(cudaMemcpy(qf->blocks, _qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
