@@ -2006,6 +2006,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	qfmetadata* _metadata;
 	qfblock* _blocks;
 
+	metadata* h_metadata = qf->metadata;
 
 	CUDA_CHECK(cudaMalloc((void**)&_runtime, sizeof(qfruntime)));
 	CUDA_CHECK(cudaMalloc((void**)&_metadata, sizeof(qfmetadata)));
