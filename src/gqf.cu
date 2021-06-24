@@ -1986,7 +1986,17 @@ __global__ void hash_all(uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint6
 __host__ void set_qf(QF* qf, qfruntime* _runtime, qfmetadata* _metadata, qfblock* _blocks) {
 
 }
+__host__ void copy_to_host(QF* host, QF* device) {
+	qfruntime runtime;
+	qfmetadata metadata;
+	//qfblock* blocks = malloc(qf_get_total_size_in_bytes(device));
 
+	//copy back to host
+	//may need to resize host qf before copying back when we start to support resizing.
+	CUDA_CHECK(cudaMemcpy(host->runtimedata, device->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(host->metadata, device->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(host->blocks, device->blocks, qf_get_total_size_in_bytes(device), cudaMemcpyDeviceToHost));
+}
 __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF* _qf;
@@ -2033,9 +2043,8 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	cudaDeviceSynchronize();
 	CUDA_CHECK(cudaMemcpy((void**)&temp_qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
 	
-	CUDA_CHECK(cudaMemcpy((void*)qf->runtimedata, (void*)temp_qf->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy((void*)qf->metadata, (void*)temp_qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy((void*)qf->blocks, (void*)temp_qf->blocks, qf_get_total_size_in_bytes(temp_qf), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy((void*)qf->metadata, temp_qf.metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(qf->blocks, temp_qf.blocks, qf_get_total_size_in_bytes(temp_qf), cudaMemcpyDeviceToHost));
 	
 	//copy arrays back to host
 	printf("Returning");
