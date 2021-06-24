@@ -542,22 +542,14 @@ __host__ __device__ static inline uint64_t run_end(const QF *qf, uint64_t hash_b
 __host__ __device__ static inline int offset_lower_bound(const QF *qf, uint64_t slot_index)
 {
 	const qfblock * b = get_block(qf, slot_index / QF_SLOTS_PER_BLOCK);
-	printf("BLOCKADDR from get _block %p", (void*) b);
-	printf("offset lb; past get_block\n");
 	const uint64_t slot_offset = slot_index % QF_SLOTS_PER_BLOCK;
-	printf("1");
 	const uint64_t boffset = b->offset;
-	printf("2");
 	const uint64_t occupieds = b->occupieds[0] & BITMASK(slot_offset+1);
-	printf("3");
 	assert(QF_SLOTS_PER_BLOCK == 64);
 	if (boffset <= slot_offset) {
 		const uint64_t runends = (b->runends[0] & BITMASK(slot_offset)) >> boffset;
-		printf("past runends\n");
 		return popcnt(occupieds) - popcnt(runends);
 	}
-	int boacndios = popcnt(occupieds);
-	printf("4\n");
 	return boffset - slot_offset + popcnt(occupieds);
 }
 
@@ -1995,43 +1987,10 @@ __host__ void set_qf(QF* qf, qfruntime* _runtime, qfmetadata* _metadata, qfblock
 
 }
 
-__host__ void copy_to_host(QF* host, QF* device) {
-	qfruntime runtime;
-	qfmetadata metadata;
-	//qfblock* blocks = malloc(qf_get_total_size_in_bytes(device));
-	
-	//copy back to host
-	//may need to resize host qf before copying back when we start to support resizing.
-	CUDA_CHECK(cudaMemcpy(host->runtimedata, device->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(host->metadata, device->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(host->blocks, device->blocks, qf_get_total_size_in_bytes(device), cudaMemcpyDeviceToHost));
-	/*
-	CUDA_CHECK(cudaMemcpy(&temp, device, sizeof(QF), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&runtime, temp_add->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(&metadata, temp_add->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
-	cudaDeviceSynchronize(); //need metadata to copy for qf_get_total_size_in_bytes
-	CUDA_CHECK(cudaMemcpy(&blocks, temp_add->blocks, qf_get_total_size_in_bytes(temp_add), cudaMemcpyDeviceToHost));
-	cudaDeviceSynchronize();
-	
-	host->runtimedata = &runtime;
-	host->metadata = &metadata;
-	host->blocks = &blocks;*/
-
-}
-
 __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF* _qf;
 	QF temp_qf;
-	/*
-	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
-	CUDA_CHECK(cudaMemcpy((void**)_qf, &temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
-
-	CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
-	*/
-
-
-	//end min example
 
 	qfruntime* _runtime;
 	qfmetadata* _metadata;
@@ -2059,12 +2018,12 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
 	uint64_t* _hashed;
 	CUDA_CHECK(cudaMalloc(&_hashed, sizeof(uint64_t) * nvals));
+
 	//hash items
 	int block_size = 1024;
 	int num_blocks = (nvals + block_size - 1) / block_size;
 	hash_all <<< num_blocks, block_size >>> (_vals, _hashed, nvals, nhashbits);
 
-	
 	uint32_t* _lock;
 	int num_locks = qf->metadata->nslots/4096 + 10;//todo: figure out nslots and why is 0
   	cudaMalloc(&_lock, sizeof(uint32_t)*num_locks);
@@ -2072,8 +2031,18 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	cudaDeviceSynchronize();
 	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	cudaDeviceSynchronize();
-	//CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
-	copy_to_host(qf, _qf);
+	CUDA_CHECK(cudaMemcpy((void**)&temp_qf, _qf, sizeof(QF), cudaMemcpyHostToDevice));
+
+	printf("%p is loc; size is %d\n", temp_qf->runtimedata, sizeof(qfruntime));
+	printf("%p is loc; size is %d\n", qf->runtimedata, sizeof(qfruntime));
+
+	CUDA_CHECK(cudaMemcpy(qf->runtimedata, temp_qf->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(qf->metadata, temp_qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(qf->blocks, temp_qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
+	//copy arrays back to host
+	printf("Returning");
+	//copy_to_host(qf, temp_qf);
+
 }
 
 __host__ __device__ int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t

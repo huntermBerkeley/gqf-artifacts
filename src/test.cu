@@ -57,7 +57,6 @@ int main(int argc, char** argv) {
 		abort();
 	}
 	*/
-
 	qf_set_auto_resize(&qf, false);
 	/* Generate random values */
 	vals = (uint64_t*)malloc(nvals * sizeof(vals[0]));
@@ -67,17 +66,8 @@ int main(int argc, char** argv) {
 		vals[i] = (1 * vals[i]) % qf.metadata->range;
 		//vals[i] = hash_64(vals[i], BITMASK(nhashbits));
 	}
-	/*
-	cudaMalloc(&_vals, sizeof(uint64_t) * nvals);
-	cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice);
-	*/
+
 	srand(0);
-
-	
-	
-	
-	
-
 	/* Insert keys in the CQF */
 	printf("starting kernel");
 	qf_gpu_launch(&qf, vals, nvals, nhashbits, nslots);
