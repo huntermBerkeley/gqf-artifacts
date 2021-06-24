@@ -2013,7 +2013,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf)));
 
 	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(_metadata, qf->metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice));
+	CUDA_CHECK(cudaMemcpy(_metadata, metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
 	temp_qf.runtimedata = _runtime;
 	temp_qf.metadata = _metadata;
