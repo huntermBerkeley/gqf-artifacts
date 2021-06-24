@@ -2054,7 +2054,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	qf_bulk_insert(&_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	cudaDeviceSynchronize();
 	//copy arrays back to host
-	CUDA_CHECK(cudaMemcpy(qf->blocks, _qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(&qf->blocks, &_qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
 
 	//CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
 	//copy_to_host(qf, temp_qf);
