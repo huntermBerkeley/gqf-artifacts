@@ -1992,9 +1992,7 @@ __global__ void hash_all(uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint6
 	return;
 }
 __host__ void set_qf(QF* qf, qfruntime* _runtime, qfmetadata* _metadata, qfblock* _blocks) {
-	qf->runtimedata = _runtime;
-	qf->metadata = _metadata;
-	qf->blocks = _blocks;
+
 }
 
 __host__ void copy_to_host(QF* host, QF* device) {
@@ -2024,7 +2022,7 @@ __host__ void copy_to_host(QF* host, QF* device) {
 __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
 	QF* _qf;
-	QF* temp_qf = (QF*) malloc(sizeof(QF));
+	QF temp_qf;
 	/*
 	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
 	CUDA_CHECK(cudaMemcpy((void**)_qf, &temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
@@ -2035,10 +2033,6 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 
 	//end min example
 
-	printf("in kernel\n");
-	fflush(stdout);
-	printf("1\n");
-	fflush(stdout);
 	qfruntime* _runtime;
 	qfmetadata* _metadata;
 	qfblock* _blocks;
@@ -2047,61 +2041,39 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	CUDA_CHECK(cudaMalloc((void**)&_runtime, sizeof(qfruntime)));
 	CUDA_CHECK(cudaMalloc((void**)&_metadata, sizeof(qfmetadata)));
 	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf)));
-	printf("CUDAMALLOC THE COMPONENTS %lu\n", qf_get_total_size_in_bytes(qf));
-	fflush(stdout);
+
 	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
 	CUDA_CHECK(cudaMemcpy(_metadata, qf->metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice));
-	//CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemset(_blocks, 0, qf_get_total_size_in_bytes(qf)));
-	//todo: copy the qfblock objects;
-	printf("BLOCKADDR %p\n", (void*) _blocks);
-	printf("memcpy THE struct\n");
-	//printf("%lx", _qf->runtimedata);
-	//fflush(stdout);
-	set_qf(temp_qf, _runtime, _metadata, _blocks);
+	CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
+	temp_qf.runtimedata = _runtime;
+	temp_qf.metadata = _metadata;
+	temp_qf.blocks = _blocks;
+
 	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
 	CUDA_CHECK(cudaMemcpy((void**)_qf, &temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
-	printf("assign device qf pointers\n");
-	fflush(stdout);
+
 	//etodo: locks
 	uint64_t* _vals;
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
-	printf("mallocbutnotmemcpy\n");
-	fflush(stdout);
+
 	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
-	printf("memcpy before mallocing hashed\n");
-	fflush(stdout);
 	uint64_t* _hashed;
 	CUDA_CHECK(cudaMalloc(&_hashed, sizeof(uint64_t) * nvals));
-	printf("malloced the hash\n");
-	fflush(stdout);
-	//cudaDeviceSynchronize();
-	printf("vals are on device\n");
-	fflush(stdout);
 	//hash items
 	int block_size = 1024;
 	int num_blocks = (nvals + block_size - 1) / block_size;
 	hash_all <<< num_blocks, block_size >>> (_vals, _hashed, nvals, nhashbits);
-	printf("hashed\n");
-	fflush(stdout);
+
 	
 	uint32_t* _lock;
 	int num_locks = qf->metadata->nslots/4096 + 10;//todo: figure out nslots and why is 0
   	cudaMalloc(&_lock, sizeof(uint32_t)*num_locks);
 	CUDA_CHECK(cudaMemset(_lock, 0, sizeof(unsigned int) * num_locks));
 	cudaDeviceSynchronize();
-	printf("LOCK_ADDR %p num_locks %d\n", (void**)_lock, num_locks);
-	printf("locks copied\n");
-	fflush(stdout);
 	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	cudaDeviceSynchronize();
-	printf("finished the inserts\n");
-	fflush(stdout);
 	//CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
 	copy_to_host(qf, _qf);
-	//todo: copy back to 
-	printf("copied back to host\n");
-	fflush(stdout);
 }
 
 __host__ __device__ int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
