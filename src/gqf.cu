@@ -2015,7 +2015,8 @@ __host__ void copy_to_host(QF* host, QF* device) {
 
 __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 	
-	QF _qf;
+	QF* _qf;
+	
 	qfruntime* _runtime;
 	qfmetadata* _metadata;
 	qfblock* _blocks;
@@ -2030,6 +2031,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	//CUDA_CHECK(cudaMemset(_blocks, 0, qf_get_total_size_in_bytes(qf)));
 	//set_qf(temp_qf, _runtime, _metadata, _blocks);
 	//set _qf to point to device
+	CUDA_CHECK(cudaMallocManaged((void**)&_qf, sizeof(QF)));
 	_qf.runtimedata = _runtime;
 	_qf.metadata = _metadata;
 	_qf.blocks = _blocks;
@@ -2054,9 +2056,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	qf_bulk_insert(&_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	cudaDeviceSynchronize();
 	//copy arrays back to host
-	//CUDA_CHECK(cudaMemcpy(&qf->blocks, &_qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyDeviceToHost));
-
-	//CUDA_CHECK(cudaMemcpy(qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
+	
 	//copy_to_host(qf, temp_qf);
 
 }
