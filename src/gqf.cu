@@ -1971,6 +1971,7 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 	int num_blocks = 1;
 	int block_size = 1;
 	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
+	printf("sizeofqf is %lu\n", qf->metadata->xnslots);
 	evenness = 0;
 	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
 }
