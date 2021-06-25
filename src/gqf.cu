@@ -1143,7 +1143,6 @@ __host__ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t r
 			return QF_COULDNT_LOCK;
 	}
 	*/
-	printf("INSERting1\n");
 	if (is_empty(qf, hash_bucket_index) /* might_be_empty(qf, hash_bucket_index) && runend_index == hash_bucket_index */) {
 		METADATA_WORD(qf, runends, hash_bucket_index) |= 1ULL <<
 			(hash_bucket_block_offset % 64);
@@ -1933,7 +1932,6 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 	int i = start;
 	while (i < end) {
 		uint64_t key = keys[i];
-		printf("inserting key %d, %lu\n", i, key);
 		uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
 		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
 		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
@@ -1959,7 +1957,6 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 			i++;
 		}
 		//TODO: Lock the right thing
-	printf("end of while i: %d\n", i);
 	}
 	printf("successful return from evenness\n");
 	return;
