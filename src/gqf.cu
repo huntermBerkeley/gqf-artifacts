@@ -395,6 +395,7 @@ __host__ __device__ static inline int is_occupied(const QF *qf, uint64_t index)
 
 __host__ __device__ static inline uint64_t get_slot(const QF *qf, uint64_t index)
 {
+	printf("slots %lu, index %lu\n", qf->metadata->nslots, index);
 	assert(index < qf->metadata->xnslots);
 	return get_block(qf, index / QF_SLOTS_PER_BLOCK)->slots[index % QF_SLOTS_PER_BLOCK];
 }
@@ -1320,6 +1321,7 @@ __host__ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t r
 		if (operation >= 0) {
 			uint64_t empty_slot_index = find_first_empty_slot(qf, runend_index+1);
 			if (empty_slot_index >= qf->metadata->xnslots) {
+				printf("slots is %lu, index is %lu\n", qf->metadata->xnslots, empty_slot_index);
 				return QF_NO_SPACE;
 			}
 			shift_remainders(qf, insert_index, empty_slot_index);
@@ -1968,7 +1970,7 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 	int num_blocks = 1;
 	int block_size = 1;
 	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
-	printf("sizeofqf is %lu\n", qf->metadata->xnslots);
+//	printf("sizeofqf is %lu\n", qf->metadata->xnslots);
 	evenness = 0;
 	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
 }
@@ -2701,3 +2703,4 @@ void qf_intersect(const QF *qfa, const QF *qfb, QF *qfr)
 			qf_insert(qfr, key, value, count, QF_NO_LOCK | QF_KEY_IS_HASH);
 	} while (!qfi_next(&qfi));
 }
+
