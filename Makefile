@@ -1,4 +1,4 @@
-TARGETS=test test_threadsafe test_pc bm
+TARGETS=test
 
 ifdef D
 	DEBUG=-g -G
@@ -38,7 +38,7 @@ CUDALINK = -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat -L/usr/co
 
 LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) $(CUDALINK) -arch=sm_70 -lpthread -lssl -lcrypto -lm -lcuda -lcudart
 
-   
+
 #
 # declaration of dependencies
 #
@@ -108,4 +108,3 @@ $(OBJDIR):
 
 clean:
 	rm -rf $(OBJDIR) $(TARGETS) core
-

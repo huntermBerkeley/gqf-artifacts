@@ -1,0 +1,17 @@
+srun -N 1 -n 1 ./test 10
+starting kernel
+Num locks 10
+T0 reports total size: 972
+Thread 0/1: start 0 end 972
+0 insert 0, key: 96471, hash: 96471 
+0 insert 1, key: 225984, hash: 225984 
+0 insert 2, key: 143202, hash: 143202 
+0 insert 3, key: 242452, hash: 242452 
+Total xnslots is 1344, first empty slot is 2265
+failed insertion for key: 3 3b314because CQF is full.
+0 insert 4, key: 239905, hash: 239905 
+slots 1024, index 2111
+src/gqf.cu:400: unsigned long get_slot(const quotient_filter *, unsigned long): block: [0,0,0], thread: [0,0,0] Assertion `index < qf->metadata->xnslots` failed.
+GPUassert: device-side assert triggered src/gqf.cu 2057
+srun: error: cgpu10: task 0: Exited with exit code 198
+srun: Terminating job step 2061369.0

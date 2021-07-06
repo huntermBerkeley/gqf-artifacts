@@ -1,11 +1,12 @@
 #!/bin/bash
-#SBATCH -A m2865
+#SBATCH -A mp309
 #SBATCH -N 1
 #SBATCH -C gpu
 #SBATCH -q regular
 #SBATCH -t 10:00
 #SBATCH -c 10
 #SBATCH -G 1
+#SBATCH -o test_output.dat
 
 echo "srun -N 1 -n 1 ./test 10"
 srun -N 1 -n 1 ./test 10

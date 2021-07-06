@@ -21,7 +21,7 @@
 
 #include "partitioned_counter.cuh"
 
-#include	<stdlib.cuh>
+#include	<cuda.h>
 
 #define INC_TO 500000
 #define DEC_TO INC_BY/2
@@ -50,10 +50,10 @@ void *thread_routine(void *arg) {
 	return NULL;
 }
 
-/* 
+/*
  * ===  FUNCTION  =============================================================
  *         Name:  main
- *  Description:  
+ *  Description:
  * ============================================================================
  */
 int main (int argc, char *argv[])

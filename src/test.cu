@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
 	if (argc < 2) {
 		fprintf(stderr, "Please specify the log of the number of slots in the CQF.\n");
 		exit(1);
-	
+
 	}
 	QF qf;
 	uint64_t qbits = atoi(argv[1]);
@@ -50,6 +50,9 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "Can't allocate CQF.\n");
 		abort();
 	}
+
+
+
 	/*
 	if (!qf_initfile(&qf, nslots, nhashbits, 0, QF_HASH_NONE, 0,
 									 "/tmp/mycqf.file")) {
@@ -69,8 +72,12 @@ int main(int argc, char** argv) {
 
 	srand(0);
 	/* Insert keys in the CQF */
-	printf("starting kernel");
+	printf("starting kernel\n");
 	qf_gpu_launch(&qf, vals, nvals, nhashbits, nslots);
+	cudaDeviceSynchronize();
+
+	printf("GPU launch succeeded\n");
+	fflush(stdout);
 
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {
@@ -87,6 +94,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	*/
+	printf("Testing inserts\n");
 	/* Lookup inserted keys and counts. */
 	for (uint64_t i = 0; i < nvals; i++) {
 		uint64_t count = qf_count_key_value(&qf, vals[i], 0, 0);
@@ -96,6 +104,8 @@ int main(int argc, char** argv) {
 	//		abort();
 		}
 	}
+	printf("Done finding\n");
+	return 0;
 
 #if 0
 	for (uint64_t i = 0; i < nvals; i++) {
@@ -227,4 +237,3 @@ int main(int argc, char** argv) {
 		fprintf(stdout, "Validated the CQF.\n");
 	}
 }
-

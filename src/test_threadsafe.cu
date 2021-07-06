@@ -2,7 +2,7 @@
  * ============================================================================
  *
  *        Authors:  Prashant Pandey <ppandey@cs.stonybrook.edu>
- *                  Rob Johnson <robj@vmware.com>   
+ *                  Rob Johnson <robj@vmware.com>
  *
  * ============================================================================
  */
@@ -90,12 +90,12 @@ int main(int argc, char **argv)
 	nvals = nvals/freq;
 
 	uint64_t *vals;
-	
+
 	/* Initialise the CQF */
-	if (!qf_malloc(&cfr, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, 0)) {
-		fprintf(stderr, "Can't allocate CQF.\n");
-		abort();
-	}
+	// if (!qf_malloc(&cfr, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, 0)) {
+	// 	fprintf(stderr, "Can't allocate CQF.\n");
+	// 	abort();
+	// }
 
 	/* Generate random values */
 	vals = (uint64_t*)calloc(nvals, sizeof(vals[0]));
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	for (uint32_t i = 0; i < nvals; i++) {
 		vals[i] = (1 * vals[i]) % cfr.metadata->range;
 	}
-	
+
 	insert_args *args = (insert_args*)malloc(tcnt * sizeof(insert_args));
 	for (uint32_t i = 0; i < tcnt; i++) {
 		args[i].cf = &cfr;
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 	fprintf(stdout, "Total number of items: %ld\n", args[tcnt-1].end);
 
 	multi_threaded_insertion(args, tcnt);
-	
+
 	fprintf(stdout, "Inserted all items: %ld\n", args[tcnt-1].end);
 
 	for (uint64_t i = 0; i < args[tcnt-1].end; i++) {
