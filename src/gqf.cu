@@ -674,12 +674,15 @@ __host__ __device__ static inline uint64_t shift_into_b(const uint64_t a, const 
 __device__ void* gpu_memmove(void* dst, const void* src, size_t n)
 {
 	//todo: allocate space per thread for this buffer before launching the kernel
-	void* temp_buffer;
-	cudaMalloc(&temp_buffer, n);
-	cudaMemcpyAsync(temp_buffer, src, n, cudaMemcpyDeviceToDevice);
-	cudaMemcpyAsync(dst, temp_buffer, n, cudaMemcpyDeviceToDevice);
-	//cudaFree(temp_buffer);
-	return dst;
+	void* temp_buffer = malloc(n);
+	// cudaMemcpyAsync(temp_buffer, src, n, cudaMemcpyDeviceToDevice);
+	// cudaMemcpyAsync(dst, temp_buffer, n, cudaMemcpyDeviceToDevice);
+	// //cudaFree(temp_buffer);
+	// return dst;
+  memcpy(temp_buffer, src, n);
+  memcpy(dst, temp_buffer, n);
+
+  free(temp_buffer);
 
 }
 #if QF_BITS_PER_SLOT == 8 || QF_BITS_PER_SLOT == 16 || QF_BITS_PER_SLOT == 32 || QF_BITS_PER_SLOT == 64
@@ -2005,8 +2008,8 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
     //printf("%d insert %d, key: %llu, hash: %llu \n", idx, i, key, hash);
 		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
 		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-		uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
-
+		//uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
+    uint64_t lock_index = 0;
 
 		if (hash_bucket_index % 2 == evenness) {
       //printf("Even so inserting\n");
@@ -2035,7 +2038,7 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 		else {
 			i++;
 		}
-		//TODO: Lock the right thing
+
 	}
 	return;
 }
@@ -2290,8 +2293,8 @@ __host__ void qf_bulk_hash_insert(QF* qf, uint64_t* keys, uint64_t value, uint64
 __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint32_t* locks, uint8_t flags) {
 	//todo: number of threads
 	uint64_t evenness = 1;
-	int num_blocks = 10;
-	int block_size = 10;
+	int num_blocks = 1;
+	int block_size = 1;
   //int block_size = 1024;
 	//int num_blocks = (nvals + block_size - 1) / block_size;
 	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
