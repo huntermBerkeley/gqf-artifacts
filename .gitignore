@@ -4,6 +4,8 @@
 *.cqf
 *.o
 *.file
+*.out
+*.dat
 
 slurm*
 test
