@@ -107,6 +107,7 @@ int main(int argc, char** argv) {
 	printf("Done finding\n");
 	return 0;
 
+
 #if 0
 	for (uint64_t i = 0; i < nvals; i++) {
 		uint64_t count = qf_count_key_value(&qf, vals[i], 0, 0);
@@ -157,7 +158,7 @@ int main(int argc, char** argv) {
 		//}
 	QF file_qf = qf;
 	//fprintf(stdout, "Testing iterator and unique indexes.\n");
-	printf("Testing iterator and uq indexes");
+	printf("Testing iterator and unique indexes\n");
 	/* Initialize an iterator and validate counts. */
 	QFi qfi;
 	qf_iterator_from_position(&file_qf, &qfi, 0);

@@ -33,7 +33,7 @@
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)                                    \
   ((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
-#define NUM_SLOTS_TO_LOCK (1ULL<<16)
+#define NUM_SLOTS_TO_LOCK (1ULL<<14)
 #define CLUSTER_SIZE (1ULL<<14)
 #define METADATA_WORD(qf,field,slot_index)                              \
   (get_block((qf), (slot_index) /   QF_SLOTS_PER_BLOCK)->field[((slot_index)  % QF_SLOTS_PER_BLOCK) / 64])
@@ -42,6 +42,9 @@
 #define GET_TRY_ONCE_LOCK(flag) (flag & QF_TRY_ONCE_LOCK)
 #define GET_WAIT_FOR_LOCK(flag) (flag & QF_WAIT_FOR_LOCK)
 #define GET_KEY_HASH(flag) (flag & QF_KEY_IS_HASH)
+
+#define NUM_BUFFERS 10
+#define MAX_BUFFER_SIZE 100
 
 #define DISTANCE_FROM_HOME_SLOT_CUTOFF 1000
 #define BILLION 1000000000L
@@ -644,9 +647,11 @@ __host__ __device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_
 	do {
 		int t = offset_lower_bound(qf, from);
     //get block of from
-    //printf("Finding first empty slot. T: %d, from: %llu\n", t, from);
-    //qf_dump_block(qf, from/QF_SLOTS_PER_BLOCK);
 
+    if (t < 0){
+      printf("Finding first empty slot. T: %d, from: %llu\n", t, from);
+      qf_dump_block(qf, from/QF_SLOTS_PER_BLOCK);
+    }
 		assert(t>=0);
 		if (t == 0)
 			break;
@@ -687,7 +692,8 @@ __host__ __device__ static inline void shift_remainders(QF *qf, uint64_t start_i
 	uint64_t empty_block  = empty_index / QF_SLOTS_PER_BLOCK;
 	uint64_t empty_offset = empty_index % QF_SLOTS_PER_BLOCK;
 
-	assert (start_index <= empty_index && empty_index < qf->metadata->xnslots);
+	assert (start_index <= empty_index);
+  assert (empty_index < qf->metadata->xnslots);
 
 	while (start_block < empty_block) {
 #ifdef __CUDA_ARCH__
@@ -1935,6 +1941,22 @@ __device__ uint16_t get_lock(uint32_t* lock, int index) {
 	return atomicCAS(&lock[index], zero, one);
 }
 
+//synchronous lock so that we can acquire multiple locks
+
+__device__ uint16_t get_lock_wait(uint32_t * locks, int index){
+
+  uint16_t result = 1;
+
+  do {
+
+    result = get_lock(locks, index);
+
+  } while (result !=0);
+
+  return result;
+
+}
+
 __device__ uint16_t unlock(uint32_t* lock, int index) {
 	//set lock to 0 to release
 	uint32_t zero = 0;
@@ -1951,9 +1973,23 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 	int start = nvals * idx / n_threads;
 	int end = nvals * (idx + 1) / n_threads;
 
+  //need to add check for if idx >> nvals
+  if (n_threads >= nvals){
+    start = idx;
+    end = idx+1;
+    if (idx >= nvals) return;
+  }
+
+  //nslots or xnslots?
+  int num_locks = qf->metadata->nslots/NUM_SLOTS_TO_LOCK + 10;
+
 	//printf("Thread %d/%d: start %d end %d\n", idx, n_threads, start, end);
 	int i = start;
 	while (i < end) {
+
+    // if (i % 100 ==0){
+    //   printf("Still Alive %d/%llu\n", i,nvals);
+    // }
 		uint64_t key = keys[i];
 
     //adding back in hashing here - this is inefficient
@@ -1969,11 +2005,15 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
     //printf("%d insert %d, key: %llu, hash: %llu \n", idx, i, key, hash);
 		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
 		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-		uint32_t lock_index = 0;
-    //printf("Hash Bucket index is %llu\n", hash_bucket_index);
+		uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
+
+
 		if (hash_bucket_index % 2 == evenness) {
       //printf("Even so inserting\n");
-			if (get_lock(locks, lock_index) == 0) {
+      //printf("Idx %d grabbing bucket %llu, lock should be %llu, is %llu\n", idx, hash_bucket_index, hash_bucket_index / NUM_SLOTS_TO_LOCK, lock_index);
+			if (get_lock_wait(locks, lock_index) == 0) {
+
+        if (get_lock_wait(locks, lock_index+1) !=0) printf("Failed to acquire second lock\n");
 				int ret = qf_insert(qf, keys[i], 0, 1, QF_NO_LOCK);
 				if (ret < 0) {
 					printf("failed insertion for key: %d %llu", i, keys[i]);
@@ -1986,8 +2026,11 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 
 				}
 				i++;
+        unlock(locks, lock_index+1);
 				unlock(locks, lock_index);
-			}
+			} else {
+        printf("synchronous lock acquisition failed\n");
+      }
 		}
 		else {
 			i++;
@@ -1997,28 +2040,268 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 	return;
 }
 
+__global__ void hash_all(QF * qf,uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint8_t flags) {
+	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	if (idx >= nvals){
+		return;
+	}
+
+  uint64_t key = vals[idx];
+
+  if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
+		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
+			key = MurmurHash64A(((void *)&key), sizeof(key),
+													qf->metadata->seed) % qf->metadata->range;
+		else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
+			key = hash_64(key, BITMASK(qf->metadata->key_bits));
+	}
+
+  hashes[idx] = key;
+
+	return;
+}
+
+__global__ void bufferSanityCheck(uint64_t**buffers, uint32_t* bufferLens){
+
+  int idx = threadIdx.x + blockDim.x * blockIdx.x;
+
+  //should never happen, but just in case
+  if (idx != 0) return;
+
+  for (int i =0; i < NUM_BUFFERS; i++){
+
+    printf("Buffer %d, length: %llu:\n", i, bufferLens[i]);
+
+    for (int j =0; j < 10; j++){
+      printf("%llu ", buffers[i][j]);
+    }
+    printf("\n\n");
+
+  }
+}
+
+__global__ void initBuffer(uint64_t** buffers, uint64_t* temp_buffer, int i){
+
+  int idx = threadIdx.x + blockDim.x * blockIdx.x;
+
+  //should never happen, but just in case
+  if (idx != 0) return;
+
+  buffers[i] = temp_buffer;
+
+
+}
+
+//inserts a buffer into the qf
+//at the moment, this just prints
+__device__ void process_buffer(QF* qf, uint64_t * buffer, uint64_t bufferLen, uint64_t bufferNum){
+
+  //grab the buffer, print it, and then free the memory
+  // uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
+  //
+  // if (idx != 0) return;
+
+  printf("Processing full buffer %llu of size %llu:\n", bufferNum, bufferLen);
+
+  for (int i =0; i < bufferLen; i++){
+    printf("%llu ", buffer[i]);
+  }
+  printf("\n\n");
+  //fflush(stdout);
+
+  //done with buffer, free
+  cudaFree(buffer);
+
+}
+
+
+//attempt to insert a hash into a buffer, if this fails then try again
+__device__ int insert_into_buffer(QF* qf, uint64_t hashVal, cudaStream_t cstream, uint64_t ** buffers, uint32_t * buffer_lens, uint32_t * locks, uint64_t num_buffer){
+
+  //whatever the current len is, grab it and assert not larger
+  //increment 1, return old address
+  uint64_t* buffer = buffers[num_buffer];
+
+  uint64_t nextFree = atomicAdd(buffer_lens + num_buffer, 1);
+
+  if (nextFree < MAX_BUFFER_SIZE){
+
+    //update lock
+    atomicAdd(locks+num_buffer,1);
+
+    //perform insert
+    buffer[nextFree] = hashVal;
+
+    atomicDec(locks+num_buffer,1);
+
+    return 0;
+
+  } else if (nextFree == MAX_BUFFER_SIZE){
+
+    //malloc and memset
+    uint64_t * new_buffer;
+    //these aren't allowed in device code?
+    //cudaMalloc((void**)&new_buffer, sizeof(uint64_t*) * MAX_BUFFER_SIZE);
+    //cudaMemset(new_buffer, 0, sizeof(uint64_t) * MAX_BUFFER_SIZE);
+
+    uint64_t * temp_buffer;
+
+    temp_buffer = buffer;
+
+    //wait
+    uint32_t active_locks = locks[num_buffer];
+    while (active_locks != 0){
+      active_locks = locks[num_buffer];
+    }
+
+    //overwrite buffer
+    buffers[num_buffer] = new_buffer;
+    buffer_lens[num_buffer] = 0;
+
+    //atm this will lock my warp up
+    process_buffer(qf, temp_buffer, MAX_BUFFER_SIZE, num_buffer);
+
+  }
+
+  //otherwise I failed
+  return 1;
+
+}
+
+
+//fill the buffers
+//as they get filled, export to the correct stream for processing
+__global__ void fill_buffers(QF* qf, cudaStream_t * streams, uint64_t * hashes, uint64_t nvals, uint64_t max_hash, uint64_t **buffers, uint32_t*buffer_lens, uint32_t* locks){
+
+
+  uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
+
+  int n_threads = blockDim.x * gridDim.x;
+	//start and end points in the keys array
+	int start = nvals * idx / n_threads;
+	int end = nvals * (idx + 1) / n_threads;
+
+  //need to add check for if idx >> nvals
+  if (n_threads >= nvals){
+    start = idx;
+    end = idx+1;
+    if (idx >= nvals) return;
+  }
+
+  //for each hash, find associated buffer and fill
+  for (int i = start; i < end; i++){
+    uint64_t bufferid = hashes[start] * NUM_BUFFERS/max_hash;
+
+    while (true){
+      //1/bufferSize inserts should fail this
+      int result = insert_into_buffer(qf, hashes[start], streams[bufferid], buffers, buffer_lens, locks, bufferid);
+      if (result == 0) break;
+      printf("Failed to insert into buffer\n");
+    }
+
+  }
+
+
+}
+
+
+
+
+
+__host__ void qf_bulk_hash_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint32_t* QFlocks, uint8_t flags) {
+
+  //first alloc hash space
+
+  printf("Starting bulk insert\n");
+  uint64_t* hashed;
+	CUDA_CHECK(cudaMalloc((void**)&hashed, sizeof(uint64_t) * nvals));
+
+	//hash items
+	int block_size = 1024;
+	int num_blocks = (nvals + block_size - 1) / block_size;
+
+  printf("Before hash all\n");
+  fflush(stdout);
+	hash_all <<< num_blocks, block_size >>> (qf, keys, hashed, nvals, flags);
+
+  cudaDeviceSynchronize();
+  //now allocate buffers
+  //atm these are arbitrary
+
+  uint64_t** buffers;
+  uint32_t* buffer_lens;
+  uint32_t * locks;
+
+  printf("mallocing buffers\n");
+  fflush(stdout);
+  //allocate
+  CUDA_CHECK(cudaMalloc((void**)&buffers, sizeof(uint64_t*) * NUM_BUFFERS));
+
+  printf("buffers allocated?\n");
+  fflush(stdout);
+
+  for (int i=0; i < NUM_BUFFERS; i++){
+
+    printf("Working on %d\n", i);
+    fflush(stdout);
+    uint64_t *temp_buffer;
+    CUDA_CHECK(cudaMalloc((void**)&temp_buffer, sizeof(uint64_t*) * MAX_BUFFER_SIZE));
+    CUDA_CHECK(cudaMemset(temp_buffer, 0, sizeof(uint64_t) * MAX_BUFFER_SIZE));
+    cudaDeviceSynchronize();
+
+    //update buffer pointers
+    //crap this needs to be set - the buffer[i] is device code :(
+    initBuffer<<<1,1>>>(buffers, temp_buffer, i);
+    cudaDeviceSynchronize();
+
+  }
+
+  //ok devices are buffered, lets see those insides
+
+
+
+
+  CUDA_CHECK(cudaMalloc((void**)&buffer_lens, sizeof(uint32_t) * NUM_BUFFERS));
+  CUDA_CHECK(cudaMemset(buffer_lens, 0, sizeof(uint32_t) * NUM_BUFFERS));
+
+  CUDA_CHECK(cudaMalloc((void**)&locks, sizeof(uint32_t) * NUM_BUFFERS));
+  CUDA_CHECK(cudaMemset(locks, 0, sizeof(uint32_t) * NUM_BUFFERS));
+
+  bufferSanityCheck<<<1,1>>>(buffers, buffer_lens);
+
+  //buffers should be good after this, lets start filling!
+
+  //lets init streams
+  cudaStream_t streams[NUM_BUFFERS];
+  for (int i=0; i < NUM_BUFFERS; i++){
+    cudaStreamCreate(&streams[i]);
+  }
+
+  fill_buffers<<<1,1>>>(qf, streams, hashed, nvals, qf->metadata->xnslots, buffers, buffer_lens, locks);
+
+  cudaDeviceSynchronize();
+  for (int i=0; i < NUM_BUFFERS; i++){
+    cudaStreamDestroy(streams[i]);
+  }
+
+
+}
+
 __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint32_t* locks, uint8_t flags) {
 	//todo: number of threads
 	uint64_t evenness = 1;
-	int num_blocks = 1;
-	int block_size = 1;
+	int num_blocks = 10;
+	int block_size = 10;
+  //int block_size = 1024;
+	//int num_blocks = (nvals + block_size - 1) / block_size;
 	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
 //	printf("sizeofqf is %lu\n", qf->metadata->xnslots);
 	evenness = 0;
 	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
 }
 
-__global__ void hash_all(uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint64_t nhashbits) {
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
-	if (idx >= nvals){
-		return;
-	}
-	hashes[idx] = hash_64(vals[idx], BITMASK(nhashbits));
-	return;
-}
-__host__ void set_qf(QF* qf, qfruntime* _runtime, qfmetadata* _metadata, qfblock* _blocks) {
 
-}
+
 __host__ void copy_to_host(QF* host, QF* device) {
 	qfruntime runtime;
 	qfmetadata metadata;
@@ -2030,6 +2313,7 @@ __host__ void copy_to_host(QF* host, QF* device) {
 	CUDA_CHECK(cudaMemcpy(host->metadata, device->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
 	CUDA_CHECK(cudaMemcpy(host->blocks, device->blocks, qf_get_total_size_in_bytes(device), cudaMemcpyDeviceToHost));
 }
+
 __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots) {
 
 	QF* _qf;
@@ -2040,6 +2324,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	qfblock* _blocks;
 
 
+  printf("Inside launch\n");
 	CUDA_CHECK(cudaMalloc((void**)&_runtime, sizeof(qfruntime)));
 	CUDA_CHECK(cudaMalloc((void**)&_metadata, sizeof(qfmetadata)));
 	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf)));
@@ -2055,28 +2340,31 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	CUDA_CHECK(cudaMemcpy((void**)_qf, &temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
 
 	//etodo: locks
-
+  printf("Qf setup done\n");
 
 	uint64_t* _vals;
 	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
 
 	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
-	uint64_t* _hashed;
-	CUDA_CHECK(cudaMalloc(&_hashed, sizeof(uint64_t) * nvals));
-
-	//hash items
-	int block_size = 1024;
-	int num_blocks = (nvals + block_size - 1) / block_size;
-	hash_all <<< num_blocks, block_size >>> (_vals, _hashed, nvals, nhashbits);
+	// uint64_t* _hashed;
+	// CUDA_CHECK(cudaMalloc(&_hashed, sizeof(uint64_t) * nvals));
+  //
+	// //hash items
+	// int block_size = 1024;
+	// int num_blocks = (nvals + block_size - 1) / block_size;
+	// hash_all <<< num_blocks, block_size >>> (_vals, _hashed, nvals, nhashbits);
 
 	uint32_t* _lock;
-	int num_locks = qf->metadata->nslots/4096 + 10;//todo: figure out nslots and why is 0
+	int num_locks = qf->metadata->nslots/NUM_SLOTS_TO_LOCK + 10;//todo: figure out nslots and why is 0
   cudaMalloc((void**)&_lock, sizeof(uint32_t)*num_locks);
-
+  cudaDeviceSynchronize();
   printf("Num locks %d\n", num_locks);
   fflush( stdout );
-	CUDA_CHECK(cudaMemset(_lock, 0, sizeof(unsigned int) * num_locks));
+	CUDA_CHECK(cudaMemset(_lock, 0, sizeof(uint32_t) * num_locks));
+  printf("Locks set!\n");
 	cudaDeviceSynchronize();
+  printf("Starting Bulk insert\n");
+  fflush(stdout);
 	qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	cudaDeviceSynchronize();
   printf("Bulk Insert completed\n");
