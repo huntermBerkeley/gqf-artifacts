@@ -158,7 +158,8 @@ __host__ __device__ static inline void qf_dump_block(const QF *qf, uint64_t i)
 {
 	uint64_t j;
 
-	printf("%-192d", get_block(qf, i)->offset);
+	printf("Block %llu Runs from %llu to %llu\n",i,  i*QF_SLOTS_PER_BLOCK, (i+1)*QF_SLOTS_PER_BLOCK);
+	printf("Offset: %-192d", get_block(qf, i)->offset);
 	printf("\n");
 
 	for (j = 0; j < QF_SLOTS_PER_BLOCK; j++)
@@ -616,11 +617,41 @@ __host__ __device__ static inline int offset_lower_bound(const QF *qf, uint64_t 
 	const uint64_t slot_offset = slot_index % QF_SLOTS_PER_BLOCK;
 	const uint64_t boffset = b->offset;
 	const uint64_t occupieds = b->occupieds[0] & BITMASK(slot_offset+1);
+
+	//printf("slot %llu, slot_offset %02lx, block offset %llu, occupieds: %d ", slot_index, slot_offset, boffset, popcnt(occupieds));
 	assert(QF_SLOTS_PER_BLOCK == 64);
 	if (boffset <= slot_offset) {
 		const uint64_t runends = (b->runends[0] & BITMASK(slot_offset)) >> boffset;
+		//printf(" runends %d\n", popcnt(runends));
+		//printf("boffset < slot_offset, runends %llu, popcnt(occupieds) %d, popcnt(runends) %d\n", runends, popcnt(occupieds), popcnt(runends));
+		//printf("returning %d\n", popcnt(occupieds)-popcnt(runends));
 		return popcnt(occupieds) - popcnt(runends);
 	}
+	//printf("\n");
+	//printf("boffset > slot_offset, boffset-slotoffset %llu, popcnt(occupieds) %d\n", boffset-slot_offset, popcnt(occupieds));
+	//printf("returning %d\n", boffset-slot_offset+popcnt(occupieds));
+	return boffset - slot_offset + popcnt(occupieds);
+}
+
+__host__ __device__ static inline int offset_lower_bound_verbose(const QF *qf, uint64_t slot_index)
+{
+	const qfblock * b = get_block(qf, slot_index / QF_SLOTS_PER_BLOCK);
+	const uint64_t slot_offset = slot_index % QF_SLOTS_PER_BLOCK;
+	const uint64_t boffset = b->offset;
+	const uint64_t occupieds = b->occupieds[0] & BITMASK(slot_offset+1);
+
+	printf("slot %llu, slot_offset %02lx, block offset %llu, occupieds: %d ", slot_index, slot_offset, boffset, popcnt(occupieds));
+	assert(QF_SLOTS_PER_BLOCK == 64);
+	if (boffset <= slot_offset) {
+		const uint64_t runends = (b->runends[0] & BITMASK(slot_offset)) >> boffset;
+		printf(" runends %d\n", popcnt(runends));
+		//printf("boffset < slot_offset, runends %llu, popcnt(occupieds) %d, popcnt(runends) %d\n", runends, popcnt(occupieds), popcnt(runends));
+		printf("returning %d\n", popcnt(occupieds)-popcnt(runends));
+		return popcnt(occupieds) - popcnt(runends);
+	}
+	printf("\n");
+	//printf("boffset > slot_offset, boffset-slotoffset %llu, popcnt(occupieds) %d\n", boffset-slot_offset, popcnt(occupieds));
+	printf("returning %d\n", boffset-slot_offset+popcnt(occupieds));
 	return boffset - slot_offset + popcnt(occupieds);
 }
 
@@ -642,23 +673,56 @@ __device__ static inline int probably_is_empty(const QF *qf, uint64_t slot_index
 		&& !is_runend(qf, slot_index);
 }
 
-__host__ __device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_t from)
+
+__host__ __device__ static inline uint64_t find_first_empty_slot_verbose(QF *qf, uint64_t from)
 {
+
+	printf("Starting find first - this will terminate in -1\n");
+	qf_dump_block(qf, from/QF_SLOTS_PER_BLOCK);
 	do {
-		int t = offset_lower_bound(qf, from);
+		int t = offset_lower_bound_verbose(qf, from);
     //get block of from
 
     if (t < 0){
-      printf("Finding first empty slot. T: %d, from: %llu\n", t, from);
-      qf_dump_block(qf, from/QF_SLOTS_PER_BLOCK);
+    	
+      printf("Finding first empty slot. T: %d, from: %llu\n - block %llu", t, from, from/QF_SLOTS_PER_BLOCK);
+      qf_dump(qf);
     }
 		assert(t>=0);
 		if (t == 0)
 			break;
 		from = from + t;
 	} while(1);
+	printf("Next empty slot: %llu", from);
 	return from;
 }
+
+__host__ __device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_t from)
+{
+
+	uint64_t start_from = from;
+	//printf("Starting find first\n");
+	//qf_dump_block(qf, from/QF_SLOTS_PER_BLOCK);
+	do {
+		int t = offset_lower_bound(qf, from);
+    //get block of from
+
+    if (t < 0){
+
+    	find_first_empty_slot_verbose(qf, start_from);
+      //printf("Finding first empty slot. T: %d, from: %llu\n - block %llu", t, from, from/QF_SLOTS_PER_BLOCK);
+      //qf_dump(qf);
+    }
+		assert(t>=0);
+		if (t == 0)
+			break;
+		from = from + t;
+	} while(1);
+	//printf("Next empty slot: %llu", from);
+	return from;
+}
+
+
 
 __host__ __device__ static inline uint64_t shift_into_b(const uint64_t a, const uint64_t b,
 																		const int bstart, const int bend,
@@ -673,6 +737,7 @@ __host__ __device__ static inline uint64_t shift_into_b(const uint64_t a, const 
 
 __device__ void* gpu_memmove(void* dst, const void* src, size_t n)
 {
+	printf("Launching memmove\n");
 	//todo: allocate space per thread for this buffer before launching the kernel
 	void* temp_buffer = malloc(n);
 	// cudaMemcpyAsync(temp_buffer, src, n, cudaMemcpyDeviceToDevice);
@@ -2009,31 +2074,34 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
 		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
 		//uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
+    //if this succeeds, implies we have an overwrite error with the lock
     uint64_t lock_index = 0;
 
 		if (hash_bucket_index % 2 == evenness) {
       //printf("Even so inserting\n");
       //printf("Idx %d grabbing bucket %llu, lock should be %llu, is %llu\n", idx, hash_bucket_index, hash_bucket_index / NUM_SLOTS_TO_LOCK, lock_index);
-			if (get_lock_wait(locks, lock_index) == 0) {
+			if (get_lock(locks, lock_index) == 0) {
 
-        if (get_lock_wait(locks, lock_index+1) !=0) printf("Failed to acquire second lock\n");
-				int ret = qf_insert(qf, keys[i], 0, 1, QF_NO_LOCK);
-				if (ret < 0) {
-					printf("failed insertion for key: %d %llu", i, keys[i]);
-					if (ret == QF_NO_SPACE)
-						printf(" because CQF is full.\n");
-					else if (ret == QF_COULDNT_LOCK)
-						printf(" because TRY_ONCE_LOCK failed.\n");
-					else
-						printf(" because program does not recognise return value.\n");
+        if (get_lock(locks, lock_index+1) ==0){
 
-				}
-				i++;
-        unlock(locks, lock_index+1);
+					int ret = qf_insert(qf, keys[i], 0, 1, QF_NO_LOCK);
+					if (ret < 0) {
+						printf("failed insertion for key: %d %llu", i, keys[i]);
+						if (ret == QF_NO_SPACE)
+							printf(" because CQF is full.\n");
+						else if (ret == QF_COULDNT_LOCK)
+							printf(" because TRY_ONCE_LOCK failed.\n");
+						else
+							printf(" because program does not recognise return value.\n");
+
+					}
+					i++;
+	        unlock(locks, lock_index+1);
+					
+
+			}
 				unlock(locks, lock_index);
-			} else {
-        printf("synchronous lock acquisition failed\n");
-      }
+			} 
 		}
 		else {
 			i++;
@@ -2293,7 +2361,7 @@ __host__ void qf_bulk_hash_insert(QF* qf, uint64_t* keys, uint64_t value, uint64
 __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint32_t* locks, uint8_t flags) {
 	//todo: number of threads
 	uint64_t evenness = 1;
-	int num_blocks = 1;
+	int num_blocks = 2;
 	int block_size = 1;
   //int block_size = 1024;
 	//int num_blocks = (nvals + block_size - 1) / block_size;
@@ -2301,6 +2369,8 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 //	printf("sizeofqf is %lu\n", qf->metadata->xnslots);
 	evenness = 0;
 	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
+
+	//qf_dump_kernel<<<1,1>>>(qf);
 }
 
 
