@@ -620,12 +620,15 @@ __host__ __device__ static inline int offset_lower_bound(const QF *qf, uint64_t 
 
 	//printf("slot %llu, slot_offset %02lx, block offset %llu, occupieds: %d ", slot_index, slot_offset, boffset, popcnt(occupieds));
 	assert(QF_SLOTS_PER_BLOCK == 64);
+
+	//if (boffset < slot_offset) {
 	if (boffset <= slot_offset) {
 		const uint64_t runends = (b->runends[0] & BITMASK(slot_offset)) >> boffset;
 		//printf(" runends %d\n", popcnt(runends));
 		//printf("boffset < slot_offset, runends %llu, popcnt(occupieds) %d, popcnt(runends) %d\n", runends, popcnt(occupieds), popcnt(runends));
 		//printf("returning %d\n", popcnt(occupieds)-popcnt(runends));
 		return popcnt(occupieds) - popcnt(runends);
+
 	}
 	//printf("\n");
 	//printf("boffset > slot_offset, boffset-slotoffset %llu, popcnt(occupieds) %d\n", boffset-slot_offset, popcnt(occupieds));
@@ -701,24 +704,22 @@ __host__ __device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_
 {
 
 	uint64_t start_from = from;
-	//printf("Starting find first\n");
-	//qf_dump_block(qf, from/QF_SLOTS_PER_BLOCK);
+
 	do {
 		int t = offset_lower_bound(qf, from);
     //get block of from
 
     if (t < 0){
 
+    	//this implies a failure in the code - you are going to 
     	find_first_empty_slot_verbose(qf, start_from);
-      //printf("Finding first empty slot. T: %d, from: %llu\n - block %llu", t, from, from/QF_SLOTS_PER_BLOCK);
-      //qf_dump(qf);
+  
     }
 		assert(t>=0);
 		if (t == 0)
 			break;
 		from = from + t;
 	} while(1);
-	//printf("Next empty slot: %llu", from);
 	return from;
 }
 
@@ -737,7 +738,7 @@ __host__ __device__ static inline uint64_t shift_into_b(const uint64_t a, const 
 
 __device__ void* gpu_memmove(void* dst, const void* src, size_t n)
 {
-	printf("Launching memmove\n");
+	//printf("Launching memmove\n");
 	//todo: allocate space per thread for this buffer before launching the kernel
 	void* temp_buffer = malloc(n);
 	// cudaMemcpyAsync(temp_buffer, src, n, cudaMemcpyDeviceToDevice);
@@ -2001,39 +2002,39 @@ GPU Modifications
 
 //TODO: it might expect a short int instead of uint16_t
 //TODO: needs to be 32 bits (whoops)
-__device__ uint16_t get_lock(uint32_t* lock, int index) {
+__device__ uint16_t get_lock(volatile uint32_t* lock, int index) {
 	//set lock to 1 to claim
 	//returns 0 if success
 	uint32_t zero = 0;
 	uint32_t one = 1;
-	return atomicCAS(&lock[index], zero, one);
+	return atomicCAS((uint32_t *) &lock[index], zero, one);
 }
 
 //synchronous lock so that we can acquire multiple locks
 
-__device__ uint16_t get_lock_wait(uint32_t * locks, int index){
+// __device__ uint16_t get_lock_wait(uint32_t * locks, int index){
 
-  uint16_t result = 1;
+//   uint16_t result = 1;
 
-  do {
+//   do {
 
-    result = get_lock(locks, index);
+//     result = get_lock(locks, index);
 
-  } while (result !=0);
+//   } while (result !=0);
 
-  return result;
+//   return result;
 
-}
+// }
 
-__device__ uint16_t unlock(uint32_t* lock, int index) {
+__device__ uint16_t unlock(volatile uint32_t* lock, int index) {
 	//set lock to 0 to release
 	uint32_t zero = 0;
 	uint32_t one = 1;
 	//TODO: might need a __threadfence();
-	return atomicCAS(&lock[index], one, zero);
+	return atomicCAS( (uint32_t *) &lock[index], one, zero);
 }
 
-__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint32_t* locks, int evenness, uint8_t flags) {
+__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, volatile uint32_t* locks, int evenness, uint8_t flags) {
 	int idx = threadIdx.x + blockDim.x * blockIdx.x;
 
 	int n_threads = blockDim.x * gridDim.x;
@@ -2049,7 +2050,7 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
   }
 
   //nslots or xnslots?
-  int num_locks = qf->metadata->nslots/NUM_SLOTS_TO_LOCK + 10;
+  //int num_locks = qf->metadata->xnslots/NUM_SLOTS_TO_LOCK + 10;
 
 	//printf("Thread %d/%d: start %d end %d\n", idx, n_threads, start, end);
 	int i = start;
@@ -2358,7 +2359,7 @@ __host__ void qf_bulk_hash_insert(QF* qf, uint64_t* keys, uint64_t value, uint64
 
 }
 
-__host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint32_t* locks, uint8_t flags) {
+__host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, volatile uint32_t* locks, uint8_t flags) {
 	//todo: number of threads
 	uint64_t evenness = 1;
 	int num_blocks = 2;
@@ -2427,13 +2428,15 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	// int num_blocks = (nvals + block_size - 1) / block_size;
 	// hash_all <<< num_blocks, block_size >>> (_vals, _hashed, nvals, nhashbits);
 
-	uint32_t* _lock;
-	int num_locks = qf->metadata->nslots/NUM_SLOTS_TO_LOCK + 10;//todo: figure out nslots and why is 0
+	volatile uint32_t* _lock;
+
+	//TODO: pass this down into bulk insert - bad practice to have code recalculate values
+	int num_locks = qf->metadata->xnslots/NUM_SLOTS_TO_LOCK + 10;//todo: figure out nslots and why is 0
   cudaMalloc((void**)&_lock, sizeof(uint32_t)*num_locks);
   cudaDeviceSynchronize();
   printf("Num locks %d\n", num_locks);
   fflush( stdout );
-	CUDA_CHECK(cudaMemset(_lock, 0, sizeof(uint32_t) * num_locks));
+	CUDA_CHECK(cudaMemset( (uint32_t *) _lock, 0, sizeof(uint32_t) * num_locks));
   printf("Locks set!\n");
 	cudaDeviceSynchronize();
   printf("Starting Bulk insert\n");
