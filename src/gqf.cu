@@ -2524,7 +2524,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nh
 	cudaDeviceSynchronize();
   printf("Starting Bulk insert\n");
   fflush(stdout);
-  qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
+  //qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	qf_bulk_insert_nolock(_qf, _vals, 0, 1, nvals, num_locks, _lock, QF_NO_LOCK);
 	cudaDeviceSynchronize();
   printf("Bulk Insert completed\n");
