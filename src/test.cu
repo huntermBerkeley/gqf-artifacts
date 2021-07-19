@@ -42,6 +42,7 @@ int main(int argc, char** argv) {
 	uint64_t nslots = (1ULL << qbits);
 	//this can be changed to change the % it fills up
 	uint64_t nvals = 95 * nslots / 100;
+	//uint64_t nvals = 1;
 	uint64_t key_count = 1;
 	uint64_t* vals;
 
@@ -70,6 +71,11 @@ int main(int argc, char** argv) {
 		//vals[i] = hash_64(vals[i], BITMASK(nhashbits));
 	}
 
+	// vals = (uint64_t *) malloc(nvals * sizeof(uint64_t));
+	// for (uint64_t i =0l; i< nvals; i++){
+	// 	vals[i] = i;
+	// }
+
 	srand(0);
 	/* Insert keys in the CQF */
 	printf("starting kernel\n");
@@ -78,6 +84,7 @@ int main(int argc, char** argv) {
 
 	printf("GPU launch succeeded\n");
 	fflush(stdout);
+
 
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {
@@ -95,16 +102,18 @@ int main(int argc, char** argv) {
 	}
 	*/
 	printf("Testing inserts\n");
+	uint64_t failedCount = 0;
 	/* Lookup inserted keys and counts. */
 	for (uint64_t i = 0; i < nvals; i++) {
 		uint64_t count = qf_count_key_value(&qf, vals[i], 0, 0);
 		if (count < key_count) {
-			fprintf(stderr, "failed lookup after insertion for %lx %ld.\n", vals[i],
-				count);
+			// fprintf(stderr, "failed lookup after insertion for %lx %ld.\n", vals[i],
+			// 	count);
+			failedCount+=1;
 	//		abort();
 		}
 	}
-	printf("Done finding\n");
+	printf("Done finding, %llu failures\n", failedCount);
 	return 0;
 
 
