@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 	/* Generate random values */
 	vals = (uint64_t*)malloc(nvals * sizeof(vals[0]));
 	RAND_bytes((unsigned char*)vals, sizeof(*vals) * nvals);
-	uint64_t* _vals;
+	//uint64_t* _vals;
 	for (uint64_t i = 0; i < nvals; i++) {
 		vals[i] = (1 * vals[i]) % qf.metadata->range;
 		//vals[i] = hash_64(vals[i], BITMASK(nhashbits));
@@ -79,12 +79,14 @@ int main(int argc, char** argv) {
 	srand(0);
 	/* Insert keys in the CQF */
 	printf("starting kernel\n");
-	qf_gpu_launch(&qf, vals, nvals, nhashbits, nslots);
+	qf_gpu_launch(&qf, vals, nvals, key_count, nhashbits, nslots);
 	cudaDeviceSynchronize();
 
 	printf("GPU launch succeeded\n");
 	fflush(stdout);
 
+
+	return 0;
 
 	/*
 	for (uint64_t i = 0; i < nvals; i++) {
@@ -114,7 +116,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	printf("Done finding, %llu failures\n", failedCount);
-	return 0;
+	
 
 
 #if 0

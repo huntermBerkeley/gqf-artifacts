@@ -182,7 +182,7 @@ extern "C" {
 	GPU functions
 	******************************/
 	/* batch inserts using GPU*/
-	__host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t nhashbits, uint64_t nslots);
+	__host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t key_count, uint64_t nhashbits, uint64_t nslots);
 
 	/****************************************
    Query functions
