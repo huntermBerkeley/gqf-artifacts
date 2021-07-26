@@ -39,7 +39,7 @@
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)                                    \
   ((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
-#define NUM_SLOTS_TO_LOCK (1ULL<<12)
+#define NUM_SLOTS_TO_LOCK (1ULL<<14)
 #define EXP_BEFORE_FAILURE -15
 #define CLUSTER_SIZE (1ULL<<14)
 #define METADATA_WORD(qf,field,slot_index)                              \
@@ -716,17 +716,28 @@ __host__ __device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_
 		int t = offset_lower_bound(qf, from);
     //get block of from
 
-    if (t < 0){
+    // if (t < 0){
 
-    	//this implies a failure in the code - you are going to 
-    	find_first_empty_slot_verbose(qf, start_from);
+    // 	//this implies a failure in the code - you are going to 
+    // 	find_first_empty_slot_verbose(qf, start_from);
   
-    }
+    // }
+
+
 		assert(t>=0);
 		if (t == 0)
 			break;
 		from = from + t;
 	} while(1);
+
+
+	uint64_t bucket_start_from = start_from/NUM_SLOTS_TO_LOCK;
+	uint64_t end_start_from = from/NUM_SLOTS_TO_LOCK;
+
+	if (end_start_from>bucket_start_from+1){
+		printf("Find first empty ran over a bucket: %llu\n", end_start_from-bucket_start_from);
+	}
+
 	return from;
 }
 
