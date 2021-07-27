@@ -39,7 +39,7 @@
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)                                    \
   ((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
-#define NUM_SLOTS_TO_LOCK (1ULL<<14)
+#define NUM_SLOTS_TO_LOCK (1ULL<<13)
 #define EXP_BEFORE_FAILURE -15
 #define CLUSTER_SIZE (1ULL<<14)
 #define METADATA_WORD(qf,field,slot_index)                              \
@@ -52,6 +52,8 @@
 
 #define NUM_BUFFERS 10
 #define MAX_BUFFER_SIZE 100
+
+#define CYCLES_PER_SECOND 1601000000
 
 #define DISTANCE_FROM_HOME_SLOT_CUTOFF 1000
 #define BILLION 1000000000L
@@ -2162,6 +2164,48 @@ __global__ void insert_from_buffers(QF* qf, uint64_t num_buffers, uint64_t** buf
 
 }
 
+//assign one thread per buffer, empty the buffer into the cqf
+//this will get called twice, once for even buffers and once for odd
+// so that locking isn't necessary
+__global__ void insert_from_buffers_timed(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness, uint64_t * min, uint64_t * max, uint64_t * average, uint64_t * count){
+
+
+	int idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
+
+
+
+	if (idx >= num_buffers) return;
+
+	uint64_t start = clock64();
+	
+
+	uint64_t my_count = buffer_counts[idx];
+
+	for (uint64_t i =0; i < my_count; i++){
+
+		int ret = qf_insert(qf, buffers[idx][i], 0, 1, QF_NO_LOCK);
+
+		//internal threadfence. Bad? actually seems to be fine
+		__threadfence();
+
+	}
+
+
+	uint64_t end = clock64();
+
+	uint64_t duration = end-start;
+
+	atomicAdd((long long unsigned int *) average, (long long unsigned int) duration);
+	atomicAdd((long long unsigned int *) count, (long long unsigned int) 1);
+	atomicMin((long long unsigned int *) min, (long long unsigned int) duration);
+	atomicMax((long long unsigned int *) max, (long long unsigned int) duration);
+	//__threadfence();
+
+
+
+
+}
+
 __global__ void print_counts(uint64_t num_locks, volatile uint64_t * buffer_counts){
 
 	int idx = threadIdx.x + blockDim.x * blockIdx.x;
@@ -2334,6 +2378,142 @@ __host__ void bulk_insert_bucketing(QF* qf, uint64_t* keys, uint64_t value, uint
   diff = free-bucketing_start;
 
   std::cout << "Total time is " << diff.count() << " seconds\n";
+
+
+}
+
+__host__ void bulk_insert_bucketing_timed(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags) {
+
+	uint64_t key_block_size = 24;
+	uint64_t key_block = (nvals -1)/key_block_size + 1;
+	//start with num_locks, get counts
+
+	volatile uint64_t * buffer_sizes;
+	CUDA_CHECK(cudaMalloc((void **) & buffer_sizes, num_locks*sizeof(uint64_t)));
+	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0, num_locks*sizeof(uint64_t)));
+
+	printf("Number of items to be inserted: %llu\n", nvals);
+
+	auto bucketing_start = std::chrono::high_resolution_clock::now();
+
+	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
+	cudaDeviceSynchronize();
+	//(QF * qf, uint64_t num_keys, uint64_t * keys, uint64_t num_buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
+	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
+	cudaDeviceSynchronize();
+	fflush(stdout);
+
+	auto count_timer = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration<double> diff = count_timer-bucketing_start;
+
+  std::cout << "Counted in " << diff.count() << " seconds\n";
+
+	//counts look good!
+	//copy over buffer to __host__, and malloc buffers
+	uint64_t ** buffers;
+	CUDA_CHECK(cudaMalloc((void **)&buffers, num_locks*sizeof(uint64_t*)));
+
+	create_buffers(qf, buffers, buffer_sizes, num_locks);
+	cudaDeviceSynchronize();
+
+	//reset sizes
+	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0 ,num_locks*sizeof(uint64_t)));
+
+	auto malloced = std::chrono::high_resolution_clock::now();
+
+  diff = malloced-count_timer;
+
+  std::cout << "Malloced in " << diff.count() << " seconds\n";
+
+	count_insert<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, buffer_sizes, value, flags);
+
+
+
+
+	//and launch
+	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
+	cudaDeviceSynchronize();
+
+	//lets malloc some buffers
+	uint64_t * min;
+	uint64_t * max;
+	uint64_t * average;
+	uint64_t * sum_avg;
+
+	cudaMallocManaged((void**)&min, sizeof(uint64_t));
+	cudaMallocManaged((void**)&max, sizeof(uint64_t));
+	cudaMallocManaged((void**)&average, sizeof(uint64_t));
+	cudaMallocManaged((void**)&sum_avg, sizeof(uint64_t));
+
+	min[0] = 1LL<<60;
+	max[0] = 0;
+	average[0] = 0;
+	sum_avg[0] = 0;
+
+
+	auto fill= std::chrono::high_resolution_clock::now();
+
+  diff = fill-malloced;
+
+  std::cout << "Filled Buffers in " << diff.count() << " seconds\n";
+
+
+
+	//time to insert
+	uint64_t evenness = 0;
+
+	insert_from_buffers_timed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness, min, max, average, sum_avg);
+	
+	cudaDeviceSynchronize();
+
+	printf("Evens: Min: %llu, Max: %llu, average: %f\n", *min, *max, 1.0*average[0]/sum_avg[0]);
+	printf("Min: %f, Max: %f, Avg: %f\n", (1.0)*(*min)/CYCLES_PER_SECOND, (1.0)*(*max)/CYCLES_PER_SECOND, 1.0*(1.0*average[0]/sum_avg[0])/CYCLES_PER_SECOND);
+	min[0] = 1LL<<60;
+	max[0] = 0;
+	average[0] = 0;
+	sum_avg[0] = 0;
+
+	cudaDeviceSynchronize();
+
+	evenness = 1;
+
+	insert_from_buffers_timed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness, min, max, average, sum_avg);
+
+
+	cudaDeviceSynchronize();
+
+	printf("odds: Min: %llu, Max: %llu, average: %f\n", *min, *max, 1.0*average[0]/sum_avg[0]);
+	printf("Min: %f, Max: %f, Avg: %f\n", (1.0)*(*min)/CYCLES_PER_SECOND, (1.0)*(*max)/CYCLES_PER_SECOND, 1.0*(1.0*average[0]/sum_avg[0])/CYCLES_PER_SECOND);
+	
+
+
+	auto insert= std::chrono::high_resolution_clock::now();
+
+  diff = insert-fill;
+
+  std::cout << "Inserted in CQF in " << diff.count() << " seconds\n";
+
+	//free materials;
+	//TODO:
+	free_buffers(qf, buffers, buffer_sizes, num_locks);
+
+	cudaDeviceSynchronize();
+
+	auto free= std::chrono::high_resolution_clock::now();
+
+  diff = free-insert;
+
+  std::cout << "Freed Buffers in " << diff.count() << " seconds\n";
+
+  diff = free-bucketing_start;
+
+  std::cout << "Total time is " << diff.count() << " seconds\n";
+
+  cudaFree(min);
+  cudaFree(max);
+  cudaFree(average);
+  cudaFree(sum_avg);
 
 
 }
@@ -2925,7 +3105,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t ke
   fflush(stdout);
   //qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	//qf_bulk_insert_nolock(_qf, _vals, 0, 1, nvals, num_locks, _lock, QF_NO_LOCK);
-	bulk_insert_bucketing(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK);
+	bulk_insert_bucketing_timed(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK);
 
   //bulk smart insert
   //bulk_insert_bucketing_steps(_qf, _vals, 0, 1, nvals, .6, numslots, xnslots, QF_NO_LOCK);
