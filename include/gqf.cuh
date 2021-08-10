@@ -115,6 +115,8 @@ extern "C" {
 
 	__host__ bool qf_free(QF *qf);
 
+	__host__ void qf_free_gpu(QF * qf);
+
 	/* Resize the QF to the specified number of slots.  Uses malloc() to
 	 * obtain the new memory, and calls free() on the old memory.
 	 * Return value:
@@ -145,6 +147,12 @@ extern "C" {
 	__host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								flags);
 
+	__host__ void bulk_insert_bucketing_premalloc(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags);
+
+	__host__ void bulk_insert_bucketing(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags);
+
+
+	__host__ uint64_t bulk_get_wrapper(QF * qf, uint64_t * vals, uint64_t nvals);
 	/* Set the counter for this key/value pair to count. 
 	 Return value: Same as qf_insert. 
 	 Returns 0 if new count is equal to old count.

@@ -1,4 +1,4 @@
-TARGETS=test
+TARGETS=test bm_gpu_only
 
 ifdef D
 	DEBUG=-g -G
@@ -32,9 +32,9 @@ LD = nvcc
 
 CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT) $(ARCH) -m64 -I. -Iinclude
 
-CUFLAGS = $(DEBUG) -arch=sm_70 -rdc=true -I. -Iinclude
+CUFLAGS = $(DEBUG) -arch=sm_70 -rdc=true -I. -Iinclude 
 
-CUDALINK = -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64 -L/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib6
+CUDALINK = -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64 -L/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib6 -lcurand
 
 LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) $(CUDALINK) -arch=sm_70 -lpthread -lssl -lcrypto -lm -lcuda -lcudart
 
@@ -63,6 +63,10 @@ bm:									$(OBJDIR)/bm.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
 										$(OBJDIR)/zipf.o $(OBJDIR)/hashutil.o \
 										$(OBJDIR)/partitioned_counter.o
 
+bm_gpu_only:							$(OBJDIR)/bm_gpu_only.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
+										$(OBJDIR)/zipf.o $(OBJDIR)/hashutil.o \
+										$(OBJDIR)/partitioned_counter.o
+
 # dependencies between .o files and .h files
 
 $(OBJDIR)/test.o: 						$(LOC_INCLUDE)/gqf.cuh $(LOC_INCLUDE)/gqf_file.cuh \
@@ -75,6 +79,12 @@ $(OBJDIR)/test_threadsafe.o: 	$(LOC_INCLUDE)/gqf.cuh $(LOC_INCLUDE)/gqf_file.cuh
 
 $(OBJDIR)/bm.o:								$(LOC_INCLUDE)/gqf_wrapper.cuh \
 															$(LOC_INCLUDE)/partitioned_counter.cuh
+
+
+$(OBJDIR)/bm_gpu_only.o:								$(LOC_INCLUDE)/gqf_wrapper.cuh \
+															$(LOC_INCLUDE)/partitioned_counter.cuh \
+															$(LOC_INCLUDE)/cu_wrapper.cuh
+
 
 
 # dependencies between .o files and .cc (or .c) files

@@ -10,45 +10,120 @@
 #ifndef GQF_WRAPPER_CUH
 #define GQF_WRAPPER_CUH
 
+#define INSERT_VERSION_BULK
+
+#include <cuda.h>
+#include <cuda_runtime_api.h>
 #include "gqf.cuh"
 #include "gqf_int.cuh"
 #include "gqf_file.cuh"
 
-QF g_quotient_filter;
+QF* g_quotient_filter;
 QFi g_quotient_filter_itr;
+
+#ifndef NUM_SLOTS_TO_LOCK
+#define NUM_SLOTS_TO_LOCK (1ULL<<13)
+#endif
 
 extern inline int gqf_init(uint64_t nbits, uint64_t num_hash_bits)
 {
+
+
+	QF temp_device_qf;
+	QF host_qf;
 	uint64_t nslots = 1 << nbits;
-	qf_malloc(&g_quotient_filter, nslots, num_hash_bits, 0, QF_HASH_NONE, 0);
+	qf_malloc(&host_qf, nslots, num_hash_bits, 0, QF_HASH_NONE, false, 0);
+
+	qfruntime* _runtime;
+	qfmetadata* _metadata;
+	qfblock* _blocks;
+
+	cudaMalloc((void**)&_runtime, sizeof(qfruntime));
+	cudaMalloc((void**)&_metadata, sizeof(qfmetadata));
+	cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(&host_qf));
+
+	cudaMemcpy(_runtime, host_qf.runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice);
+	cudaMemcpy(_metadata, host_qf.metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice);
+	cudaMemcpy(_blocks, host_qf.blocks, qf_get_total_size_in_bytes(&host_qf), cudaMemcpyHostToDevice);
+	
+	temp_device_qf.runtimedata = _runtime;
+	temp_device_qf.metadata = _metadata;
+	temp_device_qf.blocks = _blocks;
+
+	//this might be buggy
+	cudaMalloc((void **)&g_quotient_filter, sizeof(QF));
+	cudaMemcpy(g_quotient_filter, &temp_device_qf, sizeof(QF), cudaMemcpyHostToDevice);
+
+
+
 	return 0;
 }
 
-extern inline int gqf_insert(__uint64_t val, uint64_t count)
+extern inline int gqf_insert(uint64_t val, uint64_t count)
 {
-	qf_insert(&g_quotient_filter, val, 0, count, QF_NO_LOCK);
+	qf_insert(g_quotient_filter, val, 0, count, QF_NO_LOCK);
 	return 0;
 }
 
-extern inline int gqf_lookup(__uint64_t val)
+extern inline int gqf_lookup(uint64_t val)
 {
-	return qf_count_key_value(&g_quotient_filter, val, 0, 0);
+	return qf_count_key_value(g_quotient_filter, val, 0, 0);
 }
 
-extern inline __uint64_t gqf_range()
+extern inline uint64_t gqf_range()
 {
-	return g_quotient_filter.metadata->range;
+	//fix me im on device
+	//have to deep copy
+
+	QF* host_qf;
+
+	cudaMallocHost((void **)&host_qf, sizeof(QF));
+
+	cudaMemcpy(host_qf, g_quotient_filter, sizeof(QF), cudaMemcpyDeviceToHost);
+
+	uint64_t range;
+	qfmetadata* _metadata;
+	cudaMallocHost((void **)&_metadata, sizeof(qfmetadata));
+	cudaMemcpy(_metadata, host_qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost);
+	range = _metadata->range;
+
+	cudaFreeHost(_metadata);
+	cudaFreeHost(host_qf);
+	return range;
+}
+
+extern inline uint64_t gqf_xnslots()
+{
+	//fix me im on device
+	//have to deep copy
+
+	QF* host_qf;
+
+	cudaMallocHost((void **)&host_qf, sizeof(QF));
+
+	cudaMemcpy(host_qf, g_quotient_filter, sizeof(QF), cudaMemcpyDeviceToHost);
+
+	uint64_t range;
+	qfmetadata* _metadata;
+	cudaMallocHost((void **)&_metadata, sizeof(qfmetadata));
+	cudaMemcpy(_metadata, host_qf->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost);
+	range = _metadata->xnslots;
+
+	cudaFreeHost(_metadata);
+	cudaFreeHost(host_qf);
+	return range;
 }
 
 extern inline int gqf_destroy()
 {
-	qf_free(&g_quotient_filter);
+	//fix me this isn't going to work
+	qf_free_gpu(g_quotient_filter);
 	return 0;
 }
 
 extern inline int gqf_iterator(uint64_t pos)
 {
-	qf_iterator_from_position(&g_quotient_filter, &g_quotient_filter_itr, pos);
+	qf_iterator_from_position(g_quotient_filter, &g_quotient_filter_itr, pos);
 	return 0;
 }
 
@@ -70,6 +145,35 @@ extern inline int gqf_next()
 extern inline int gqf_end()
 {
 	return qfi_end(&g_quotient_filter_itr);
+}
+
+extern inline int gqf_bulk_insert(uint64_t * vals, uint64_t count, uint64_t xnslots)
+{
+	bulk_insert_bucketing(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, xnslots, QF_NO_LOCK);
+	return 0;
+}
+
+extern inline uint64_t gqf_bulk_get(uint64_t * vals, uint64_t count){
+
+  
+
+  return bulk_get_wrapper(g_quotient_filter, vals, count);
+
+}
+
+//replace vals with a cudaMalloced Array for gpu inserts
+extern inline uint64_t * gqf_prep_vals(__uint128_t * vals, uint64_t count){
+
+
+	uint64_t *hostvals;
+	//= (uint64_t * ) calloc(count, sizeof(uint64_t));
+	cudaMallocManaged((void **)&hostvals, count*sizeof(uint64_t));
+
+	for (uint64_t i=0; i < count; i++){
+		hostvals[i] = vals[i];
+	}
+
+	return hostvals;
 }
 
 #endif

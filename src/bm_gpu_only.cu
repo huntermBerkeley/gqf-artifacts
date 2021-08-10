@@ -20,6 +20,7 @@
 
 #include "include/zipf.cuh"
 #include "include/gqf_wrapper.cuh"
+#include "include/cu_wrapper.cuh"
 
 #ifndef  USE_MYRANDOM
 #define RFUN random
@@ -27,6 +28,8 @@
 #else
 #define RFUN myrandom
 #define RSEED mysrandom
+
+ #define BUF_SIZE 1L<<16
 
 static unsigned int m_z = 1;
 static unsigned int m_w = 1;
@@ -150,9 +153,10 @@ typedef int (*iterator_op)(uint64_t pos);
 typedef int (*iterator_get_op)(uint64_t *key, uint64_t *value, uint64_t *count);
 typedef int (*iterator_next_op)();
 typedef int (*iterator_end_op)();
-typedef int (*bulk_insert_op)(uint64_t * vals, uint64_t nvals);
+typedef int (*bulk_insert_op)(uint64_t * vals, uint64_t nvals, uint64_t xnslots);
 typedef uint64_t * (*prep_vals_op)(__uint128_t * vals, uint64_t nvals);
 typedef uint64_t (*bulk_find_op)(uint64_t * vals, uint64_t nvals);
+typedef uint64_t (*get_slots_op)();
 
 
 typedef struct rand_generator {
@@ -174,6 +178,7 @@ typedef struct filter {
 	bulk_insert_op bulk_insert;
 	prep_vals_op prep_vals;
 	bulk_find_op bulk_lookup;
+	get_slots_op get_slots;
 
 } filter;
 
@@ -440,7 +445,8 @@ filter gqf = {
 	gqf_end,
 	gqf_bulk_insert,
 	gqf_prep_vals,
-	gqf_bulk_get
+	gqf_bulk_get,
+	gqf_xnslots
 };
 
 void filter_multi_merge(filter qf_arr[], int nqf, filter qfr)
@@ -527,6 +533,7 @@ void usage(char *name)
 
 int main(int argc, char **argv)
 {
+
 	uint32_t nbits = 22, nruns = 1;
 	unsigned int npoints = 20;
 	uint64_t nslots = (1ULL << nbits), nvals = 950*nslots/1000;
@@ -676,6 +683,8 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	
+
 	snprintf(filename_insert, strlen(dir) + strlen(outputfile) + strlen(insert_op) + 1, "%s%s%s", dir, outputfile, insert_op);
 	snprintf(filename_exit_lookup, strlen(dir) + strlen(outputfile) + strlen(exit_lookup_op) + 1, "%s%s%s", dir, outputfile, exit_lookup_op);
 
@@ -735,11 +744,17 @@ int main(int argc, char **argv)
 		for (run = 0; run < nruns; run++) {
 			fps = 0;
 			filter_ds.init(nbits, nbits+8);
+			uint64_t xnslots = filter_ds.get_slots();
 
-			vals_gen_state = vals_gen->init(nvals, filter_ds.range(), param);
-			old_vals_gen_state = vals_gen->dup(vals_gen_state);
+			//init curand here
+			//setup for curand here
+			curand_generator curand_test{};
+			curand_test.init_curand(1, 0, BUF_SIZE);
+			curand_generator othervals_gen{};
+			othervals_gen.init_curand(5, 0, BUF_SIZE);
+
+		
 			sleep(5);
-			othervals_gen_state = othervals_gen->init(nvals, filter_ds.range(), param);
 
 			for (exp = 0; exp < 2*npoints; exp += 2) {
 				i = (exp/2)*(nvals/npoints);
@@ -747,21 +762,23 @@ int main(int argc, char **argv)
 				printf("Round: %d\n", exp/2);
 
 				gettimeofday(&tv_insert[exp][run], NULL);
-				for (;i < j; i += 1<<16) {
-					int nitems = j - i < 1<<16 ? j - i : 1<<16;
-					__uint128_t vals[1<<16];
-					int m;
-					assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
+				for (;i < j; i += BUF_SIZE) {
+					int nitems = j - i < BUF_SIZE ? j - i : BUF_SIZE;
+					uint64_t * vals;
+					//int m;
+					//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
 
 					//prep vals for filter
-					uint64_t * to_insert = filter_ds.prep_vals(vals, nitems);
+					curand_test.gen_next_batch(nitems);
+					vals = curand_test.yield_backing();
+
 					
 
 					#ifdef INSERT_VERSION_BULK
 
 						//printf("This is successfully triggering\n");
-						filter_ds.bulk_insert(to_insert, nitems);
-						cudaFree(to_insert);
+						filter_ds.bulk_insert(vals, nitems, xnslots);
+						
 
 					#else
 
@@ -772,19 +789,25 @@ int main(int argc, char **argv)
 				}
 				gettimeofday(&tv_insert[exp+1][run], NULL);
 
+				curand_test.reset_to_defualt();
+
 				i = (exp/2)*(nvals/npoints);
 				gettimeofday(&tv_exit_lookup[exp][run], NULL);
-				for (;i < j; i += 1<<16) {
-					int nitems = j - i < 1<<16 ? j - i : 1<<16;
-					__uint128_t vals[1<<16];
+				for (;i < j; i += BUF_SIZE) {
+					int nitems = j - i < BUF_SIZE ? j - i : BUF_SIZE;
+					
 					int m;
-					assert(vals_gen->gen(old_vals_gen_state, nitems, vals) == nitems);
+					//assert(vals_gen->gen(old_vals_gen_state, nitems, vals) == nitems);
 					
 					#ifdef INSERT_VERSION_BULK
 
-						uint64_t * to_insert = filter_ds.prep_vals(vals, nitems);
-						uint64_t result = filter_ds.bulk_lookup(to_insert, nitems);
-						cudaFree(to_insert);
+						//int m;
+						//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
+						uint64_t * insert_vals;
+						//prep vals for filter
+						curand_test.gen_next_batch(nitems);
+						insert_vals = curand_test.yield_backing();
+						uint64_t result = filter_ds.bulk_lookup(insert_vals, nitems);
 
 						if (result != 0){
 
@@ -811,19 +834,20 @@ int main(int argc, char **argv)
 
 				i = (exp/2)*(nvals/npoints);
 				gettimeofday(&tv_false_lookup[exp][run], NULL);
-				for (;i < j; i += 1<<16) {
-					int nitems = j - i < 1<<16 ? j - i : 1<<16;
-					__uint128_t othervals[1<<16];
+				for (;i < j; i += BUF_SIZE) {
+					int nitems = j - i < BUF_SIZE ? j - i : BUF_SIZE;
+					uint64_t * othervals;
 					int m;
-					assert(othervals_gen->gen(othervals_gen_state, nitems, othervals) == nitems);
+
+					othervals_gen.gen_next_batch(nitems);
+					othervals = othervals_gen.yield_backing();
 					
 
 					#ifdef INSERT_VERSION_BULK
 
-						uint64_t * to_insert = filter_ds.prep_vals(othervals, nitems);
-						fps += filter_ds.bulk_lookup(to_insert, nitems);
-						//need to cudaFree here
-						cudaFree(to_insert);
+						
+						fps += filter_ds.bulk_lookup(othervals, nitems);
+						
 					#else
 
 						for (m = 0; m < nitems; m++) {

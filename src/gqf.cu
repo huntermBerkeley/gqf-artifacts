@@ -1834,6 +1834,22 @@ __host__ bool qf_free(QF *qf)
 	return false;
 }
 
+__host__ void qf_free_gpu(QF * qf){
+
+	QF hostQF;
+
+	//cudaMallocHost((void **)&hostQF, sizeof(QF));
+
+	cudaMemcpy(&hostQF, qf, sizeof(QF), cudaMemcpyDeviceToHost);
+
+	cudaFree(hostQF.runtimedata);
+	cudaFree(hostQF.metadata);
+	cudaFree(hostQF.blocks);
+
+	cudaFree(qf);
+	
+}
+
 __host__ void qf_copy(QF *dest, const QF *src)
 {
 	DEBUG_CQF("%s\n","Source CQF");
@@ -2055,6 +2071,217 @@ __device__ uint16_t unlock(volatile uint32_t* lock, int index) {
 }
 
 
+__device__ __forceinline__ void exchange(uint64_t * arr, uint64_t i, uint64_t j){
+
+
+	uint64_t temp = arr[i];
+	arr[i] = arr[j];
+	arr[j] = temp;
+
+	//maybe synchthreads?
+
+}
+
+__device__ __forceinline__ void compare(uint64_t * arr, uint64_t i, uint64_t j, bool dir){
+
+	if (dir == (arr[i] > arr[j])){
+
+		exchange(arr, i, j);
+
+	}
+
+}
+
+
+//return the biggest int of a uint64
+__device__ __forceinline__ int biggest_bit(uint64_t n){
+
+	return 63 - __clzll((unsigned long long int) n);
+
+}
+
+
+__device__ __forceinline__ uint64_t biggest_pow_2(uint64_t n){
+
+
+	return 1UL<<biggest_bit(n)-1;
+
+}
+
+
+
+//provide merge of a section of the array
+__device__ void __bitonic_merge(uint64_t * array, uint64_t low, uint64_t n, uint64_t idx, bool dir){
+
+
+	if (n > 1){
+
+		uint64_t m = biggest_pow_2(n);
+
+		if (idx >= low && idx < low+n-m){
+
+			compare(array, idx, idx+m, dir);
+
+		}
+	//what spot right spot?
+	__syncthreads();
+
+	if (idx < m){
+		__bitonic_merge(array, low, m, idx, dir);
+	} else {
+
+		//need to verify this section
+		__bitonic_merge(array, low+m, n-m, idx-m, dir);
+	}
+	
+	}
+
+
+}
+
+//__device__ void __bitonic_sort(uint64_t * array, uint64_t low, uint64_t n, uint64_t idx, bool dir);
+
+
+__device__ void __bitonic_sort(uint64_t * array, uint64_t low, uint64_t n, uint64_t idx, bool dir){
+
+	if (n > 1){
+
+		//get power of two to separate on
+		uint64_t m = biggest_pow_2(n);
+
+
+		if (idx < m){
+			__bitonic_sort(array, low, m, idx, !dir);
+		} else {
+			__bitonic_sort(array, low+m, n-m, idx-m, dir);
+		}
+		//and perform final merge
+		__bitonic_merge(array, low, n, idx, dir);
+		
+	}
+
+
+}
+
+//in place bitonic sort
+__global__ void sort(uint64_t * array, uint64_t n){
+
+	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+
+	__bitonic_sort(array, 0, n, idx, true);
+
+}
+
+
+void swap(uint64_t * array, uint64_t first, uint64_t second){
+    
+    uint64_t temp = array[first];
+    array[first] = array[second];
+    array[second] = temp;
+}
+
+//give index to partition over
+uint64_t partition(uint64_t * array, uint64_t low, uint64_t high){
+    
+    
+    uint64_t index = low;
+    uint64_t pivot = high;
+    
+    for (uint64_t i = low; i < high; i++){
+        
+        if (array[i] < array[pivot]){
+            swap(array, i, index);
+            index++;
+        }
+    }
+    
+    swap(array, index, pivot);
+    
+    return index;
+    
+    
+}
+
+
+//cpp code i wrote cause cori is down - this works in C
+bool assert_sorted(uint64_t * array, uint64_t nitems){
+    
+    uint64_t start = array[0];
+    
+    for (uint64_t i =1; i < nitems; i++){
+        
+        if (start > array[i]) return false;
+        start = array[i];
+    }
+    
+    return true;
+    
+}
+
+void print_arr(uint64_t * array, uint64_t nitems){
+    
+    for (uint64_t i =0; i < nitems; i++){
+        
+        cout << array[i] << " ";
+    }
+    cout << endl;
+}
+
+void quick_sort(uint64_t * array, uint64_t low, uint64_t high){
+    
+    if (low >= high) return;
+    
+    uint64_t pivot = partition(array, low, high);
+    
+    cout << "Size: "<< high+1-low << ", partition: " << pivot-low << endl;
+    
+    print_arr(array+low, high+1);
+    
+    //don't go below bounds
+    
+    
+    if (pivot != low) quick_sort(array, low, pivot-1);
+    if (pivot != high) quick_sort(array, pivot+1, high);
+    
+    cout << "Size: "<< high+1-low << " recursion done" << endl;
+}
+
+uint64_t test(){
+    return 0;
+}
+
+int main()
+{
+    
+    uint64_t nitems = 10;
+    cout<<"arr: ";
+    
+    uint64_t * array;
+    
+    array = (uint64_t *) malloc(nitems*sizeof(uint64_t));
+    
+    for (uint64_t i =0; i < nitems; i++){
+        
+        array[i] = rand();
+    }
+    
+    print_arr(array, nitems);
+    
+    
+    quick_sort(array, 0, nitems-1);
+    
+    print_arr(array, nitems);
+    
+    
+    free(array);
+
+    return 0;
+}
+
+//end of cpp copy paste
+
+
+
 //how large should the allocated buffers be?
 __global__ void count_off(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
 
@@ -2142,6 +2369,11 @@ __global__ void insert_from_buffers(QF* qf, uint64_t num_buffers, uint64_t** buf
 
 
 	if (idx >= num_buffers) return;
+
+
+	//at the start, we sort
+	//we are exceeding bounds by 1
+	quick_sort(buffers[idx], 0, buffer_counts[idx]-1);
 
 
 	
@@ -2255,6 +2487,57 @@ __host__ void create_buffers(QF * qf, uint64_t** buffers, volatile uint64_t * bu
 
 }
 
+//save on malloc call and device_syncronize
+__host__ void create_buffers_premalloced(QF*qf, uint64_t** buffers, uint64_t * buffer_backing, volatile uint64_t * buffer_sizes, uint64_t num_buffers){
+
+	uint64_t**buffers_host;
+
+	CUDA_CHECK(cudaMallocHost((void**)&buffers_host, num_buffers*sizeof(uint64_t *)));
+
+	uint64_t* buffer_sizes_host;
+
+	CUDA_CHECK(cudaMallocHost((void **)&buffer_sizes_host, num_buffers*sizeof(uint64_t)));
+
+	CUDA_CHECK(cudaMemcpy(buffer_sizes_host, (uint64_t *) buffer_sizes, num_buffers*sizeof(uint64_t), cudaMemcpyDeviceToHost));
+
+
+	uint64_t counter = 0;
+
+	for (uint64_t i =0; i < num_buffers; i++){
+
+		uint64_t * temp_buffer;
+		CUDA_CHECK(cudaMalloc((void **)&temp_buffer, buffer_sizes_host[i]*sizeof(uint64_t) ));
+
+		buffers_host[i] = buffer_backing+counter;
+		counter += buffer_sizes_host[i];
+
+	}
+
+	cudaMemcpy(buffers, buffers_host, num_buffers*sizeof(uint64_t *), cudaMemcpyHostToDevice);
+	CUDA_CHECK(cudaFreeHost(buffers_host));
+	CUDA_CHECK(cudaFreeHost(buffer_sizes_host));
+
+
+}
+
+__host__ void free_buffers_premalloced(QF *qf, uint64_t**buffers, uint64_t * buffer_backing, volatile uint64_t*buffer_sizes, uint64_t num_buffers){
+
+
+
+	//free main buffers and sizes
+	CUDA_CHECK(cudaFree(buffers));
+	CUDA_CHECK(cudaFree((uint64_t *) buffer_sizes));
+	cudaFree(buffer_backing);
+
+	//CUDA_CHECK(cudaMemcpy(buffers, buffers_host, num_buffers*sizeof(uint64_t *), cudaMemcpyHostToDevice));
+
+
+
+
+
+}
+
+
 __host__ void free_buffers(QF *qf, uint64_t**buffers, volatile uint64_t*buffer_sizes, uint64_t num_buffers){
 
 
@@ -2283,6 +2566,68 @@ __host__ void free_buffers(QF *qf, uint64_t**buffers, volatile uint64_t*buffer_s
 
 }
 
+__host__ void bulk_insert_bucketing_premalloc(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags) {
+
+	uint64_t key_block_size = 24;
+	uint64_t key_block = (nvals -1)/key_block_size + 1;
+	//start with num_locks, get counts
+
+	volatile uint64_t * buffer_sizes;
+	CUDA_CHECK(cudaMalloc((void **) & buffer_sizes, num_locks*sizeof(uint64_t)));
+	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0, num_locks*sizeof(uint64_t)));
+	uint64_t ** buffers;
+	CUDA_CHECK(cudaMalloc((void **)&buffers, num_locks*sizeof(uint64_t*)));
+	uint64_t * buffer_backing;
+	cudaMalloc((void **)& buffer_backing, nvals*sizeof(uint64_t));
+
+	//printf("Number of items to be inserted: %llu\n", nvals);
+
+
+	//sort first
+	//sort<<<key_block, key_block_size>>>(keys, nvals);
+
+	cudaDeviceSynchronize();
+
+
+	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
+
+	//counts look good!
+	//copy over buffer to __host__, and malloc buffers
+	
+	cudaDeviceSynchronize();
+
+	create_buffers_premalloced(qf, buffers, buffer_backing, buffer_sizes, num_locks);
+	
+
+	//reset sizes
+	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0 ,num_locks*sizeof(uint64_t)));
+
+	count_insert<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, buffer_sizes, value, flags);
+
+
+
+
+	//and launch
+	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
+
+
+	//time to insert
+	uint64_t evenness = 0;
+
+	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+	
+
+	evenness = 1;
+
+	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+
+
+	//free materials;
+	//TODO:
+	free_buffers_premalloced(qf, buffers, buffer_backing,  buffer_sizes, num_locks);
+
+}
+
 
 __host__ void bulk_insert_bucketing(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags) {
 
@@ -2299,12 +2644,6 @@ __host__ void bulk_insert_bucketing(QF* qf, uint64_t* keys, uint64_t value, uint
 	auto bucketing_start = std::chrono::high_resolution_clock::now();
 
 	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
-	cudaDeviceSynchronize();
-	//(QF * qf, uint64_t num_keys, uint64_t * keys, uint64_t num_buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
-	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
-	cudaDeviceSynchronize();
-	fflush(stdout);
-
 	auto count_timer = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> diff = count_timer-bucketing_start;
@@ -2627,9 +2966,9 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
     //printf("%d insert %d, key: %llu, hash: %llu \n", idx, i, key, hash);
 		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
 		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-		//uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
+		uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
     //if this succeeds, implies we have an overwrite error with the lock
-    uint64_t lock_index = 0;
+    //uint64_t lock_index = 0;
 
 		//if (hash_bucket_index % 2 == evenness) {
     if (true){
@@ -2986,7 +3325,7 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 	uint64_t evenness = 1;
 	//num_blocks = 100;
 	//block_size = 320;
-  uint64_t block_size = 1;
+  uint64_t block_size = 32;
 	uint64_t num_blocks = (nvals/400 - 1) / block_size +1;
 
 	printf("%llu blocks of size %llu\n", num_blocks, block_size);
@@ -2996,6 +3335,28 @@ __host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t co
 	//qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
 
 	//qf_dump_kernel<<<1,1>>>(qf);
+
+
+}
+
+//this func will take in a set of keys and consume them, freeing memory when done
+// with locking / threadfence, we can launch as many of these as possible
+__host__ void qf_bulk_insert_streaming(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, volatile uint32_t* locks, uint8_t flags) {
+
+	cudaStream_t temp_stream;
+	cudaStreamCreate(& temp_stream);
+
+	uint64_t evenness = 1;
+	uint64_t block_size = 32;
+	uint64_t num_blocks = (nvals/400 - 1) / block_size +1;
+
+
+	qf_insert_evenness <<< num_blocks, block_size, temp_stream>>> (qf, keys, value, count, nvals, locks, evenness, flags);
+
+	cudaFree(keys);
+
+	cudaStreamDestroy(temp_stream);
+
 }
 
 
@@ -3042,6 +3403,23 @@ __global__ void bulk_get(QF * qf, uint64_t * vals,  uint64_t nvals, uint64_t key
 			atomicAdd((long long unsigned int *)counter, (long long unsigned int) 1);
 
 		}
+}
+
+__host__ uint64_t bulk_get_wrapper(QF * qf, uint64_t * vals, uint64_t nvals){
+
+	uint64_t * misses;
+	//this is fine, should never be triggered
+  cudaMallocManaged((void **)&misses, sizeof(uint64_t));
+  cudaMemset(misses, 0, sizeof(uint64_t));
+
+  bulk_get<<<(nvals-1)/1024+1, 1024>>>(qf, vals, nvals, 1, misses, QF_NO_LOCK);
+
+  cudaDeviceSynchronize();
+  uint64_t toReturn = *misses;
+
+  cudaFree(misses);
+  return toReturn;
+
 }
 
 
@@ -3105,11 +3483,10 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t ke
   fflush(stdout);
   //qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
 	//qf_bulk_insert_nolock(_qf, _vals, 0, 1, nvals, num_locks, _lock, QF_NO_LOCK);
-	bulk_insert_bucketing_timed(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK);
+	bulk_insert_bucketing_premalloc(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK);
 
   //bulk smart insert
   //bulk_insert_bucketing_steps(_qf, _vals, 0, 1, nvals, .6, numslots, xnslots, QF_NO_LOCK);
-  cudaDeviceSynchronize();
   //printf("\n\nmidpoint: %llu \n\n", midpoint);
 
 
@@ -3135,6 +3512,18 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t ke
   bulk_get<<<(nvals-1)/1024+1, 1024>>>(_qf, _vals, nvals, key_count, misses, QF_NO_LOCK);
 
   cudaDeviceSynchronize();
+
+  auto get_timer = std::chrono::high_resolution_clock::now();
+
+  diff = get_timer-end;
+
+  std::cout << "Searched for " << nvals << " in " << diff.count() << " seconds\n";
+
+  printf("Gets per second: %f\n", nvals/diff.count());
+
+
+
+
   uint64_t * host_misses;
   cudaMallocHost((void **)&host_misses, sizeof(uint64_t));
   cudaMemcpy(host_misses, misses, sizeof(uint64_t), cudaMemcpyDeviceToHost);
