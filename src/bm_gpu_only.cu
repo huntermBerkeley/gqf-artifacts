@@ -22,6 +22,8 @@
 #include "include/gqf_wrapper.cuh"
 #include "include/cu_wrapper.cuh"
 
+#define BUF_SIZE 1L<<22
+
 #ifndef  USE_MYRANDOM
 #define RFUN random
 #define RSEED srandom
@@ -29,7 +31,7 @@
 #define RFUN myrandom
 #define RSEED mysrandom
 
- #define BUF_SIZE 1L<<16
+
 
 static unsigned int m_z = 1;
 static unsigned int m_w = 1;

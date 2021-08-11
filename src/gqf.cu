@@ -55,6 +55,9 @@
 
 #define CYCLES_PER_SECOND 1601000000
 
+#define MAX_DEPTH 16
+#define SELECT_BOUND 32
+
 #define DISTANCE_FROM_HOME_SLOT_CUTOFF 1000
 #define BILLION 1000000000L
 #define CUDA_CHECK(ans)                                                                  \
@@ -756,21 +759,62 @@ __host__ __device__ static inline uint64_t shift_into_b(const uint64_t a, const 
 	return a_component | b_shifted | (b & b_mask);
 }
 
+// __device__ void* gpu_memmove(void* dst, const void* src, size_t n)
+// {
+// 	//printf("Launching memmove\n");
+// 	//todo: allocate space per thread for this buffer before launching the kernel
+// 	void* temp_buffer = malloc(n);
+// 	//maybe stack allocation?
+// 	//void* temp_buffer = void* char[n];
+// 	// cudaMemcpyAsync(temp_buffer, src, n, cudaMemcpyDeviceToDevice);
+// 	// cudaMemcpyAsync(dst, temp_buffer, n, cudaMemcpyDeviceToDevice);
+// 	// //cudaFree(temp_buffer);
+// 	// return dst;
+//   memcpy(temp_buffer, src, n);
+//   memcpy(dst, temp_buffer, n);
+
+//   free(temp_buffer);
+
+// }
+
+
+//a variant of memmove that compares the two pointers
 __device__ void* gpu_memmove(void* dst, const void* src, size_t n)
 {
 	//printf("Launching memmove\n");
 	//todo: allocate space per thread for this buffer before launching the kernel
-	void* temp_buffer = malloc(n);
-	// cudaMemcpyAsync(temp_buffer, src, n, cudaMemcpyDeviceToDevice);
-	// cudaMemcpyAsync(dst, temp_buffer, n, cudaMemcpyDeviceToDevice);
-	// //cudaFree(temp_buffer);
-	// return dst;
-  memcpy(temp_buffer, src, n);
-  memcpy(dst, temp_buffer, n);
 
-  free(temp_buffer);
+	char * char_dst = (char *) dst;
+	char * char_src = (char *) src;
+
+  //double check this,
+  //think it is just > since dst+n does not get copied
+  if (char_src+n > char_dst){
+
+  	//copy backwards 
+  	for (int i =n-1; i >= 0; i--){
+
+
+
+  		char_dst[i] = char_src[i];
+
+  	}
+
+  } else {
+
+  	//copy regular
+  	for (int i =0; i<n; i++){
+  		char_dst[i] = char_src[i];
+  	}
+
+
+  }
+
+  //free(temp_buffer);
 
 }
+
+
 #if QF_BITS_PER_SLOT == 8 || QF_BITS_PER_SLOT == 16 || QF_BITS_PER_SLOT == 32 || QF_BITS_PER_SLOT == 64
 
 __host__ __device__ static inline void shift_remainders(QF *qf, uint64_t start_index, uint64_t
@@ -2173,7 +2217,7 @@ __global__ void sort(uint64_t * array, uint64_t n){
 }
 
 
-void swap(uint64_t * array, uint64_t first, uint64_t second){
+__device__ void swap(uint64_t * array, uint64_t first, uint64_t second){
     
     uint64_t temp = array[first];
     array[first] = array[second];
@@ -2181,7 +2225,7 @@ void swap(uint64_t * array, uint64_t first, uint64_t second){
 }
 
 //give index to partition over
-uint64_t partition(uint64_t * array, uint64_t low, uint64_t high){
+__device__ uint64_t partition(uint64_t * array, uint64_t low, uint64_t high){
     
     
     uint64_t index = low;
@@ -2202,9 +2246,36 @@ uint64_t partition(uint64_t * array, uint64_t low, uint64_t high){
     
 }
 
+__device__ void selection_sort( uint64_t *data, uint64_t left, uint64_t right )
+{
+  for( int i = left ; i <= right ; ++i )
+  {
+    uint64_t min_val = data[i];
+    int min_idx = i;
+
+    // Find the smallest value in the range [left, right].
+    for( int j = i+1 ; j <= right ; ++j )
+    {
+      uint64_t val_j = data[j];
+      if( val_j < min_val )
+      {
+        min_idx = j;
+        min_val = val_j;
+      }
+    }
+
+    // Swap the values.
+    if( i != min_idx )
+    {
+      data[min_idx] = data[i];
+      data[i] = min_val;
+    }
+  }
+}
+
 
 //cpp code i wrote cause cori is down - this works in C
-bool assert_sorted(uint64_t * array, uint64_t nitems){
+__device__ bool assert_sorted(uint64_t * array, uint64_t nitems){
     
     uint64_t start = array[0];
     
@@ -2222,63 +2293,61 @@ void print_arr(uint64_t * array, uint64_t nitems){
     
     for (uint64_t i =0; i < nitems; i++){
         
-        cout << array[i] << " ";
+        printf("%llu ",array[i]);
     }
-    cout << endl;
+    printf("\n");
 }
 
-void quick_sort(uint64_t * array, uint64_t low, uint64_t high){
+__device__ void quick_sort(uint64_t * array, uint64_t low, uint64_t high, uint64_t depth){
     
     if (low >= high) return;
+
+
+    if (depth >= MAX_DEPTH || high-low <= SELECT_BOUND){
+
+    	selection_sort(array, low, high);
+    	return;
+
+    }
     
     uint64_t pivot = partition(array, low, high);
+ 
     
-    cout << "Size: "<< high+1-low << ", partition: " << pivot-low << endl;
-    
-    print_arr(array+low, high+1);
+    //print_arr(array+low, high+1);
     
     //don't go below bounds
     
     
-    if (pivot != low) quick_sort(array, low, pivot-1);
-    if (pivot != high) quick_sort(array, pivot+1, high);
+    if (pivot != low) quick_sort(array, low, pivot-1, depth+1);
+    if (pivot != high) quick_sort(array, pivot+1, high, depth+1);
     
-    cout << "Size: "<< high+1-low << " recursion done" << endl;
 }
 
-uint64_t test(){
-    return 0;
-}
-
-int main()
-{
-    
-    uint64_t nitems = 10;
-    cout<<"arr: ";
-    
-    uint64_t * array;
-    
-    array = (uint64_t *) malloc(nitems*sizeof(uint64_t));
-    
-    for (uint64_t i =0; i < nitems; i++){
-        
-        array[i] = rand();
-    }
-    
-    print_arr(array, nitems);
-    
-    
-    quick_sort(array, 0, nitems-1);
-    
-    print_arr(array, nitems);
-    
-    
-    free(array);
-
-    return 0;
-}
 
 //end of cpp copy paste
+
+__global__ void bulk_quick_sort(uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts){
+
+
+	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+
+
+
+	if (idx >= num_buffers) return;
+
+
+	//at the start, we sort
+	//we are exceeding bounds by 1
+	//quick_sort(buffers[idx], 0, buffer_counts[idx]-1,0);
+	//no need to sort if empty - this will cause overflow as 0-1 == max_uint
+	if (buffer_counts[idx] > 0) {
+
+		quick_sort(buffers[idx], 0, buffer_counts[idx]-1, 0);
+
+		//assert(assert_sorted(buffers[idx], buffer_counts[idx]));
+
+	}
+}
 
 
 
@@ -2373,9 +2442,15 @@ __global__ void insert_from_buffers(QF* qf, uint64_t num_buffers, uint64_t** buf
 
 	//at the start, we sort
 	//we are exceeding bounds by 1
-	quick_sort(buffers[idx], 0, buffer_counts[idx]-1);
+	//quick_sort(buffers[idx], 0, buffer_counts[idx]-1,0);
+	//no need to sort if empty - this will cause overflow as 0-1 == max_uint
+	// if (buffer_counts[idx] > 0) {
 
+	// 	quick_sort(buffers[idx], 0, buffer_counts[idx]-1, 0);
 
+	// 	//assert(assert_sorted(buffers[idx], buffer_counts[idx]));
+
+	// }
 	
 
 	uint64_t my_count = buffer_counts[idx];
@@ -2385,11 +2460,11 @@ __global__ void insert_from_buffers(QF* qf, uint64_t num_buffers, uint64_t** buf
 		int ret = qf_insert(qf, buffers[idx][i], 0, 1, QF_NO_LOCK);
 
 		//internal threadfence. Bad? actually seems to be fine
-		__threadfence();
+		//__threadfence();
 
 	}
 
-	//__threadfence();
+	__threadfence();
 
 
 
@@ -2586,8 +2661,6 @@ __host__ void bulk_insert_bucketing_premalloc(QF* qf, uint64_t* keys, uint64_t v
 	//sort first
 	//sort<<<key_block, key_block_size>>>(keys, nvals);
 
-	cudaDeviceSynchronize();
-
 
 	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
 
@@ -2609,6 +2682,24 @@ __host__ void bulk_insert_bucketing_premalloc(QF* qf, uint64_t* keys, uint64_t v
 
 	//and launch
 	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
+
+	cudaDeviceSynchronize();
+
+	auto start = std::chrono::high_resolution_clock::now();
+
+  bulk_quick_sort<<<key_block, key_block_size>>>(num_locks, buffers, buffer_sizes);
+
+	cudaDeviceSynchronize();
+
+	auto end = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<double> diff = end-start;
+
+  std::cout << "Sorted " << nvals << " in " << diff.count() << " seconds\n";
+
+  printf("Items Sorted per second: %f\n", nvals/diff.count());
+
+
 
 
 	//time to insert
@@ -3351,7 +3442,7 @@ __host__ void qf_bulk_insert_streaming(QF* qf, uint64_t* keys, uint64_t value, u
 	uint64_t num_blocks = (nvals/400 - 1) / block_size +1;
 
 
-	qf_insert_evenness <<< num_blocks, block_size, temp_stream>>> (qf, keys, value, count, nvals, locks, evenness, flags);
+	qf_insert_evenness <<< num_blocks, block_size, 0, temp_stream>>> (qf, keys, value, count, nvals, locks, evenness, flags);
 
 	cudaFree(keys);
 

@@ -19,7 +19,7 @@
 struct curand_generator {
 
 
-	void init_curand(uint64_t seed, int rand_type);
+	void init_curand(uint64_t seed, int rand_type, uint64_t backing_size);
 	void gen_next_batch(uint64_t noutputs);
 	void reset_to_defualt();
 	__device__ uint64_t get_next(uint64_t tid);
@@ -46,7 +46,6 @@ private:
 
 
 //backing size must be large enough to satisfy one full request set
-#define BACKING_SIZE 65536
 
 
 //for now, keep as global-ish entity wrapped in this file
