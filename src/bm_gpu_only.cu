@@ -769,8 +769,7 @@ int main(int argc, char **argv)
 			//setup for curand here
 			curand_generator curand_test{};
 			curand_test.init_curand(1, 0, buf_size);
-			curand_generator othervals_gen{};
-			othervals_gen.init_curand(5, 0, buf_size);
+			
 
 		
 			sleep(1);
@@ -790,7 +789,7 @@ int main(int argc, char **argv)
 					//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
 
 					//prep vals for filter
-					cudaProfilerStart();
+					//cudaProfilerStart();
 					curand_test.gen_next_batch(nitems);
 					vals = curand_test.yield_backing();
 					cudaDeviceSynchronize();
@@ -802,7 +801,7 @@ int main(int argc, char **argv)
 						//printf("This is successfully triggering\n");
 						
 						filter_ds.bulk_insert(vals, nitems);
-						cudaProfilerStop();
+						//cudaProfilerStop();
 
 					#else
 
@@ -856,6 +855,11 @@ int main(int argc, char **argv)
 				}
 				gettimeofday(&tv_exit_lookup[exp+1][run], NULL);
 
+
+				curand_test.destroy();
+				curand_generator othervals_gen{};
+				othervals_gen.init_curand(5, 0, buf_size);
+
 				i = (exp/2)*(nvals/npoints);
 				gettimeofday(&tv_false_lookup[exp][run], NULL);
 				for (;i < j; i += buf_size) {
@@ -882,6 +886,8 @@ int main(int argc, char **argv)
 				}
 				gettimeofday(&tv_false_lookup[exp+1][run], NULL);
 			}
+
+			othervals_gen.destroy();
 
 			
 			

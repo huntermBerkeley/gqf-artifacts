@@ -2730,7 +2730,7 @@ __host__ void bulk_insert_bucketing_buffer_provided(QF* qf, uint64_t* keys, uint
 
 
 	
-	
+	auto start_setup = std::chrono::high_resolution_clock::now();
 
 
 	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
@@ -2750,7 +2750,18 @@ __host__ void bulk_insert_bucketing_buffer_provided(QF* qf, uint64_t* keys, uint
 	count_insert<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, buffer_sizes, value, flags);
 
 
+	//these can go at the end
+	cudaDeviceSynchronize();
 
+	auto end_setup = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<double> diff = end_setup-start_setup;
+
+	printf("Num items: %llu, num_locks: %llu\n", nvals, num_locks);
+
+  std::cout << "Setup in " << diff.count() << " seconds\n";
+
+  //printf("Items Sorted per second: %f\n", nvals/diff.count());
 
 	//and launch
 	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
@@ -2765,6 +2776,15 @@ __host__ void bulk_insert_bucketing_buffer_provided(QF* qf, uint64_t* keys, uint
 	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
 	
 
+	cudaDeviceSynchronize();
+	auto first = std::chrono::high_resolution_clock::now();
+
+	diff = first-end_setup;
+
+  std::cout << "First finished in " << diff.count() << " seconds\n";
+
+  //printf("Items Sorted per second: %f\n", nvals/diff.count());
+
 	evenness = 1;
 
 	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
@@ -2772,7 +2792,11 @@ __host__ void bulk_insert_bucketing_buffer_provided(QF* qf, uint64_t* keys, uint
 
 	//free materials;
 	cudaDeviceSynchronize();
-	
+	auto second = std::chrono::high_resolution_clock::now();
+
+	diff = second-first;
+
+  std::cout << "Second finished in " << diff.count() << " seconds\n";
 
 }
 

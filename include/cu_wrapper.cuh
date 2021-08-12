@@ -12,6 +12,7 @@
 #endif
 
 
+
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <curand.h>
@@ -34,7 +35,7 @@ private:
 	uint64_t state;
 	uint64_t seed;
 	uint64_t backing_size;
-	curandGenerator_t gen;
+	curandGenerator_t * gen;
 	int type;
 
 
@@ -58,12 +59,12 @@ void curand_generator::init_curand(uint64_t inp_seed, int rand_type, uint64_t _b
 	backing_size = _backing_size;
 
 	curandGenerator_t temp_generator;
-	gen = temp_generator;
+	gen = &temp_generator;
 
 	uint64_t * temp_backing;
 	cudaMalloc((void **) &temp_backing,backing_size*sizeof(uint64_t));
-	curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
-	curandSetPseudoRandomGeneratorSeed(gen, seed);
+	curandCreateGenerator(gen, CURAND_RNG_QUASI_SCRAMBLED_SOBOL64);
+	curandSetPseudoRandomGeneratorSeed(*gen, seed);
 	backing = temp_backing;
 
 }
@@ -73,7 +74,28 @@ void curand_generator::gen_next_batch(uint64_t noutputs){
 
 	if (state==0 || state == 1){
 
-		curandGenerateLongLong(gen, (unsigned long long *) backing, backing_size);
+		//this may not work
+		curandStatus_t status = curandGenerateLongLong(*gen, (unsigned long long *) backing, backing_size);
+
+		if (status == CURAND_STATUS_NOT_INITIALIZED){
+			printf("Not init\n");
+		}
+		if (status == CURAND_STATUS_PREEXISTING_FAILURE){
+			printf("Prev failure\n");
+		}
+		if (status == CURAND_STATUS_LENGTH_NOT_MULTIPLE){
+			printf("Not multiple\n");
+		}
+		if (status == CURAND_STATUS_LAUNCH_FAILURE){
+			printf("generic failure\n");
+		}
+		if (status == CURAND_STATUS_TYPE_ERROR){
+			printf("Not 64bit\n");
+		}
+		if (status == CURAND_STATUS_SUCCESS){
+			printf("No failure\n");
+		}
+
 
 	} else {
 
@@ -87,7 +109,7 @@ void curand_generator::gen_next_batch(uint64_t noutputs){
 
 void curand_generator::reset_to_defualt(){
 
-	curandSetPseudoRandomGeneratorSeed(gen, seed);
+	curandSetPseudoRandomGeneratorSeed(*gen, seed);
 
 }
 
@@ -121,7 +143,7 @@ uint64_t * curand_generator::yield_backing(){
 
 void curand_generator::destroy(){
 
-	curandDestroyGenerator(gen);
+	curandDestroyGenerator(*gen);
 	cudaFree(backing);
 
 
