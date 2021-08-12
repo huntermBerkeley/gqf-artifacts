@@ -17,12 +17,17 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cuda.h>
+#include <cuda_runtime_api.h>
 
 #include "include/zipf.cuh"
 #include "include/gqf_wrapper.cuh"
 #include "include/cu_wrapper.cuh"
 
-#define BUF_SIZE 1L<<22
+
+//nvprof tools
+#include <cuda_profiler_api.h>
+
 
 #ifndef  USE_MYRANDOM
 #define RFUN random
@@ -146,7 +151,7 @@ typedef void * (*rand_init)(uint64_t maxoutputs, __uint128_t maxvalue, void *par
 typedef int (*gen_rand)(void *state, uint64_t noutputs, __uint128_t *outputs);
 typedef void * (*duplicate_rand)(void *state);
 
-typedef int (*init_op)(uint64_t nvals, uint64_t hash);
+typedef int (*init_op)(uint64_t nvals, uint64_t hash, uint64_t buf_size);
 typedef int (*insert_op)(uint64_t val, uint64_t count);
 typedef int (*lookup_op)(uint64_t val);
 typedef uint64_t (*get_range_op)();
@@ -155,7 +160,7 @@ typedef int (*iterator_op)(uint64_t pos);
 typedef int (*iterator_get_op)(uint64_t *key, uint64_t *value, uint64_t *count);
 typedef int (*iterator_next_op)();
 typedef int (*iterator_end_op)();
-typedef int (*bulk_insert_op)(uint64_t * vals, uint64_t nvals, uint64_t xnslots);
+typedef int (*bulk_insert_op)(uint64_t * vals, uint64_t nvals);
 typedef uint64_t * (*prep_vals_op)(__uint128_t * vals, uint64_t nvals);
 typedef uint64_t (*bulk_find_op)(uint64_t * vals, uint64_t nvals);
 typedef uint64_t (*get_slots_op)();
@@ -560,6 +565,9 @@ int main(int argc, char **argv)
 	struct timeval tv_exit_lookup[100][1];
 	struct timeval tv_false_lookup[100][1];
 	uint64_t fps = 0;
+	//default buffer of 20;
+	uint64_t buf_bits = 20;
+	uint64_t buf_size = (1ULL << 20);
 
 	const char *dir = "./";
 	const char *insert_op = "-insert.txt\0";
@@ -573,7 +581,7 @@ int main(int argc, char **argv)
 	int opt;
 	char *term;
 
-	while((opt = getopt(argc, argv, "n:r:p:m:d:a:f:i:v:s")) != -1) {
+	while((opt = getopt(argc, argv, "n:r:p:b:m:d:a:f:i:v:s")) != -1) {
 		switch(opt) {
 			case 'n':
 				nbits = strtol(optarg, &term, 10);
@@ -601,6 +609,15 @@ int main(int argc, char **argv)
 					usage(argv[0]);
 					exit(1);
 				}
+				break;
+			case 'b':
+				buf_bits = strtol(optarg, &term, 10);
+				if (*term) {
+					fprintf(stderr, "Argument to -n must be an integer\n");
+					usage(argv[0]);
+					exit(1);
+				}
+				buf_size = (1ULL << buf_bits);
 				break;
 			case 'm':
 				randmode = optarg;
@@ -711,12 +728,12 @@ int main(int argc, char **argv)
 		// initialize all the filters and generators
 		for (int i = 0; i < numfilters; i++) {
 			filters[i] = gqf;
-			filters[i].init(nbits, num_hash_bits);
+			filters[i].init(nbits, num_hash_bits, buf_size);
 			generator[i] = &uniform_online;
 			generator_state[i] = generator[i]->init(nvals, filters[i].range(), param);
 		}
 		final_filter = gqf;
-		final_filter.init(nbits+ceil(numfilters/2), num_hash_bits);
+		final_filter.init(nbits+ceil(numfilters/2), num_hash_bits, buf_size);
 
 
 
@@ -745,18 +762,20 @@ int main(int argc, char **argv)
 
 		for (run = 0; run < nruns; run++) {
 			fps = 0;
-			filter_ds.init(nbits, nbits+8);
-			uint64_t xnslots = filter_ds.get_slots();
+			filter_ds.init(nbits, nbits+8, buf_size);
+			
 
 			//init curand here
 			//setup for curand here
 			curand_generator curand_test{};
-			curand_test.init_curand(1, 0, BUF_SIZE);
+			curand_test.init_curand(1, 0, buf_size);
 			curand_generator othervals_gen{};
-			othervals_gen.init_curand(5, 0, BUF_SIZE);
+			othervals_gen.init_curand(5, 0, buf_size);
 
 		
-			sleep(5);
+			sleep(1);
+
+			
 
 			for (exp = 0; exp < 2*npoints; exp += 2) {
 				i = (exp/2)*(nvals/npoints);
@@ -764,23 +783,26 @@ int main(int argc, char **argv)
 				printf("Round: %d\n", exp/2);
 
 				gettimeofday(&tv_insert[exp][run], NULL);
-				for (;i < j; i += BUF_SIZE) {
-					int nitems = j - i < BUF_SIZE ? j - i : BUF_SIZE;
+				for (;i < j; i += buf_size) {
+					int nitems = j - i < buf_size ? j - i : buf_size;
 					uint64_t * vals;
 					//int m;
 					//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
 
 					//prep vals for filter
+					cudaProfilerStart();
 					curand_test.gen_next_batch(nitems);
 					vals = curand_test.yield_backing();
+					cudaDeviceSynchronize();
 
 					
 
 					#ifdef INSERT_VERSION_BULK
 
 						//printf("This is successfully triggering\n");
-						filter_ds.bulk_insert(vals, nitems, xnslots);
 						
+						filter_ds.bulk_insert(vals, nitems);
+						cudaProfilerStop();
 
 					#else
 
@@ -795,8 +817,8 @@ int main(int argc, char **argv)
 
 				i = (exp/2)*(nvals/npoints);
 				gettimeofday(&tv_exit_lookup[exp][run], NULL);
-				for (;i < j; i += BUF_SIZE) {
-					int nitems = j - i < BUF_SIZE ? j - i : BUF_SIZE;
+				for (;i < j; i += buf_size) {
+					int nitems = j - i < buf_size ? j - i : buf_size;
 					
 					int m;
 					//assert(vals_gen->gen(old_vals_gen_state, nitems, vals) == nitems);
@@ -836,8 +858,8 @@ int main(int argc, char **argv)
 
 				i = (exp/2)*(nvals/npoints);
 				gettimeofday(&tv_false_lookup[exp][run], NULL);
-				for (;i < j; i += BUF_SIZE) {
-					int nitems = j - i < BUF_SIZE ? j - i : BUF_SIZE;
+				for (;i < j; i += buf_size) {
+					int nitems = j - i < buf_size ? j - i : buf_size;
 					uint64_t * othervals;
 					int m;
 
@@ -861,6 +883,7 @@ int main(int argc, char **argv)
 				gettimeofday(&tv_false_lookup[exp+1][run], NULL);
 			}
 
+			
 			
 			filter_ds.destroy();
 		}

@@ -21,11 +21,22 @@
 QF* g_quotient_filter;
 QFi g_quotient_filter_itr;
 
+uint64_t num_locks;
+
+volatile uint64_t * buffer_sizes;
+	
+uint64_t ** buffers;
+	
+uint64_t * buffer_backing;
+
+
 #ifndef NUM_SLOTS_TO_LOCK
 #define NUM_SLOTS_TO_LOCK (1ULL<<13)
 #endif
 
-extern inline int gqf_init(uint64_t nbits, uint64_t num_hash_bits)
+extern inline uint64_t gqf_xnslots();
+
+extern inline int gqf_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t buf_size)
 {
 
 
@@ -54,6 +65,16 @@ extern inline int gqf_init(uint64_t nbits, uint64_t num_hash_bits)
 	cudaMalloc((void **)&g_quotient_filter, sizeof(QF));
 	cudaMemcpy(g_quotient_filter, &temp_device_qf, sizeof(QF), cudaMemcpyHostToDevice);
 
+
+
+	num_locks = gqf_xnslots()/NUM_SLOTS_TO_LOCK+10;
+
+	cudaMalloc((void **) & buffer_sizes, num_locks*sizeof(uint64_t));
+	
+
+	cudaMalloc((void **)&buffers, num_locks*sizeof(uint64_t*));
+
+	cudaMalloc((void **)& buffer_backing, buf_size*sizeof(uint64_t));
 
 
 	return 0;
@@ -117,7 +138,10 @@ extern inline uint64_t gqf_xnslots()
 extern inline int gqf_destroy()
 {
 	//fix me this isn't going to work
+	free_buffers_premalloced(g_quotient_filter, buffers, buffer_backing, buffer_sizes, num_locks);
 	qf_free_gpu(g_quotient_filter);
+	
+
 	return 0;
 }
 
@@ -147,9 +171,12 @@ extern inline int gqf_end()
 	return qfi_end(&g_quotient_filter_itr);
 }
 
-extern inline int gqf_bulk_insert(uint64_t * vals, uint64_t count, uint64_t xnslots)
+extern inline int gqf_bulk_insert(uint64_t * vals, uint64_t count)
 {
-	bulk_insert_bucketing(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, xnslots, QF_NO_LOCK);
+
+  cudaMemset((uint64_t *) buffer_sizes, 0, num_locks*sizeof(uint64_t));
+	bulk_insert_bucketing_buffer_provided(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
+	cudaDeviceSynchronize();
 	return 0;
 }
 
