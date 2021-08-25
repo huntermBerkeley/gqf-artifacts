@@ -57,6 +57,7 @@ static float tdiff (struct timeval *start, struct timeval *end) {
 	return (end->tv_sec-start->tv_sec) +1e-6*(end->tv_usec - start->tv_usec);
 }
 
+/*
 uint64_t aes_hash2(uint64_t x)
 {
 	const uint64_t round_keys[32] =
@@ -112,6 +113,8 @@ uint64_t aes_hash2(uint64_t x)
 
 	return output;
 }
+
+*/
 
 static __uint128_t* zipf_gen(long N, long gencount, double s) {
 	int i;
@@ -522,6 +525,7 @@ void usage(char *name)
 				 "  -n nslots     [ log_2 of filter capacity.  Default 22 ]\n"
 				 "  -r nruns      [ number of runs.  Default 1 ]\n"
 				 "  -p npoints    [ number of points on the graph.  Default 20 ]\n"
+				 "  -b buf_size   [ log_2 of buffer capacity, default is nslots/npoints ]\n"
 				 "  -m randmode   [ Data distribution, one of \n"
 				 "                    uniform_pregen\n"
 				 "                    uniform_online\n"
@@ -569,7 +573,22 @@ int main(int argc, char **argv)
 	uint64_t buf_bits = 20;
 	uint64_t buf_size = (1ULL << 20);
 
+
+	#ifndef __x86_64
+
+	printf("Detected IBM version\n");
+
+
+	const char *dir = "/gpfs/alpine/bif115/scratch/hjmccoy/";
+
+	printf("Writing files to %s\n", dir);
+
+	#else 
+
 	const char *dir = "./";
+
+	#endif
+	
 	const char *insert_op = "-insert.txt\0";
 	const char *exit_lookup_op = "-exists-lookup.txt\0";
 	const char *false_lookup_op = "-false-lookup.txt\0";
@@ -593,6 +612,7 @@ int main(int argc, char **argv)
 				nslots = (1ULL << nbits);
 				nvals = 950*nslots/1000;
 				universe = nvals;
+				//buf_size = nbits - log2(npoints);
 				break;
 			case 'r':
 				nruns = strtol(optarg, &term, 10);
@@ -701,7 +721,6 @@ int main(int argc, char **argv)
 		usage(argv[0]);
 		exit(1);
 	}
-
 	
 
 	snprintf(filename_insert, strlen(dir) + strlen(outputfile) + strlen(insert_op) + 1, "%s%s%s", dir, outputfile, insert_op);
@@ -709,12 +728,23 @@ int main(int argc, char **argv)
 
 	snprintf(filename_false_lookup, strlen(dir) + strlen(outputfile) + strlen(false_lookup_op) + 1, "%s%s%s", dir, outputfile, false_lookup_op);
 
+
 	FILE *fp_insert = fopen(filename_insert, "w");
 	FILE *fp_exit_lookup = fopen(filename_exit_lookup, "w");
 	FILE *fp_false_lookup = fopen(filename_false_lookup, "w");
 
-	if (fp_insert == NULL || fp_exit_lookup == NULL || fp_false_lookup == NULL) {
-		printf("Can't open the data file");
+	if (fp_insert == NULL) {
+		printf("Can't open the data file %s\n", filename_insert);
+		exit(1);
+	}
+
+	if (fp_exit_lookup == NULL ) {
+	    printf("Can't open the data file %s\n", filename_exit_lookup);
+		exit(1);
+	}
+
+	if (fp_false_lookup == NULL) {
+		printf("Can't open the data file %s\n", filename_false_lookup);
 		exit(1);
 	}
 
@@ -767,8 +797,13 @@ int main(int argc, char **argv)
 
 			//init curand here
 			//setup for curand here
-			curand_generator curand_test{};
-			curand_test.init_curand(1, 0, buf_size);
+			//three generators - two clones for get/find and one random for fp testing
+			curand_generator curand_put{};
+			curand_put.init(1, 0, buf_size);
+			curand_generator curand_get{};
+			curand_get.init(1, 0, buf_size);
+			curand_generator curand_false{};
+			curand_false.init(123456789, 0, buf_size);
 			
 
 		
@@ -790,8 +825,8 @@ int main(int argc, char **argv)
 
 					//prep vals for filter
 					//cudaProfilerStart();
-					curand_test.gen_next_batch(nitems);
-					vals = curand_test.yield_backing();
+					curand_put.gen_next_batch(nitems);
+					vals = curand_put.yield_backing();
 					cudaDeviceSynchronize();
 
 					
@@ -800,6 +835,8 @@ int main(int argc, char **argv)
 
 						//printf("This is successfully triggering\n");
 						
+						//test, remove inserts and see what happens
+						//fuck me it was working - bulk_get returns # misses lksda
 						filter_ds.bulk_insert(vals, nitems);
 						//cudaProfilerStop();
 
@@ -812,7 +849,8 @@ int main(int argc, char **argv)
 				}
 				gettimeofday(&tv_insert[exp+1][run], NULL);
 
-				curand_test.reset_to_defualt();
+				//don't need this
+				//curand_test.reset_to_defualt();
 
 				i = (exp/2)*(nvals/npoints);
 				gettimeofday(&tv_exit_lookup[exp][run], NULL);
@@ -828,10 +866,10 @@ int main(int argc, char **argv)
 						//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
 						uint64_t * insert_vals;
 						//prep vals for filter
-						curand_test.gen_next_batch(nitems);
-						insert_vals = curand_test.yield_backing();
+						curand_get.gen_next_batch(nitems);
+						insert_vals = curand_get.yield_backing();
 						uint64_t result = filter_ds.bulk_lookup(insert_vals, nitems);
-
+						//uint64_t result = 0;
 						if (result != 0){
 
 						printf("Failed to find %llu items\n", result);
@@ -856,9 +894,9 @@ int main(int argc, char **argv)
 				gettimeofday(&tv_exit_lookup[exp+1][run], NULL);
 
 
-				curand_test.destroy();
-				curand_generator othervals_gen{};
-				othervals_gen.init_curand(5, 0, buf_size);
+				//curand_test.destroy();
+				//curand_generator othervals_curand{};
+				//othervals_curand.init_curand(5, 0, buf_size);
 
 				i = (exp/2)*(nvals/npoints);
 				gettimeofday(&tv_false_lookup[exp][run], NULL);
@@ -867,14 +905,14 @@ int main(int argc, char **argv)
 					uint64_t * othervals;
 					int m;
 
-					othervals_gen.gen_next_batch(nitems);
-					othervals = othervals_gen.yield_backing();
+					curand_false.gen_next_batch(nitems);
+					othervals = curand_false.yield_backing();
 					
 
 					#ifdef INSERT_VERSION_BULK
 
 						
-						fps += filter_ds.bulk_lookup(othervals, nitems);
+						fps += nitems-filter_ds.bulk_lookup(othervals, nitems);
 						
 					#else
 
@@ -887,11 +925,19 @@ int main(int argc, char **argv)
 				gettimeofday(&tv_false_lookup[exp+1][run], NULL);
 			}
 
-			othervals_gen.destroy();
+
+			//and destroy
+			curand_put.destroy();
+			curand_get.destroy();
+			curand_false.destroy();
+
+			
 
 			
 			
 			filter_ds.destroy();
+
+
 		}
 
 

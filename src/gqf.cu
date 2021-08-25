@@ -124,10 +124,19 @@ __host__ __device__ static inline int popcnt(uint64_t val)
 #ifdef __CUDA_ARCH__
 	val = __popcll(val);
 #else
-	asm("popcnt %[val], %[val]"
-		: [val] "+r" (val)
-		:
-		: "cc");
+
+	#ifndef __x86_64
+		val = __builtin_popcount(val);
+
+	#else
+		
+		asm("popcnt %[val], %[val]"
+			: [val] "+r" (val)
+			:
+			: "cc");
+		
+	#endif
+
 #endif
 	return val;
 }
@@ -137,6 +146,7 @@ __device__ static inline int64_t bitscanreverse(uint64_t val)
 	if (val == 0) {
 		return -1;
 	} else {
+
 		asm("bsr %[val], %[val]"
 			: [val] "+l" (val)
 			:
@@ -160,10 +170,25 @@ __host__ __device__ static inline int bitrank(uint64_t val, int pos) {
 #ifdef __CUDA_ARCH__
 	val = __popcll(val);
 #else
-	asm("popcnt %[val], %[val]"
-		: [val] "+r" (val)
-		:
-		: "cc");
+
+	//quick fix for summit
+
+	#ifndef __x86_64
+
+		val = __builtin_popcount(val);
+
+	#else
+
+		
+		asm("popcnt %[val], %[val]"
+			: [val] "+r" (val)
+			:
+			: "cc");
+
+	#endif
+		
+
+
 #endif
 	return val;
 }
@@ -2730,7 +2755,7 @@ __host__ void bulk_insert_bucketing_buffer_provided(QF* qf, uint64_t* keys, uint
 
 
 	
-	auto start_setup = std::chrono::high_resolution_clock::now();
+	//auto start_setup = std::chrono::high_resolution_clock::now();
 
 
 	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
@@ -2738,11 +2763,11 @@ __host__ void bulk_insert_bucketing_buffer_provided(QF* qf, uint64_t* keys, uint
 	//counts look good!
 	//copy over buffer to __host__, and malloc buffers
 	
-	cudaDeviceSynchronize();
+	//cudaDeviceSynchronize();
 
 
 	create_buffers_premalloced(qf, buffers, buffer_backing, buffer_sizes, num_locks);
-	cudaDeviceSynchronize();
+	//cudaDeviceSynchronize();
 
 	//reset sizes
 	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0 ,num_locks*sizeof(uint64_t)));
@@ -2751,15 +2776,15 @@ __host__ void bulk_insert_bucketing_buffer_provided(QF* qf, uint64_t* keys, uint
 
 
 	//these can go at the end
-	cudaDeviceSynchronize();
+	//cudaDeviceSynchronize();
 
-	auto end_setup = std::chrono::high_resolution_clock::now();
+	//auto end_setup = std::chrono::high_resolution_clock::now();
 
-	std::chrono::duration<double> diff = end_setup-start_setup;
+	//std::chrono::duration<double> diff = end_setup-start_setup;
 
-	printf("Num items: %llu, num_locks: %llu\n", nvals, num_locks);
+	//printf("Num items: %llu, num_locks: %llu\n", nvals, num_locks);
 
-  std::cout << "Setup in " << diff.count() << " seconds\n";
+  //std::cout << "Setup in " << diff.count() << " seconds\n";
 
   //printf("Items Sorted per second: %f\n", nvals/diff.count());
 
@@ -2776,12 +2801,12 @@ __host__ void bulk_insert_bucketing_buffer_provided(QF* qf, uint64_t* keys, uint
 	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
 	
 
-	cudaDeviceSynchronize();
-	auto first = std::chrono::high_resolution_clock::now();
+	//cudaDeviceSynchronize();
+	//auto first = std::chrono::high_resolution_clock::now();
 
-	diff = first-end_setup;
+	//diff = first-end_setup;
 
-  std::cout << "First finished in " << diff.count() << " seconds\n";
+  //std::cout << "First finished in " << diff.count() << " seconds\n";
 
   //printf("Items Sorted per second: %f\n", nvals/diff.count());
 
@@ -2791,12 +2816,12 @@ __host__ void bulk_insert_bucketing_buffer_provided(QF* qf, uint64_t* keys, uint
 
 
 	//free materials;
-	cudaDeviceSynchronize();
-	auto second = std::chrono::high_resolution_clock::now();
+	//cudaDeviceSynchronize();
+	//auto second = std::chrono::high_resolution_clock::now();
 
-	diff = second-first;
+	//diff = second-first;
 
-  std::cout << "Second finished in " << diff.count() << " seconds\n";
+  //std::cout << "Second finished in " << diff.count() << " seconds\n";
 
 }
 
@@ -3584,7 +3609,7 @@ __host__ uint64_t bulk_get_wrapper(QF * qf, uint64_t * vals, uint64_t nvals){
   cudaMallocManaged((void **)&misses, sizeof(uint64_t));
   cudaMemset(misses, 0, sizeof(uint64_t));
 
-  bulk_get<<<(nvals-1)/1024+1, 1024>>>(qf, vals, nvals, 1, misses, QF_NO_LOCK);
+  bulk_get<<<(nvals-1)/512+1, 512>>>(qf, vals, nvals, 1, misses, QF_NO_LOCK);
 
   cudaDeviceSynchronize();
   uint64_t toReturn = *misses;

@@ -39,11 +39,14 @@ extern inline uint64_t gqf_xnslots();
 extern inline int gqf_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t buf_size)
 {
 
+	//seems that we need to fix something here
+	//p qf->metadata->value_bits is 0, idx why
 
 	QF temp_device_qf;
 	QF host_qf;
 	uint64_t nslots = 1 << nbits;
-	qf_malloc(&host_qf, nslots, num_hash_bits, 0, QF_HASH_NONE, false, 0);
+	qf_malloc(&host_qf, nslots, num_hash_bits, 0, QF_HASH_INVERTIBLE, false, 0);
+	qf_set_auto_resize(&host_qf, false);
 
 	qfruntime* _runtime;
 	qfmetadata* _metadata;

@@ -11,6 +11,10 @@
 #define CURAND_WRAPPER_CUH
 #endif
 
+#define CURAND_CALL(x) do { if((x) != CURAND_STATUS_SUCCESS) { \
+      printf("Error at %s:%d\n",__FILE__,__LINE__);            \
+      if ((x) == CURAND_STATUS_NOT_INITIALIZED) printf("Gen no init\n"); \
+      }} while(0)
 
 
 #include <cuda.h>
@@ -20,7 +24,7 @@
 struct curand_generator {
 
 
-	void init_curand(uint64_t seed, int rand_type, uint64_t backing_size);
+	void init(uint64_t seed, int rand_type, uint64_t backing_size);
 	void gen_next_batch(uint64_t noutputs);
 	void reset_to_defualt();
 	__device__ uint64_t get_next(uint64_t tid);
@@ -35,7 +39,7 @@ private:
 	uint64_t state;
 	uint64_t seed;
 	uint64_t backing_size;
-	curandGenerator_t * gen;
+	curandGenerator_t gen;
 	int type;
 
 
@@ -46,11 +50,16 @@ private:
 //state 1: streaming uniform pregen
 
 
-//backing size must be large enough to satisfy one full request set
+// //backing size must be large enough to satisfy one full request set
+// __global__ void clip_values(uint64_t * items, uint64_t nitems, uint64_t clip){
+
+
+	
+// }
 
 
 //for now, keep as global-ish entity wrapped in this file
-void curand_generator::init_curand(uint64_t inp_seed, int rand_type, uint64_t _backing_size){
+void curand_generator::init(uint64_t inp_seed, int rand_type, uint64_t _backing_size){
 
 	//malloc backing
 	seed = inp_seed;
@@ -58,13 +67,15 @@ void curand_generator::init_curand(uint64_t inp_seed, int rand_type, uint64_t _b
 
 	backing_size = _backing_size;
 
-	curandGenerator_t temp_generator;
-	gen = &temp_generator;
+	//curandGenerator_t temp_gen;
 
 	uint64_t * temp_backing;
+	//TODO: remove the managed from this
 	cudaMalloc((void **) &temp_backing,backing_size*sizeof(uint64_t));
-	curandCreateGenerator(gen, CURAND_RNG_QUASI_SCRAMBLED_SOBOL64);
-	curandSetPseudoRandomGeneratorSeed(*gen, seed);
+	CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_XORWOW));
+
+	//gen = temp_gen;
+	CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, 1ULL*seed));
 	backing = temp_backing;
 
 }
@@ -74,27 +85,7 @@ void curand_generator::gen_next_batch(uint64_t noutputs){
 
 	if (state==0 || state == 1){
 
-		//this may not work
-		curandStatus_t status = curandGenerateLongLong(*gen, (unsigned long long *) backing, backing_size);
-
-		if (status == CURAND_STATUS_NOT_INITIALIZED){
-			printf("Not init\n");
-		}
-		if (status == CURAND_STATUS_PREEXISTING_FAILURE){
-			printf("Prev failure\n");
-		}
-		if (status == CURAND_STATUS_LENGTH_NOT_MULTIPLE){
-			printf("Not multiple\n");
-		}
-		if (status == CURAND_STATUS_LAUNCH_FAILURE){
-			printf("generic failure\n");
-		}
-		if (status == CURAND_STATUS_TYPE_ERROR){
-			printf("Not 64bit\n");
-		}
-		if (status == CURAND_STATUS_SUCCESS){
-			printf("No failure\n");
-		}
+		CURAND_CALL(curandGenerate(gen, (unsigned int *) backing, 2*backing_size));
 
 
 	} else {
@@ -109,7 +100,7 @@ void curand_generator::gen_next_batch(uint64_t noutputs){
 
 void curand_generator::reset_to_defualt(){
 
-	curandSetPseudoRandomGeneratorSeed(*gen, seed);
+	CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed));
 
 }
 
@@ -143,7 +134,7 @@ uint64_t * curand_generator::yield_backing(){
 
 void curand_generator::destroy(){
 
-	curandDestroyGenerator(*gen);
+	CURAND_CALL(curandDestroyGenerator(gen));
 	cudaFree(backing);
 
 
