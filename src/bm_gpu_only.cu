@@ -28,6 +28,8 @@
 //nvprof tools
 #include <cuda_profiler_api.h>
 
+ 
+
 
 #ifndef  USE_MYRANDOM
 #define RFUN random
