@@ -24,6 +24,9 @@ QFi g_quotient_filter_itr;
 uint64_t num_locks;
 
 volatile uint64_t * buffer_sizes;
+
+uint64_t num_slots;
+uint64_t total_items;
 	
 uint64_t ** buffers;
 	
@@ -44,7 +47,11 @@ extern inline int gqf_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t buf_
 
 	QF temp_device_qf;
 	QF host_qf;
-	uint64_t nslots = 1 << nbits;
+	uint64_t nslots = 1ULL << nbits;
+	//initialize global counters
+	num_slots = nslots;
+	total_items = 0;
+	//n_inserts = 0;
 	qf_malloc(&host_qf, nslots, num_hash_bits, 0, QF_HASH_INVERTIBLE, false, 0);
 	qf_set_auto_resize(&host_qf, false);
 
@@ -72,10 +79,10 @@ extern inline int gqf_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t buf_
 
 	num_locks = gqf_xnslots()/NUM_SLOTS_TO_LOCK+10;
 
-	cudaMalloc((void **) & buffer_sizes, num_locks*sizeof(uint64_t));
+	cudaMalloc((void **) & buffer_sizes, 20*num_locks*sizeof(uint64_t));
 	
 
-	cudaMalloc((void **)&buffers, num_locks*sizeof(uint64_t*));
+	cudaMalloc((void **)&buffers, 20*num_locks*sizeof(uint64_t*));
 
 	cudaMalloc((void **)& buffer_backing, buf_size*sizeof(uint64_t));
 
@@ -177,9 +184,21 @@ extern inline int gqf_end()
 extern inline int gqf_bulk_insert(uint64_t * vals, uint64_t count)
 {
 
-  cudaMemset((uint64_t *) buffer_sizes, 0, num_locks*sizeof(uint64_t));
+	//calculate ratios
+	//total_items += count;
+
+	//int ratio = num_slots/total_items;
+
+	//no sense in inflating the locks 200x for one insert
+	//if (ratio > 15) ratio = 15;
+	//printf("Dividing ratio %d\n", ratio);
+
+	cudaMemset((uint64_t *) buffer_sizes, 0, num_locks*sizeof(uint64_t));
+	
+  //cudaMemset((uint64_t *) buffer_sizes, 0, ratio*num_locks*sizeof(uint64_t));
 	//bulk_insert_bucketing_buffer_provided(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-	bulk_insert_one_hash(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
+	//bulk_insert_one_hash(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK/ratio, num_locks*ratio, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
+  bulk_insert_bucketing_buffer_provided_timed(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
 	
 	cudaDeviceSynchronize();
 	return 0;
