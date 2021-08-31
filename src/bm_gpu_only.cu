@@ -14,21 +14,29 @@
 #include <unistd.h>
 #include <math.h>
 #include <string.h>
-#include <assert.h>
+#include <assert.h> 
 #include <stdio.h>
 #include <stdlib.h>
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-
+#include <chrono>
 #include "include/zipf.cuh"
 #include "include/gqf_wrapper.cuh"
 #include "include/cu_wrapper.cuh"
 
 
+
+
+
 //nvprof tools
 #include <cuda_profiler_api.h>
 
- 
+//other objects to test
+#include "include/bloom_one_bit_wrapper.cuh"
+#include "include/bloom_wrapper.cuh"
+#include "include/mhm2_hash_wrapper.cuh"
+
+
 
 
 #ifndef  USE_MYRANDOM
@@ -461,6 +469,54 @@ filter gqf = {
 	gqf_xnslots
 };
 
+filter mhm2_map = {
+	map_init,
+	map_insert,
+	map_lookup,
+	map_range,
+	map_destroy,
+	map_iterator,
+	map_get,
+	map_next,
+	map_end,
+	map_bulk_insert,
+	map_prep_vals,
+	map_bulk_get,
+	map_xnslots
+};
+
+filter bloom = {
+	bloom_init,
+	bloom_insert,
+	bloom_lookup,
+	bloom_range,
+	bloom_destroy,
+	bloom_iterator,
+	bloom_get,
+	bloom_next,
+	bloom_end,
+	bloom_bulk_insert,
+	bloom_prep_vals,
+	bloom_bulk_get,
+	bloom_xnslots
+};
+
+filter one_bit_bloom = {
+	one_bit_bloom_init,
+	one_bit_bloom_insert,
+	one_bit_bloom_lookup,
+	one_bit_bloom_range,
+	one_bit_bloom_destroy,
+	one_bit_bloom_iterator,
+	one_bit_bloom_get,
+	one_bit_bloom_next,
+	one_bit_bloom_end,
+	one_bit_bloom_bulk_insert,
+	one_bit_bloom_prep_vals,
+	one_bit_bloom_bulk_get,
+	one_bit_bloom_xnslots
+};
+
 void filter_multi_merge(filter qf_arr[], int nqf, filter qfr)
 {
 	int i;
@@ -534,7 +590,7 @@ void usage(char *name)
 				 "                    zipfian_pregen\n"
 				 "                    custom_pregen\n"
 				 "                  Default uniform_pregen ]\n"
-				 "  -d datastruct  [ Default gqf. ]\n"
+				 "  -d datastruct  [ Default gqf] [ gqf | map | bloom | bloom_one_bit ]\n"
 				 "  -a number of filters for merging  [ Default 0 ] [Optional]\n"
 				 "  -f outputfile  [ Default gqf. ]\n"
 				 "  -i input file for app specific benchmark [Optional]\n"
@@ -546,6 +602,8 @@ void usage(char *name)
 
 int main(int argc, char **argv)
 {
+
+	mhm2_test();
 
 	uint32_t nbits = 22, nruns = 1;
 	unsigned int npoints = 20;
@@ -567,9 +625,9 @@ int main(int argc, char **argv)
 	void *othervals_gen_state;
 
 	unsigned int i, j, exp, run;
-	struct timeval tv_insert[100][1];
-	struct timeval tv_exit_lookup[100][1];
-	struct timeval tv_false_lookup[100][1];
+	struct std::chrono::time_point<std::chrono::high_resolution_clock> tv_insert[100][1];
+	struct std::chrono::time_point<std::chrono::high_resolution_clock> tv_exit_lookup[100][1];
+	struct std::chrono::time_point<std::chrono::high_resolution_clock> tv_false_lookup[100][1];
 	uint64_t fps = 0;
 	//default buffer of 20;
 	uint64_t buf_bits = 20;
@@ -712,8 +770,12 @@ int main(int argc, char **argv)
 
 	if (strcmp(datastruct, "gqf") == 0) {
 		filter_ds = gqf;
-//	} else if (strcmp(datastruct, "qf") == 0) {
-//		filter_ds = qf;
+	} else if (strcmp(datastruct, "map") == 0) {
+		filter_ds = mhm2_map;
+	} else if (strcmp(datastruct, "bloom") == 0) {
+		filter_ds = bloom;
+	} else if (strcmp(datastruct, "bloom_one_bit") == 0) {
+		filter_ds = one_bit_bloom;
 //	} else if (strcmp(datastruct, "cf") == 0) {
 //		filter_ds = cf;
 //	} else if (strcmp(datastruct, "bf") == 0) {
@@ -782,13 +844,13 @@ int main(int argc, char **argv)
 		}
 		free(vals);
 
-		gettimeofday(&tv_insert[0][0], NULL);
+		tv_insert[0][0] = std::chrono::high_resolution_clock::now();
 		filter_multi_merge(filters, numfilters, final_filter);
-		gettimeofday(&tv_insert[1][0], NULL);
+		tv_insert[1][0] = std::chrono::high_resolution_clock::now();
 
 		printf("Insert Performance:\n");
 		printf(" %f",
-					 0.001 * (nvals*numfilters)/(tv2msec(tv_insert[1][0]) - tv2msec(tv_insert[0][0])));
+					 0.001 * (nvals*numfilters)/(tv_insert[1][0]- tv_insert[0][0]).count());
 		printf(" Million inserts per second\n");
 	} else {
 
@@ -801,14 +863,14 @@ int main(int argc, char **argv)
 			//setup for curand here
 			//three generators - two clones for get/find and one random for fp testing
 			curand_generator curand_put{};
-			curand_put.init(1, 0, buf_size);
+			curand_put.init(run, 0, buf_size);
 			curand_generator curand_get{};
-			curand_get.init(1, 0, buf_size);
+			curand_get.init(run, 0, buf_size);
 			curand_generator curand_false{};
-			curand_false.init(123456789, 0, buf_size);
+			curand_false.init((run+1)*5, 0, buf_size);
 			
+			cudaDeviceSynchronize();
 
-		
 			sleep(1);
 
 			
@@ -816,9 +878,10 @@ int main(int argc, char **argv)
 			for (exp = 0; exp < 2*npoints; exp += 2) {
 				i = (exp/2)*(nvals/npoints);
 				j = ((exp/2) + 1)*(nvals/npoints);
-				printf("Round: %d\n", exp/2);
+				//printf("Round: %d\n", exp/2);
 
-				gettimeofday(&tv_insert[exp][run], NULL);
+				tv_insert[exp][run] = std::chrono::high_resolution_clock::now();
+
 				for (;i < j; i += buf_size) {
 					int nitems = j - i < buf_size ? j - i : buf_size;
 					uint64_t * vals;
@@ -829,7 +892,7 @@ int main(int argc, char **argv)
 					//cudaProfilerStart();
 					curand_put.gen_next_batch(nitems);
 					vals = curand_put.yield_backing();
-					cudaDeviceSynchronize();
+					//cudaDeviceSynchronize();
 
 					
 
@@ -849,13 +912,17 @@ int main(int argc, char **argv)
 						}
 					#endif
 				}
-				gettimeofday(&tv_insert[exp+1][run], NULL);
+
+				cudaDeviceSynchronize();
+
+				tv_insert[exp+1][run] = std::chrono::high_resolution_clock::now();
 
 				//don't need this
 				//curand_test.reset_to_defualt();
+				
 
 				i = (exp/2)*(nvals/npoints);
-				gettimeofday(&tv_exit_lookup[exp][run], NULL);
+				tv_exit_lookup[exp][run]= std::chrono::high_resolution_clock::now();
 				for (;i < j; i += buf_size) {
 					int nitems = j - i < buf_size ? j - i : buf_size;
 					
@@ -893,15 +960,19 @@ int main(int argc, char **argv)
 						}
 					#endif
 				}
-				gettimeofday(&tv_exit_lookup[exp+1][run], NULL);
 
+				cudaDeviceSynchronize();
+				tv_exit_lookup[exp+1][run] = std::chrono::high_resolution_clock::now();
+
+				//this looks right
+				
 
 				//curand_test.destroy();
 				//curand_generator othervals_curand{};
 				//othervals_curand.init_curand(5, 0, buf_size);
 
 				i = (exp/2)*(nvals/npoints);
-				gettimeofday(&tv_false_lookup[exp][run], NULL);
+				tv_false_lookup[exp][run] = std::chrono::high_resolution_clock::now();
 				for (;i < j; i += buf_size) {
 					int nitems = j - i < buf_size ? j - i : buf_size;
 					uint64_t * othervals;
@@ -924,7 +995,9 @@ int main(int argc, char **argv)
 
 					#endif
 				}
-				gettimeofday(&tv_false_lookup[exp+1][run], NULL);
+
+				cudaDeviceSynchronize();
+				tv_false_lookup[exp+1][run] = std::chrono::high_resolution_clock::now();
 			}
 
 
@@ -938,6 +1011,7 @@ int main(int argc, char **argv)
 			
 			
 			filter_ds.destroy();
+			cudaDeviceSynchronize();
 
 
 		}
@@ -954,7 +1028,7 @@ int main(int argc, char **argv)
 			fprintf(fp_insert, "%d", ((exp/2)*(100/npoints)));
 			for (run = 0; run < nruns; run++) {
 				fprintf(fp_insert, " %f",
-								0.001 * (nvals/npoints)/(tv2msec(tv_insert[exp+1][run]) - tv2msec(tv_insert[exp][run])));
+								0.001 * (nvals/npoints)/ (tv_insert[exp+1][run] - tv_insert[exp][run]).count()*1000000);
 			}
 			fprintf(fp_insert, "\n");
 		}
@@ -970,7 +1044,7 @@ int main(int argc, char **argv)
 			fprintf(fp_exit_lookup, "%d", ((exp/2)*(100/npoints)));
 			for (run = 0; run < nruns; run++) {
 				fprintf(fp_exit_lookup, " %f",
-								0.001 * (nvals/npoints)/(tv2msec(tv_exit_lookup[exp+1][run]) - tv2msec(tv_exit_lookup[exp][run])));
+								0.001 * (nvals/npoints)/(tv_exit_lookup[exp+1][run]- tv_exit_lookup[exp][run]).count()*1000000);
 			}
 			fprintf(fp_exit_lookup, "\n");
 		}
@@ -986,7 +1060,7 @@ int main(int argc, char **argv)
 			fprintf(fp_false_lookup, "%d", ((exp/2)*(100/npoints)));
 			for (run = 0; run < nruns; run++) {
 				fprintf(fp_false_lookup, " %f",
-								0.001 * (nvals/npoints)/(tv2msec(tv_false_lookup[exp+1][run]) - tv2msec(tv_false_lookup[exp][run])));
+								0.001 * (nvals/npoints)/(tv_false_lookup[exp+1][run]- tv_false_lookup[exp][run]).count()*1000000);
 			}
 			fprintf(fp_false_lookup, "\n");
 		}
