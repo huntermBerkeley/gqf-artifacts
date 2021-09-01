@@ -2663,6 +2663,49 @@ __global__ void insert_from_buffers_timed(QF* qf, uint64_t num_buffers, uint64_t
 
 }
 
+__global__ void insert_from_buffers_utilization(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness, uint64_t * insert_cycles, uint64_t * fence_cycles){
+
+
+	int idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
+
+
+
+	if (idx >= num_buffers) return;
+
+	uint64_t start = clock64();
+	
+
+	uint64_t my_count = buffer_counts[idx];
+
+	for (uint64_t i =0; i < my_count; i++){
+
+		int ret = qf_insert(qf, buffers[idx][i], 0, 1, QF_NO_LOCK);
+
+		//internal threadfence. Bad? actually seems to be fine
+		
+
+	}
+
+	uint64_t end_insert = clock64();
+
+	__threadfence();
+
+	uint64_t end_fence = clock64();
+
+	uint64_t duration_insert = end_insert-start;
+	uint64_t duration_fence = end_fence - end_insert;
+
+	atomicAdd((long long unsigned int *) insert_cycles, (long long unsigned int) duration_insert);
+	atomicAdd((long long unsigned int *) fence_cycles, (long long unsigned int) duration_fence);
+	//atomicMin((long long unsigned int *) min, (long long unsigned int) duration);
+	//atomicMax((long long unsigned int *) max, (long long unsigned int) duration);
+	//__threadfence();
+
+
+
+
+}
+
 __global__ void print_counts(uint64_t num_locks, volatile uint64_t * buffer_counts){
 
 	int idx = threadIdx.x + blockDim.x * blockIdx.x;
@@ -2957,6 +3000,16 @@ __host__ void bulk_insert_bucketing_buffer_provided_timed(QF* qf, uint64_t* keys
 	printf("Per Item num blocks, block dim: (%llu, %llu): %llu threads\n", key_block, key_block_size, key_block*key_block_size);
 	printf("Locking num blocks, block dim: (%llu, %llu): %llu threads\n", (num_locks-1)/key_block_size+1, key_block_size, ((num_locks-1)/key_block_size+1)*key_block_size);
 
+	uint64_t * insert_timer;
+	uint64_t * fence_timer;
+
+	//set these timers to 0
+	cudaMallocManaged((void**)&insert_timer, sizeof(uint64_t));
+	cudaMallocManaged((void**)&fence_timer, sizeof(uint64_t));
+	insert_timer[0] = 0;
+	fence_timer[0] = 0;
+
+
 	
 	auto start_setup = std::chrono::high_resolution_clock::now();
 
@@ -3001,7 +3054,7 @@ __host__ void bulk_insert_bucketing_buffer_provided_timed(QF* qf, uint64_t* keys
 	//time to insert
 	uint64_t evenness = 0;
 
-	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+	insert_from_buffers_utilization<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness, insert_timer, fence_timer);
 	
 
 	cudaDeviceSynchronize();
@@ -3015,7 +3068,7 @@ __host__ void bulk_insert_bucketing_buffer_provided_timed(QF* qf, uint64_t* keys
 
 	evenness = 1;
 
-	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+	insert_from_buffers_utilization<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness, insert_timer, fence_timer);
 
 
 	//free materials;
@@ -3029,6 +3082,12 @@ __host__ void bulk_insert_bucketing_buffer_provided_timed(QF* qf, uint64_t* keys
   diff = second - start_setup;
 
   std::cout << "inserts per second: " << nvals/diff.count() << "\n";
+
+  std::cout << std::fixed << "msec of inserts: " << 1.0 * (*insert_timer) / (1530 * 1000) << " msec\n";
+  std::cout << std::fixed << "msec of fencing: " << 1.0 * (*fence_timer) / (1530 * 1000) << " msec\n";
+
+  cudaFree(insert_timer);
+  cudaFree(fence_timer);
 
 }
 
@@ -4053,11 +4112,13 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t ke
   //uint64_t midpoint =  bulk_insert_bucketing_smart_buffer_provided(_qf, _vals, 0, 1, nvals, 0, .5, numslots, xnslots, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
   //bulk_insert_bucketing_smart_buffer_provided(_qf, _vals, 0, 1, nvals, midpoint, 1.0, numslots, xnslots, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
 
+  bulk_insert_bucketing_buffer_provided_timed(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
   
+
   //uint64_t end_slot = bulk_insert_bucketing_smart(_qf, _vals, 0, 1, nvals, midpoint, 1.0, numslots, xnslots, QF_NO_LOCK);
   //two step!
-  bulk_insert_bucketing_buffer_provided_timed(_qf, _vals, 0, 1, nvals/2, NUM_SLOTS_TO_LOCK/2, 2*num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-  bulk_insert_bucketing_buffer_provided_timed(_qf, _vals+nvals/2, 0, 1, nvals/2 + (nvals % 2), NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
+  //bulk_insert_bucketing_buffer_provided_timed(_qf, _vals, 0, 1, nvals/2, NUM_SLOTS_TO_LOCK/2, 2*num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
+  //bulk_insert_bucketing_buffer_provided_timed(_qf, _vals+nvals/2, 0, 1, nvals/2 + (nvals % 2), NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
 
 
 	cudaDeviceSynchronize();
