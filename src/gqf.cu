@@ -2459,6 +2459,125 @@ __global__ void count_off(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, u
 
 }
 
+//COPIED OVER FROM CYCLES BRANCH
+//things got deleted on this branch for some reason
+//so I'm moving back the more efficient version
+
+
+//a variant of count_off that uses binary search instead
+//this would avoid atomics and should reduce memory usage - myaybe faster :o
+//requires the keys to be sorted hashes - otherwise the results are just junk
+//something a la two passes may be necessary to save space / communication
+// threads set their boundaries - and then set their sizes
+
+//revised work pipeline
+// 1) Set all offsets to keys here based on relative offset + keys - skips the launch call later - TODO: double check that (keys + offset) - keys == offset. -- cpp says this works
+// 2) subtract sets of keys from each other to get the relative offsets - these will give offsets, last key needs to subtract from origin pointer
+// this means that the keys here are set to point to the START of their bucket
+__global__ void set_buffers_binary(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, uint64_t ** buffers, uint64_t value, uint8_t flags){
+
+		int idx = threadIdx.x + blockDim.x * blockIdx.x;
+
+		if (idx >= num_buffers) return;
+
+		//since we are finding all boundaries, we only need
+
+		//printf("idx %llu\n", idx);
+
+		//this sounds right? - they divide to go back so I think this is fine
+		uint64_t boundary = (slots_per_lock*idx); //<< qf->metadata->bits_per_slot;
+
+
+		//This is the code I'm stealing that assumption from
+		//uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
+		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);	
+		//uint64_t lock_index = hash_bucket_index / slots_per_lock;
+
+
+		uint64_t lower = 0;
+		uint64_t upper = num_keys;
+		uint64_t index = upper-lower;
+
+		//upper is non inclusive bound
+
+
+		//if we exceed bounds that's our index
+		while (upper != lower){
+
+
+			index = lower + (upper - lower)/2;
+
+			if ((keys[index] >> qf->metadata->bits_per_slot) < boundary){
+
+				//false - the list before this point can be removed
+				lower = index+1;
+
+				//jump to a new midpoint
+				
+
+
+			} else if (index==0){
+
+				//will this fix? otherwise need to patch via round up
+				upper = index;
+
+			} else if ((keys[index-1] >> qf->metadata->bits_per_slot) < boundary) {
+
+				//set index! this is the first instance where I am valid and the next isnt
+				//buffers[idx] = keys+index;
+				break;
+
+			} else {
+
+				//we are too far right, all keys to the right do not matter
+				upper = index;
+
+
+			}
+
+		}
+
+		//we either exited or have an edge condition:
+		//upper == lower iff 0 or max key
+		index = lower + (upper - lower)/2;
+
+
+		buffers[idx] = keys + index;
+		
+
+
+}
+
+//this can maybe be rolled into set_buffers_binary
+//it performs an identical set of operations that are O(1) here
+// O(log n) there, but maybe amortized
+__global__ void set_buffer_lens(QF * qf, uint64_t num_keys, uint64_t * keys, uint64_t num_buffers, uint64_t * buffer_sizes, uint64_t ** buffers){
+
+
+	int idx = threadIdx.x + blockDim.x*blockIdx.x;
+
+	if (idx >= num_buffers) return;
+
+
+	//only 1 thread will diverge - should be fine - any cost already exists because of tail
+	if (idx != num_buffers-1){
+
+		//this should work? not 100% convinced but it seems ok
+		buffer_sizes[idx] = buffers[idx+1] - buffers[idx];
+	} else {
+
+		buffer_sizes[idx] = num_keys - (buffers[idx] - keys);
+
+	}
+
+	return;
+
+
+}
+
+
+
+
 //A variant of count off that takes in prehashed keys
 __global__ void count_off_hashed(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
 
@@ -3679,6 +3798,49 @@ __host__ uint64_t bulk_insert_bucketing_smart(QF* qf, uint64_t* keys, uint64_t v
 }
 
 
+//modified version of buffers_provided - performs an initial bulk hash, should save work over other versions
+//note: this DOES modify the given buffer - fine for all versions now
+//This variant performs an ititial sort that allows us to save time overall
+//as we avoid the atomic count-off and any sort of cross-thread communication
+__host__ void bulk_insert_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
+
+	uint64_t key_block_size = 32;
+	uint64_t key_block = (nvals -1)/key_block_size + 1;
+	//start with num_locks, get counts
+
+
+
+	//keys are hashed, now need to treat them as hashed in all further functions
+	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, value, flags);
+
+
+	thrust::sort(thrust::device, keys, keys+nvals);
+
+
+	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, value, flags);
+
+	
+	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, num_locks, (uint64_t *) buffer_sizes, buffers);
+
+
+	//insert_from_buffers_hashed_onepass<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes);
+	
+	//return;
+
+	uint64_t evenness = 0;
+
+	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+	
+
+	evenness = 1;
+
+	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+
+
+}
+
+
+
 //need a precalculation for max possible #locks
 __host__ uint64_t bulk_insert_bucketing_smart_buffer_provided(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t start, double fill_ratio, uint64_t nslots, uint64_t xnslots, uint8_t flags, uint64_t ** buffers, uint64_t * buffer_backing, volatile uint64_t * buffer_sizes){
 
@@ -4342,8 +4504,13 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t ke
 
   //bulk_insert_one_hash_timed(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
 
-  bulk_insert_bucketing_buffer_provided_timed(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
+  //bulk_insert_bucketing_buffer_provided_timed(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
   
+
+  bulk_insert_no_atomics(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_sizes);
+  
+  //bulk_insert_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
+
 
   //uint64_t end_slot = bulk_insert_bucketing_smart(_qf, _vals, 0, 1, nvals, midpoint, 1.0, numslots, xnslots, QF_NO_LOCK);
   //two step!
