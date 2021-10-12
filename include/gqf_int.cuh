@@ -82,7 +82,7 @@ extern "C" {
 		pc_t pc_noccupied_slots;
 		uint64_t num_locks;
 		volatile int metadata_lock;
-		volatile int *locks;
+		uint16_t *locks;
 		wait_time_data *wait_times;
 	} quotient_filter_runtime_data;
 

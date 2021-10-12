@@ -47,6 +47,14 @@ extern "C" {
 		QF_HASH_NONE
 	};
 
+
+	enum qf_returns {
+		QF_ITEM_INSERTED,
+		QF_ITEM_FOUND,
+		QF_FULL
+	};
+
+	
 	/* The CQF supports concurrent insertions and queries.  Only the
 		 portion of the CQF being examined or modified is locked, so it
 		 supports high throughput even with many threads.
@@ -95,6 +103,9 @@ extern "C" {
 		 using (i.e. passed into qf_init or qf_use) so that the application
 		 can release that memory. */
 	void *qf_destroy(QF *qf);
+
+	/* Destroy a CQF living in device memory */
+	__host__ void qf_destroy_device(QF * qf);
 
 	/* Allocate a new CQF using "nslots" at "buffer" and copy elements from "qf"
 	 * into it. 
@@ -146,6 +157,9 @@ extern "C" {
 	 */
 	__host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								flags);
+
+
+	__global__ void approx_bulk_insert(QF * qf, uint64_t * hashes, uint64_t nitems);
 
 	__host__ void bulk_insert_bucketing_premalloc(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags);
 

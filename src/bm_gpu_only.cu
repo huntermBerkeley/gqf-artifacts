@@ -23,6 +23,7 @@
 #include "include/zipf.cuh"
 #include "include/gqf_wrapper.cuh"
 #include "include/cu_wrapper.cuh"
+#include "include/approx_wrapper.cuh"
 
 
 
