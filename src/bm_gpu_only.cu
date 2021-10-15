@@ -25,6 +25,8 @@
 #include "include/cu_wrapper.cuh"
 #include "include/approx_wrapper.cuh"
 #include "rsqf_wrapper.cuh"
+#include "include/quotientFilter.cuh"
+#include "include/owens_wrapper.cuh"
 
 
 
@@ -552,6 +554,22 @@ filter rsqf = {
 	rsqf_xnslots
 };
 
+filter owens = {
+	owens_init,
+	owens_insert,
+	owens_lookup,
+	owens_range,
+	owens_destroy,
+	owens_iterator,
+	owens_get,
+	owens_next,
+	owens_end,
+	owens_bulk_insert,
+	owens_prep_vals,
+	owens_bulk_get,
+	owens_xnslots
+};
+
 void filter_multi_merge(filter qf_arr[], int nqf, filter qfr)
 {
 	int i;
@@ -811,13 +829,12 @@ int main(int argc, char **argv)
 		filter_ds = bloom;
 	} else if (strcmp(datastruct, "bloom_one_bit") == 0) {
 		filter_ds = one_bit_bloom;
-
 	} else if (strcmp(datastruct, "approx") == 0) {
-
 		filter_ds = approx;
 	} else if (strcmp(datastruct, "rsqf") == 0) {
-
 		filter_ds = rsqf;
+	} else if (strcmp(datastruct, "owens") == 0) {
+		filter_ds = owens;
 //	} else if (strcmp(datastruct, "cf") == 0) {
 //		filter_ds = cf;
 //	} else if (strcmp(datastruct, "bf") == 0) {
