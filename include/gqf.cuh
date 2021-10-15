@@ -128,6 +128,9 @@ extern "C" {
 
 	__host__ void qf_free_gpu(QF * qf);
 
+	__host__ void qf_malloc_device(QF** qf, int nbits);
+	__host__ void qf_destroy_device(QF * qf);
+
 	/* Resize the QF to the specified number of slots.  Uses malloc() to
 	 * obtain the new memory, and calls free() on the old memory.
 	 * Return value:
@@ -158,6 +161,8 @@ extern "C" {
 	__host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								flags);
 
+
+	__host__ uint64_t approx_get_wrapper(QF * qf, uint64_t * hashes, uint64_t nitems);
 
 	__global__ void approx_bulk_insert(QF * qf, uint64_t * hashes, uint64_t nitems);
 

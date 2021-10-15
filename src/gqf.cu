@@ -48,7 +48,7 @@
 #define BITMASK(nbits)                                    \
   ((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
 #define NUM_SLOTS_TO_LOCK (1ULL<<13)
-#define LOCK_DIST 64
+#define LOCK_DIST 128
 #define EXP_BEFORE_FAILURE -15
 #define CLUSTER_SIZE (1ULL<<14)
 #define METADATA_WORD(qf,field,slot_index)                              \
@@ -3416,6 +3416,7 @@ __device__ qf_returns insert_kmer_try_lock(QF* qf, uint64_t hash, char forward, 
 
 	bool boolFound;
 
+	hash = hash % qf->metadata->range;
 
 	uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
 	uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
@@ -3461,6 +3462,42 @@ __device__ qf_returns insert_kmer_try_lock(QF* qf, uint64_t hash, char forward, 
 	}
 
 }
+
+
+__global__ void approx_bulk_get(QF * qf, uint64_t * hashes, uint64_t nitems, uint64_t * counter){
+
+	uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+	if (tid >=nitems) return;
+
+	char first;
+	char second;
+	if (insert_kmer_try_lock(qf, hashes[tid], 'A', 'C', first, second) != QF_ITEM_FOUND){
+
+		atomicAdd((unsigned long long int *) counter, (unsigned long long int) 1);
+
+	}
+
+}
+
+
+__host__ uint64_t approx_get_wrapper(QF * qf, uint64_t * hashes, uint64_t nitems){
+
+	uint64_t * misses;
+	//this is fine, should never be triggered
+  cudaMallocManaged((void **)&misses, sizeof(uint64_t));
+  cudaMemset(misses, 0, sizeof(uint64_t));
+
+  approx_bulk_get<<<(nitems-1)/512+1, 512>>>(qf, hashes, nitems, misses);
+
+  cudaDeviceSynchronize();
+  uint64_t toReturn = *misses;
+
+  cudaFree(misses);
+  return toReturn;
+
+}
+
 
 __global__ void approx_bulk_insert(QF * qf, uint64_t * hashes, uint64_t nitems){
 

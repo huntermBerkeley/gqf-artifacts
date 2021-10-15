@@ -24,6 +24,7 @@
 #include "include/gqf_wrapper.cuh"
 #include "include/cu_wrapper.cuh"
 #include "include/approx_wrapper.cuh"
+#include "rsqf_wrapper.cuh"
 
 
 
@@ -518,6 +519,39 @@ filter one_bit_bloom = {
 	one_bit_bloom_xnslots
 };
 
+filter approx = {
+	app_init,
+	app_insert,
+	app_lookup,
+	app_range,
+	app_destroy,
+	app_iterator,
+	app_get,
+	app_next,
+	app_end,
+	app_bulk_insert,
+	app_prep_vals,
+	app_bulk_get,
+	app_xnslots
+};
+
+
+filter rsqf = {
+	rsqf_init,
+	rsqf_insert,
+	rsqf_lookup,
+	rsqf_range,
+	rsqf_destroy,
+	rsqf_iterator,
+	rsqf_get,
+	rsqf_next,
+	rsqf_end,
+	rsqf_bulk_insert,
+	rsqf_prep_vals,
+	rsqf_bulk_get,
+	rsqf_xnslots
+};
+
 void filter_multi_merge(filter qf_arr[], int nqf, filter qfr)
 {
 	int i;
@@ -777,6 +811,13 @@ int main(int argc, char **argv)
 		filter_ds = bloom;
 	} else if (strcmp(datastruct, "bloom_one_bit") == 0) {
 		filter_ds = one_bit_bloom;
+
+	} else if (strcmp(datastruct, "approx") == 0) {
+
+		filter_ds = approx;
+	} else if (strcmp(datastruct, "rsqf") == 0) {
+
+		filter_ds = rsqf;
 //	} else if (strcmp(datastruct, "cf") == 0) {
 //		filter_ds = cf;
 //	} else if (strcmp(datastruct, "bf") == 0) {

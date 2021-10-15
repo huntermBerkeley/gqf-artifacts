@@ -7,8 +7,8 @@
  * ============================================================================
  */
 
-#ifndef GQF_WRAPPER_CUH
-#define GQF_WRAPPER_CUH
+#ifndef APP_WRAPPER_CUH
+#define APP_WRAPPER_CUH
 
 #define INSERT_VERSION_BULK
 
@@ -21,17 +21,6 @@
 
 QF* approx_quotient_filter;
 
-uint64_t num_locks;
-
-volatile uint64_t * buffer_sizes;
-
-uint64_t num_slots;
-uint64_t total_items;
-	
-uint64_t ** buffers;
-	
-uint64_t * buffer_backing;
-
 
 #ifndef NUM_SLOTS_TO_LOCK
 #define NUM_SLOTS_TO_LOCK (1ULL<<13)
@@ -39,7 +28,7 @@ uint64_t * buffer_backing;
 
 extern inline uint64_t app_xnslots();
 
-extern inline int app_init(uint64_t nbits)
+extern inline int app_init(uint64_t nbits, uint64_t hash, uint64_t buf_size)
 {
 
 	//seems that we need to fix something here
@@ -110,7 +99,7 @@ extern inline int app_destroy()
 {
 	//fix me this isn't going to work
 	
-	gqf_destroy_device(approx_quotient_filter);
+	qf_destroy_device(approx_quotient_filter);
 	return 0;
 }
 
@@ -161,7 +150,7 @@ extern inline int app_bulk_insert(uint64_t * vals, uint64_t count)
   //cudaMemset((uint64_t *) buffer_sizes, 0, ratio*num_locks*sizeof(uint64_t));
 	//bulk_insert_bucketing_buffer_provided(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
 	//bulk_insert_one_hash(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK/ratio, num_locks*ratio, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-  approx_bulk_insert(approx_quotient_filter, vals, count);
+    approx_bulk_insert<<<(count-1)/32+1,32>>>(approx_quotient_filter, vals, count);
 	
 	cudaDeviceSynchronize();
 	return 0;
@@ -170,9 +159,8 @@ extern inline int app_bulk_insert(uint64_t * vals, uint64_t count)
 //dummy func
 extern inline uint64_t app_bulk_get(uint64_t * vals, uint64_t count){
 
-	
-	return count;
-  //return bulk_get_wrapper(g_quotient_filter, vals, count);
+	return approx_get_wrapper(approx_quotient_filter, vals, count);
+
 
 }
 
