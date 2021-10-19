@@ -3464,6 +3464,55 @@ __device__ qf_returns insert_kmer_try_lock(QF* qf, uint64_t hash, char forward, 
 
 }
 
+__device__ qf_returns insert_kmer(QF* qf, uint64_t hash, char forward, char backward, char & returnedfwd, char & returnedback){
+
+	uint8_t encoded = encode_chars(forward, backward);
+
+	uint8_t query;
+
+	uint64_t bigquery;
+
+	bool boolFound;
+
+
+	//uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
+
+	uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
+	uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
+
+	//encode extensions outside of the lock
+
+	lock_16(qf->runtimedata->locks, lock_index);
+	lock_16(qf->runtimedata->locks, lock_index+1);
+
+
+	int found = qf_query(qf, hash, &bigquery, QF_NO_LOCK | QF_KEY_IS_HASH);
+
+	query = bigquery;
+
+	if (found == 0){
+
+		qf_insert(qf, hash, encoded, 1, QF_NO_LOCK | QF_KEY_IS_HASH);
+
+
+	} else {
+
+		decode_chars(query, returnedfwd, returnedback);
+
+	}
+
+	__threadfence();
+	unlock_16(qf->runtimedata->locks, lock_index+1);
+	unlock_16(qf->runtimedata->locks, lock_index);
+
+	//obvious cast for clarity
+
+	if (found == 1) return QF_ITEM_FOUND;
+
+	return QF_ITEM_INSERTED;
+
+}
+
 
 __global__ void approx_bulk_get(QF * qf, uint64_t * hashes, uint64_t nitems, uint64_t * counter){
 
@@ -3473,7 +3522,7 @@ __global__ void approx_bulk_get(QF * qf, uint64_t * hashes, uint64_t nitems, uin
 
 	char first;
 	char second;
-	if (insert_kmer_try_lock(qf, hashes[tid], 'A', 'C', first, second) != QF_ITEM_FOUND){
+	if (insert_kmer(qf, hashes[tid], 'A', 'C', first, second) != QF_ITEM_FOUND){
 
 		atomicAdd((unsigned long long int *) counter, (unsigned long long int) 1);
 
