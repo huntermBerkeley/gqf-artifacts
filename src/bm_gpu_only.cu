@@ -789,6 +789,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+
 	if (strcmp(randmode, "uniform_pregen") == 0) {
 		vals_gen = &uniform_pregen;
 		othervals_gen = &uniform_pregen;
@@ -821,6 +822,8 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+
+
 	if (strcmp(datastruct, "gqf") == 0) {
 		filter_ds = gqf;
 	} else if (strcmp(datastruct, "map") == 0) {
@@ -846,7 +849,7 @@ int main(int argc, char **argv)
 	}
 	
 
-	snprintf(filename_insert, strlen(dir) + strlen(outputfile) + strlen(insert_op) + 1, "%s%s%s", dir, outputfile, insert_op);
+	snprintf(filename_insert, strlen(dir) + strlen(outputfile) + strlen(insert_op) + strlen(datastruct) + 1, "%s%s%s", dir, outputfile, insert_op);
 	snprintf(filename_exit_lookup, strlen(dir) + strlen(outputfile) + strlen(exit_lookup_op) + 1, "%s%s%s", dir, outputfile, exit_lookup_op);
 
 	snprintf(filename_false_lookup, strlen(dir) + strlen(outputfile) + strlen(false_lookup_op) + 1, "%s%s%s", dir, outputfile, false_lookup_op);

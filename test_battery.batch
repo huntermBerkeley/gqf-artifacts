@@ -1,0 +1,31 @@
+#!/bin/bash
+#SBATCH -A m2865
+#SBATCH -N 1
+#SBATCH -C gpu
+#SBATCH -q regular
+#SBATCH -t 10:00
+#SBATCH -c 10
+#SBATCH -G 1
+#SBATCH -o test_output.o
+
+
+if [ -z ${FILTER+x} ]; then echo "FILTER is unset. please pass filter type with --export=FILTER='filter_type'";
+	exit 1
+fi
+
+
+twenty_two=_22
+twenty_four=_24
+twenty_six=_26
+twenty_eight=_28
+thirty=_30
+thirty_two=_32
+
+mkdir $FILTER
+echo "Running tests on $FILTER"
+srun -N 1 -n 1 ./bm_gpu_only -n 22 -b 18 -f "$FILTER/$FILTER$twenty_two" -d $FILTER
+srun -N 1 -n 1 ./bm_gpu_only -n 24 -b 20 -f "$FILTER/$FILTER$twenty_four" -d $FILTER
+srun -N 1 -n 1 ./bm_gpu_only -n 26 -b 22 -f "$FILTER/$FILTER$twenty_six" -d $FILTER
+srun -N 1 -n 1 ./bm_gpu_only -n 28 -b 24 -f "$FILTER/$FILTER$twenty_eight" -d $FILTER
+srun -N 1 -n 1 ./bm_gpu_only -n 30 -b 26 -f "$FILTER/$FILTER$thirty" -d $FILTER
+srun -N 1 -n 1 ./bm_gpu_only -n 32 -b 28 -f "$FILTER/$FILTER$thirty_two" -d $FILTER
