@@ -3492,6 +3492,7 @@ __device__ qf_returns insert_kmer(QF* qf, uint64_t hash, char forward, char back
 
 	if (found == 0){
 
+		//uintt_t ret
 		qf_insert(qf, hash, encoded, 1, QF_NO_LOCK | QF_KEY_IS_HASH);
 
 
