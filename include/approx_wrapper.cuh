@@ -36,6 +36,8 @@ extern inline int app_init(uint64_t nbits, uint64_t hash, uint64_t buf_size)
 	//consolidate all of the device construction into one convenient func!
 	qf_malloc_device(&approx_quotient_filter, nbits);
 
+	
+
 	return 0;
 }
 

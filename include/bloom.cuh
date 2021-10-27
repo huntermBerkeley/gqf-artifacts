@@ -40,13 +40,26 @@ void bloomCuda::init(uint64_t ht_capacity) {
 
 
 	//ht_capacity is the number of bits, use some formulae to figure out where to send them
+	double p = .00390625; 
+  	
 
-  capacity = ht_capacity * (std::log(.01) / std::log(.6185));
-  k = std::log(2) * capacity/ht_capacity;
+  capacity = - std::ceil((ht_capacity * std::log(p)) / std::pow(std::log(2), 2));
+
+
+
+  k = 1.0 * capacity/ ht_capacity * std::log(2);
+
+
   cudaMalloc(&keys, capacity * sizeof(uint8_t));
   cudaMemset((void *)keys, KEY_EMPTY, capacity * sizeof(uint8_t));
   // cudaMalloc(&vals, capacity * sizeof(uint64_t));
   // cudaMemset(vals, 0, capacity * sizeof(uint64_t));
+
+  printf("%llu bytes requested for %llu, %d hashes\n", capacity, ht_capacity, k);
+
+  printf("These give fp k %f\n", std::pow(.5, k));
+  //printf("These give fp m/n %f\n", std::pow(.5, 1.0*capacity/ht_capacity));
+
 }
 
 
@@ -72,7 +85,6 @@ __global__ void bulk_insert_kernel(uint8_t * keys, uint64_t capacity, uint64_t k
 	}
 	
 	//insert with quadprobe
-	__threadfence();
 
 
 }

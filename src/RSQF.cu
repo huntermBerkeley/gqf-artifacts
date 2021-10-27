@@ -37,6 +37,8 @@ __host__ void initCQFGPU(struct countingQuotientFilterGPU* cqf, unsigned int q)
     cudaMalloc((void**) &d_filterBlocks, cqf->numBlocks * sizeof(cqf_gpu_block));
     cudaMemset(d_filterBlocks, 0, cqf->numBlocks * sizeof(cqf_gpu_block));
     cqf->blocks = d_filterBlocks;
+
+    printf("RSQF using %llu bytes\n", cqf->numBlocks*sizeof(cqf_gpu_block));
 }
 
 __host__ __device__ bool isOccupiedGPU(long long unsigned int occupieds, unsigned int slotNumber)

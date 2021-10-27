@@ -10,6 +10,18 @@
 #include <cmath>
 #include <stdio.h>
 
+#define BLOOM_CHECK(ans)                                                                  \
+        gpuAssert((ans), __FILE__, __LINE__);
+inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true)
+{
+	if (code != cudaSuccess)
+	{
+		printf("GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+		if (abort)
+			exit(code);
+}
+}
+
 
 //a modified version of the hash table found in mhm2, this only stores keys so that performance is comparable with the other data structures
 struct bloom_one_bit_cuda {
@@ -43,19 +55,27 @@ void bloom_one_bit_cuda::init(uint64_t ht_capacity) {
 
 	//ht_capacity is the number of bits, use some formulae to figure out where to send them
 
-  capacity = ht_capacity * (std::log(.005) / std::log(.6185));
-  k = std::log(2) * capacity/ht_capacity/2;
+	double p = .00390625; 
 
-  printf("%llu bits requested, %d filters\n", capacity, k);
+  capacity = - std::ceil((ht_capacity * std::log(p)) / std::pow(std::log(2), 2));
+
+  k = 1.0 * capacity/ ht_capacity * std::log(2);
+ 
+
+  printf("%llu slots requested for %llu, %d hashes\n", capacity, ht_capacity, k);
 
   printf("These give fp k %f\n", std::pow(.5, k));
   printf("These give fp m/n %f\n", std::pow(.5, 1.0*capacity/ht_capacity));
-  cudaMalloc(&keys, ((capacity-1)/sizeof(unsigned int) +1) * sizeof(unsigned int));
-  cudaMemset((void *)keys, KEY_EMPTY, ((capacity-1)/sizeof(unsigned int)+1) * sizeof(unsigned int));
+  printf("Size: %llu\n", ((capacity-1)/32+1) * sizeof(unsigned int));
+
+
+  BLOOM_CHECK(cudaMalloc(&keys, ((capacity-1)/32 +1) * sizeof(unsigned int)));
+  BLOOM_CHECK(cudaMemset((void *)keys, KEY_EMPTY, ((capacity-1)/32+1) * sizeof(unsigned int)));
   // cudaMalloc(&vals, capacity * sizeof(uint64_t));
   // cudaMemset(vals, 0, capacity * sizeof(uint64_t));
-}
 
+
+}
 
 
 void bloom_one_bit_cuda::clear() {
@@ -75,8 +95,8 @@ __global__ void one_bit_bulk_insert_kernel(unsigned int * keys, uint64_t capacit
 	//samehash as cqf
 	for (uint64_t i=0; i < k; i++){
 		 uint64_t slot = MurmurHash64A(((void *)&key), sizeof(key), 1+i) % capacity;
-		 uint64_t trueSlot = slot/sizeof(unsigned int);
-		 int bit = slot % sizeof(unsigned int); 
+		 uint64_t trueSlot = slot/32;
+		 int bit = slot % 32; 
 		 
 		 atomicOr(keys + trueSlot, 1 << bit);
 	}
@@ -107,8 +127,8 @@ __global__ void one_bit_bulk_find_kernel(unsigned int * keys, uint64_t capacity,
 	for (uint64_t i=0; i < k; i++){
 		 uint64_t slot = MurmurHash64A(((void *)&key), sizeof(key), 1+i) % capacity;
 
-		 uint64_t trueSlot = slot/sizeof(unsigned int);
-		 int bit = slot % sizeof(unsigned int);
+		 uint64_t trueSlot = slot/32;
+		 int bit = slot % 32;
 		 if (!((keys[trueSlot] >> bit) & 1)){
 		 	//not found, this a miss
 		 	atomicAdd((unsigned long long int *) misses, 1);

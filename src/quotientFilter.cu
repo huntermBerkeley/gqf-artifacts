@@ -55,6 +55,7 @@ __host__ void initFilterGPU(struct quotient_filter* qf, unsigned int q, unsigned
     unsigned char* d_filterTable;
     cudaMalloc((void**) &d_filterTable, slots * sizeof(unsigned char));
     qf->table = d_filterTable;
+    printf("SQF using %llu bytes\n",slots*sizeof(unsigned char));
 }
 
 __device__ bool isOccupiedGPU(unsigned int element)

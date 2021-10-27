@@ -146,7 +146,9 @@ extern inline int owens_bulk_insert(uint64_t * vals, uint64_t count)
 
 	//__host__ float insertGPU(countingQuotientFilterGPU cqf, int numValues, unsigned int* d_insertValues, int* d_returnValues);
 
-	owens_filter::insert(owens_cqf_gpu, count, owens_inserts);
+	//will this work?
+	owens_filter::bulkBuildParallelMerging(owens_cqf_gpu, count, owens_inserts, false);
+	//owens_filter::insert(owens_cqf_gpu, count, owens_inserts);
 	//insertGPU(owens_cqf_gpu, count, owens_inserts, owens_returns);
 	
   //cudaMemset((uint64_t *) buffer_sizes, 0, ratio*num_locks*sizeof(uint64_t));
