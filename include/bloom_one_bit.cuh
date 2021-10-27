@@ -60,6 +60,10 @@ void bloom_one_bit_cuda::init(uint64_t ht_capacity) {
   capacity = - std::ceil((ht_capacity * std::log(p)) / std::pow(std::log(2), 2));
 
   k = 1.0 * capacity/ ht_capacity * std::log(2);
+
+  capacity = 4*capacity;
+
+  k = 5;
  
 
   printf("%llu slots requested for %llu, %d hashes\n", capacity, ht_capacity, k);
@@ -94,7 +98,7 @@ __global__ void one_bit_bulk_insert_kernel(unsigned int * keys, uint64_t capacit
 
 	//samehash as cqf
 	for (uint64_t i=0; i < k; i++){
-		 uint64_t slot = MurmurHash64A(((void *)&key), sizeof(key), 1+i) % capacity;
+		 uint64_t slot = MurmurHash64A(((void *)&key), 8, 1+i) % capacity;
 		 uint64_t trueSlot = slot/32;
 		 int bit = slot % 32; 
 		 
@@ -125,7 +129,7 @@ __global__ void one_bit_bulk_find_kernel(unsigned int * keys, uint64_t capacity,
 
 	//samehash as cqf
 	for (uint64_t i=0; i < k; i++){
-		 uint64_t slot = MurmurHash64A(((void *)&key), sizeof(key), 1+i) % capacity;
+		 uint64_t slot = MurmurHash64A(((void *)&key), 8, 1+i) % capacity;
 
 		 uint64_t trueSlot = slot/32;
 		 int bit = slot % 32;

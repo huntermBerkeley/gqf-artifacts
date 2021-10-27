@@ -929,7 +929,7 @@ int main(int argc, char **argv)
 			curand_generator curand_get{};
 			curand_get.init(run, 0, buf_size);
 			curand_generator curand_false{};
-			curand_false.init((run+1)*5, 0, buf_size);
+			curand_false.init((run+1)*2702173, 0, buf_size);
 			
 			cudaDeviceSynchronize();
 

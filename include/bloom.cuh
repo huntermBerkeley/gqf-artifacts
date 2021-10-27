@@ -9,6 +9,7 @@
 #include "hashutil.cuh"
 #include <cmath>
 
+#define BIG_PRIME 2702173
 
 //a modified version of the hash table found in mhm2, this only stores keys so that performance is comparable with the other data structures
 struct bloomCuda {
@@ -49,6 +50,9 @@ void bloomCuda::init(uint64_t ht_capacity) {
 
   k = 1.0 * capacity/ ht_capacity * std::log(2);
 
+  //k=4;
+
+  capacity = 4 * capacity;
 
   cudaMalloc(&keys, capacity * sizeof(uint8_t));
   cudaMemset((void *)keys, KEY_EMPTY, capacity * sizeof(uint8_t));
@@ -56,6 +60,7 @@ void bloomCuda::init(uint64_t ht_capacity) {
   // cudaMemset(vals, 0, capacity * sizeof(uint64_t));
 
   printf("%llu bytes requested for %llu, %d hashes\n", capacity, ht_capacity, k);
+  printf("Bits per item: %d\n", capacity/ht_capacity);
 
   printf("These give fp k %f\n", std::pow(.5, k));
   //printf("These give fp m/n %f\n", std::pow(.5, 1.0*capacity/ht_capacity));
@@ -80,7 +85,8 @@ __global__ void bulk_insert_kernel(uint8_t * keys, uint64_t capacity, uint64_t k
 
 	//samehash as cqf
 	for (uint64_t i=0; i < k; i++){
-		 uint64_t slot = MurmurHash64A(((void *)&key), sizeof(key), 1+i) % capacity;
+		uint64_t slot = MurmurHash64A(((void *)&key), 8, (1+i)*BIG_PRIME) % capacity;
+		//uint64_t slot = hash_64(key + i*BIG_PRIME, 0xFFFFFFFF) % capacity;
 		 keys[slot] = 1;
 	}
 	
@@ -108,7 +114,8 @@ __global__ void bulk_find_kernel(uint8_t * keys, uint64_t capacity, uint64_t k, 
 
 	//samehash as cqf
 	for (uint64_t i=0; i < k; i++){
-		 uint64_t slot = MurmurHash64A(((void *)&key), sizeof(key), 1+i) % capacity;
+		 uint64_t slot = MurmurHash64A(((void *)&key), 8, (1+i)*BIG_PRIME) % capacity;
+		 //uint64_t slot = hash_64(key + i*BIG_PRIME, 0xFFFFFFFF) % capacity;
 		 if (!keys[slot]){
 		 	//not found, this a miss
 		 	atomicAdd((unsigned long long int *) misses, 1);
