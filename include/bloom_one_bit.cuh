@@ -74,7 +74,7 @@ void bloom_one_bit_cuda::init(uint64_t ht_capacity) {
 
 
   BLOOM_CHECK(cudaMalloc(&keys, ((capacity-1)/32 +1) * sizeof(unsigned int)));
-  BLOOM_CHECK(cudaMemset((void *)keys, KEY_EMPTY, ((capacity-1)/32+1) * sizeof(unsigned int)));
+  BLOOM_CHECK(cudaMemset((void *)keys, 0, ((capacity-1)/32+1) * sizeof(unsigned int)));
   // cudaMalloc(&vals, capacity * sizeof(uint64_t));
   // cudaMemset(vals, 0, capacity * sizeof(uint64_t));
 

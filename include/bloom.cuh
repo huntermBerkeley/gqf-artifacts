@@ -8,6 +8,7 @@
 #include <cuda.h>
 #include "hashutil.cuh"
 #include <cmath>
+#include "MurmurHash3.cuh"
 
 #define BIG_PRIME 2702173
 
@@ -44,18 +45,28 @@ void bloomCuda::init(uint64_t ht_capacity) {
 	double p = .00390625; 
   	
 
-  capacity = - std::ceil((ht_capacity * std::log(p)) / std::pow(std::log(2), 2));
+	double num = log(p);
+  double denom = 0.480453013918201; // ln(2)^2
+  double bpe = -(num / denom);
+
+  double dentries = (double)ht_capacity;
+   uint64_t num_bits = (uint64_t)(dentries * bpe);
+
+  //capacity = - std::ceil((ht_capacity * std::log(p)) / std::pow(std::log(2), 2));
 
 
 
-  k = 1.0 * capacity/ ht_capacity * std::log(2);
+  //k = 1.0 * capacity/ ht_capacity * std::log(2);
+
+  capacity = (uint64_t) (dentries * bpe);
+  k = (int)ceil(0.693147180559945 * bpe);
 
   //k=4;
 
-  capacity = 4 * capacity;
+  //capacity = 4 * capacity;
 
   cudaMalloc(&keys, capacity * sizeof(uint8_t));
-  cudaMemset((void *)keys, KEY_EMPTY, capacity * sizeof(uint8_t));
+  cudaMemset((void *)keys, 0, capacity * sizeof(uint8_t));
   // cudaMalloc(&vals, capacity * sizeof(uint64_t));
   // cudaMemset(vals, 0, capacity * sizeof(uint64_t));
 
@@ -74,9 +85,32 @@ void bloomCuda::clear() {
   //cudaFree(vals);
 }
 
+
+
+//use murmurhash to fill two uint64_t with random bits
+__device__ void get_murmurbits(uint64_t * key, uint64_t &first, uint64_t &second){
+
+
+	uint64_t out[2];
+
+	MurmurHash3_x86_128 (key, 32, 5, out);
+
+	first = out[0];
+	second = out[1];
+
+
+}
+
+__device__ uint64_t get_nth_hash(uint64_t i, uint64_t first, uint64_t second){
+
+
+		return first + i*second;
+}
+
+
 __global__ void bulk_insert_kernel(uint8_t * keys, uint64_t capacity, uint64_t k, uint64_t * inp_keys, uint64_t num_items){
 
-	unsigned int threadid = blockIdx.x * blockDim.x + threadIdx.x;
+	uint64_t threadid = blockIdx.x * blockDim.x + threadIdx.x;
 
 	if (threadid >= num_items) return;
 
@@ -84,8 +118,17 @@ __global__ void bulk_insert_kernel(uint8_t * keys, uint64_t capacity, uint64_t k
 	uint64_t key = inp_keys[threadid];
 
 	//samehash as cqf
+
+	uint64_t first;
+	uint64_t second;
+
+	get_murmurbits(&key, first, second);
+
+
 	for (uint64_t i=0; i < k; i++){
-		uint64_t slot = MurmurHash64A(((void *)&key), 8, (1+i)*BIG_PRIME) % capacity;
+		uint64_t slot = get_nth_hash(i, first, second) % capacity;
+
+		
 		//uint64_t slot = hash_64(key + i*BIG_PRIME, 0xFFFFFFFF) % capacity;
 		 keys[slot] = 1;
 	}
@@ -105,7 +148,7 @@ __host__ void bloomCuda::bulk_insert(uint64_t * inp_keys, uint64_t num_items){
 
 __global__ void bulk_find_kernel(uint8_t * keys, uint64_t capacity, uint64_t k, uint64_t * inp_keys, uint64_t num_items, uint64_t * misses){
 
-	unsigned int threadid = blockIdx.x * blockDim.x + threadIdx.x;
+	uint64_t threadid = blockIdx.x * blockDim.x + threadIdx.x;
 
 	if (threadid >= num_items) return;
 
@@ -113,8 +156,12 @@ __global__ void bulk_find_kernel(uint8_t * keys, uint64_t capacity, uint64_t k, 
 	uint64_t key = inp_keys[threadid];
 
 	//samehash as cqf
+	uint64_t first;
+	uint64_t second;
+
+	get_murmurbits(&key, first, second);
 	for (uint64_t i=0; i < k; i++){
-		 uint64_t slot = MurmurHash64A(((void *)&key), 8, (1+i)*BIG_PRIME) % capacity;
+		 uint64_t slot = get_nth_hash(i, first, second) % capacity;
 		 //uint64_t slot = hash_64(key + i*BIG_PRIME, 0xFFFFFFFF) % capacity;
 		 if (!keys[slot]){
 		 	//not found, this a miss
@@ -133,7 +180,9 @@ __host__ uint64_t bloomCuda::bulk_find(uint64_t * inp_keys, uint64_t num_items){
 
 	uint64_t * misses;
 	//this is fine, should never be triggered
-  	cudaMallocManaged((void **)&misses, sizeof(uint64_t));
+  cudaMallocManaged((void **)&misses, sizeof(uint64_t));
+  misses[0] = 0;
+
 	bulk_find_kernel<<<(num_items-1)/512+1, 512>>>(keys, capacity, k, inp_keys, num_items, misses);
 
 	cudaDeviceSynchronize();

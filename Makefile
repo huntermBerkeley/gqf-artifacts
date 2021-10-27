@@ -67,7 +67,8 @@ bm_gpu_only:							$(OBJDIR)/bm_gpu_only.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o 
 										$(OBJDIR)/zipf.o $(OBJDIR)/hashutil.o \
 										$(OBJDIR)/partitioned_counter.o \
 										$(OBJDIR)/RSQF.o \
-										$(OBJDIR)/quotientFilter.o
+										$(OBJDIR)/quotientFilter.o \
+										$(OBJDIR)/MurmurHash3.o
 
 # dependencies between .o files and .h files
 
@@ -87,7 +88,8 @@ $(OBJDIR)/bm_gpu_only.o:								$(LOC_INCLUDE)/gqf_wrapper.cuh \
 															$(LOC_INCLUDE)/partitioned_counter.cuh \
 															$(LOC_INCLUDE)/cu_wrapper.cuh \
 															$(LOC_INCLUDE)/RSQF.cuh \
-															$(LOC_INCLUDE)/quotientFilter.cuh
+															$(LOC_INCLUDE)/quotientFilter.cuh \
+															$(LOC_INCLUDE)/MurmurHash3.cuh
 
 
 
@@ -100,6 +102,7 @@ $(OBJDIR)/gqf_file.o:					$(LOC_SRC)/gqf_file.cu $(LOC_INCLUDE)/gqf_file.cuh
 $(OBJDIR)/hashutil.o:					$(LOC_SRC)/hashutil.cu $(LOC_INCLUDE)/hashutil.cuh
 $(OBJDIR)/partitioned_counter.o:	$(LOC_INCLUDE)/partitioned_counter.cuh
 $(OBJDIR)/quotientFilter.o: $(LOC_SRC)/quotientFilter.cu $(LOC_INCLUDE)/quotientFilter.cuh
+$(OBJDIR)/MurmurHash3.o: $(LOC_SRC)/MurmurHash3.cu $(LOC_INCLUDE)/MurmurHash3.cuh
 
 
 #
