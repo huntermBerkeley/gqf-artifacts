@@ -42,7 +42,7 @@ void bloomCuda::init(uint64_t ht_capacity) {
 
 
 	//ht_capacity is the number of bits, use some formulae to figure out where to send them
-	double p = .00390625; 
+	double p = .0009; 
   	
 
 	double num = log(p);
@@ -62,6 +62,8 @@ void bloomCuda::init(uint64_t ht_capacity) {
   k = (int)ceil(0.693147180559945 * bpe);
 
   //k=4;
+
+  capacity = capacity*4;
 
   //capacity = 4 * capacity;
 
@@ -93,7 +95,7 @@ __device__ void get_murmurbits(uint64_t * key, uint64_t &first, uint64_t &second
 
 	uint64_t out[2];
 
-	MurmurHash3_x86_128 (key, 32, 5, out);
+	MurmurHash3_x86_128 (key, 8, 5, out);
 
 	first = out[0];
 	second = out[1];
@@ -128,7 +130,6 @@ __global__ void bulk_insert_kernel(uint8_t * keys, uint64_t capacity, uint64_t k
 	for (uint64_t i=0; i < k; i++){
 		uint64_t slot = get_nth_hash(i, first, second) % capacity;
 
-		
 		//uint64_t slot = hash_64(key + i*BIG_PRIME, 0xFFFFFFFF) % capacity;
 		 keys[slot] = 1;
 	}
@@ -142,6 +143,8 @@ __global__ void bulk_insert_kernel(uint8_t * keys, uint64_t capacity, uint64_t k
 //the hmh2 table uses quadratic probing
 __host__ void bloomCuda::bulk_insert(uint64_t * inp_keys, uint64_t num_items){
 
+
+	printf("Capacity: %llu k: %d\n", capacity, k);
 	bulk_insert_kernel<<<(num_items-1)/512+1, 512>>>(keys, capacity, k, inp_keys, num_items);
 
 }
@@ -183,6 +186,8 @@ __host__ uint64_t bloomCuda::bulk_find(uint64_t * inp_keys, uint64_t num_items){
   cudaMallocManaged((void **)&misses, sizeof(uint64_t));
   misses[0] = 0;
 
+
+  printf("Capacity: %llu k: %d\n", capacity, k);
 	bulk_find_kernel<<<(num_items-1)/512+1, 512>>>(keys, capacity, k, inp_keys, num_items, misses);
 
 	cudaDeviceSynchronize();
