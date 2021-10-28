@@ -2093,7 +2093,7 @@ __host__ void qf_malloc_device(QF** qf, int nbits){
 
 	//bring in compile #define
 	int rbits = 8;
-	int vbits = 8;
+	int vbits = 0;
 
 	QF host_qf;
 	QF temp_device_qf;
@@ -4476,6 +4476,47 @@ __host__ uint64_t bulk_insert_bucketing_smart(QF* qf, uint64_t* keys, uint64_t v
 //This variant performs an ititial sort that allows us to save time overall
 //as we avoid the atomic count-off and any sort of cross-thread communication
 __host__ void bulk_insert_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
+
+	uint64_t key_block_size = 32;
+	uint64_t key_block = (nvals -1)/key_block_size + 1;
+	//start with num_locks, get counts
+
+
+
+	//keys are hashed, now need to treat them as hashed in all further functions
+	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, value, flags);
+
+
+	thrust::sort(thrust::device, keys, keys+nvals);
+
+
+	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, value, flags);
+
+	
+	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, num_locks, (uint64_t *) buffer_sizes, buffers);
+
+
+	//insert_from_buffers_hashed_onepass<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes);
+	
+	//return;
+
+	uint64_t evenness = 0;
+
+	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+	
+
+	evenness = 1;
+
+	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+
+
+}
+
+//modified version of buffers_provided - performs an initial bulk hash, should save work over other versions
+//note: this DOES modify the given buffer - fine for all versions now
+//This variant performs an ititial sort that allows us to save time overall
+//as we avoid the atomic count-off and any sort of cross-thread communication
+__host__ void bulk_insert_no_atomics_smart(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
 
 	uint64_t key_block_size = 32;
 	uint64_t key_block = (nvals -1)/key_block_size + 1;

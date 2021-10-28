@@ -22,6 +22,7 @@ QF* g_quotient_filter;
 QFi g_quotient_filter_itr;
 
 uint64_t num_locks;
+uint64_t max_num_locks;
 
 volatile uint64_t * buffer_sizes;
 
@@ -32,10 +33,14 @@ uint64_t ** buffers;
 	
 uint64_t * buffer_backing;
 
+uint64_t item_cap, current_items;
+
+uint64_t xnslots;
 
 #ifndef NUM_SLOTS_TO_LOCK
-#define NUM_SLOTS_TO_LOCK (1ULL<<13)
+#define NUM_SLOTS_TO_LOCK (1ULL<<12)
 #endif
+
 
 extern inline uint64_t gqf_xnslots();
 
@@ -49,6 +54,9 @@ extern inline int gqf_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t buf_
 	QF host_qf;
 	uint64_t nslots = 1ULL << nbits;
 	//initialize global counters
+
+	item_cap = nslots;
+
 	num_slots = nslots;
 	total_items = 0;
 	//n_inserts = 0;
@@ -75,14 +83,18 @@ extern inline int gqf_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t buf_
 	cudaMalloc((void **)&g_quotient_filter, sizeof(QF));
 	cudaMemcpy(g_quotient_filter, &temp_device_qf, sizeof(QF), cudaMemcpyHostToDevice);
 
+	xnslots = gqf_xnslots();
+
+	num_locks = xnslots/(NUM_SLOTS_TO_LOCK)+10;
+
+	max_num_locks = xnslots/(NUM_SLOTS_TO_LOCK/20)+10;
 
 
-	num_locks = gqf_xnslots()/NUM_SLOTS_TO_LOCK+10;
 
-	cudaMalloc((void **) & buffer_sizes, 20*num_locks*sizeof(uint64_t));
+	cudaMalloc((void **) & buffer_sizes, 2*max_num_locks*sizeof(uint64_t));
 	
 
-	cudaMalloc((void **)&buffers, 20*num_locks*sizeof(uint64_t*));
+	cudaMalloc((void **)&buffers, 2*max_num_locks*sizeof(uint64_t*));
 
 	cudaMalloc((void **)& buffer_backing, buf_size*sizeof(uint64_t));
 
@@ -186,6 +198,17 @@ extern inline int gqf_bulk_insert(uint64_t * vals, uint64_t count)
 
 	//calculate ratios
 	//total_items += count;
+	current_items += count;
+
+	//this gives the fill ratio
+	double ratio = 1.0 * current_items/item_cap;
+
+	//printf("Fill ratio: %f\n", ratio);
+
+	uint64_t temp_slots = NUM_SLOTS_TO_LOCK;
+
+	uint64_t temp_slots_per_lock = (uint64_t) (ratio*(1ULL<<12));
+	uint64_t temp_num_locks = (uint64_t) (xnslots/(ratio*(1ULL<<12))+10);
 
 	//int ratio = num_slots/total_items;
 
@@ -193,13 +216,13 @@ extern inline int gqf_bulk_insert(uint64_t * vals, uint64_t count)
 	//if (ratio > 15) ratio = 15;
 	//printf("Dividing ratio %d\n", ratio);
 
-	cudaMemset((uint64_t *) buffer_sizes, 0, num_locks*sizeof(uint64_t));
+	//cudaMemset((uint64_t *) buffer_sizes, 0, num_locks*sizeof(uint64_t));
 	
   //cudaMemset((uint64_t *) buffer_sizes, 0, ratio*num_locks*sizeof(uint64_t));
 	//bulk_insert_bucketing_buffer_provided(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
 	//bulk_insert_one_hash(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
   //bulk_insert_bucketing_buffer_provided_timed(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-	bulk_insert_no_atomics(g_quotient_filter, vals,0,1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_sizes);
+	bulk_insert_no_atomics(g_quotient_filter, vals,0,1, count, temp_slots_per_lock, temp_num_locks, QF_NO_LOCK, buffers, buffer_sizes);
 
 	cudaDeviceSynchronize();
 	return 0;

@@ -189,7 +189,7 @@ class bloom_filter
 		salt_count_ = p.optimal_parameters.number_of_hashes;
 		table_size_ = p.optimal_parameters.table_size;
 		generate_unique_salt();
-		raw_table_size_ = table_size_ / bits_per_char;
+		raw_table_size_ = table_size_;
 		bit_table_ = new cell_type[static_cast<std::size_t>(raw_table_size_)];
 		std::fill_n(bit_table_,raw_table_size_,0x00);
 	}
@@ -565,7 +565,7 @@ predicated/expected number of inserted elements.
 		__device__ inline void compute_indices(const bloom_type& hash, std::size_t& bit_index, std::size_t& bit) const
 		{
 			bit_index = hash % table_size_;
-			bit = bit_index % bits_per_char;
+			//bit = bit_index % bits_per_char;
 		}
 
 
