@@ -85,7 +85,7 @@ void curand_generator::gen_next_batch(uint64_t noutputs){
 
 	if (state==0 || state == 1){
 
-		CURAND_CALL(curandGenerate(gen, (unsigned int *) backing, 2*noutputs));
+		CURAND_CALL(curandGenerate(gen, (unsigned int *) backing, 2*backing_size));
 
 
 	} else {

@@ -479,23 +479,36 @@ class device_bloom_filter
 			++inserted_element_count_;
 		}
 
-		template<typename T>
-			__device__ inline void insert(const T& t)
-			{
-				// Note: T must be a C++ POD type.
-				insert(reinterpret_cast<const unsigned char*>(&t),sizeof(T));
-			}
+		__device__ inline void insert(const uint64_t key){
 
-
-
-		__device__ inline virtual bool contains(const unsigned char* key_begin, const std::size_t length) const
-		{
 			std::size_t bit_index = 0;
 			std::size_t bit = 0;
 			for (std::size_t i = 0; i < salt_size; ++i)
 			{
 
-				bloom_type hash_ap_result = hash_ap(key_begin,length,salt_[i]);
+				bloom_type hash_ap_result = hash_ap((unsigned char *) & key, sizeof(uint64_t),salt_[i]);
+				compute_indices(hash_ap_result,bit_index,bit);
+				//compute_indices(hash_ap(key_begin,length,salt_[i]),bit_index,bit);
+
+				bit_table_[bit_index] = 1;
+				//atomicCAS(& / bits_per_char], bit_mask[bit])
+				//bit_table_[bit_index / bits_per_char] |= ;
+			}
+			++inserted_element_count_;
+		
+		}
+
+
+
+		__device__ inline bool contains(uint64_t key) const
+		{
+
+			std::size_t bit_index = 0;
+			std::size_t bit = 0;
+			for (std::size_t i = 0; i < salt_size; ++i)
+			{
+
+				bloom_type hash_ap_result = hash_ap((unsigned char *) & key, sizeof(uint64_t),salt_[i]);
 				compute_indices(hash_ap_result,bit_index,bit);
 
 
@@ -508,11 +521,6 @@ class device_bloom_filter
 			return true;
 		}
 
-		template<typename T>
-			__device__ inline bool contains(const T& t) const
-			{
-				return contains(reinterpret_cast<const unsigned char*>(&t),static_cast<std::size_t>(sizeof(T)));
-			}
 
 
 

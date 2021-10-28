@@ -84,9 +84,11 @@ extern inline int bloom_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t bu
 
 	cudaMalloc((void **)& dev_bit_table, sizeof(char)*host_filter->raw_table_size_*8);
 
+	cudaMemset(dev_bit_table, 0, sizeof(char)*host_filter->raw_table_size_*8);
+
 	BLOOM_CHECK(cudaMemcpy(dev_salt, host_filter->salt_.data(), host_filter->salt_.size()*sizeof(unsigned int), cudaMemcpyHostToDevice));
 
-	BLOOM_CHECK(cudaMemcpy(dev_bit_table, host_filter->bit_table_, sizeof(char)*host_filter->raw_table_size_, cudaMemcpyHostToDevice));
+	//BLOOM_CHECK(cudaMemcpy(dev_bit_table, host_filter->bit_table_, sizeof(char)*host_filter->raw_table_size_, cudaMemcpyHostToDevice));
 
 	//nasty manual copy
 	//host_dev_filter->salt_ = host_filter->salt[0].data();
@@ -99,8 +101,8 @@ extern inline int bloom_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t bu
 	host_dev_filter->salt_ = dev_salt;
 	host_dev_filter->bit_table_ = dev_bit_table;
 	host_dev_filter->salt_count_ = host_filter->salt_count_;
-	host_dev_filter->table_size_ = host_filter->table_size_;
-	host_dev_filter->raw_table_size_ = host_filter->raw_table_size_;
+	host_dev_filter->table_size_ = host_filter->table_size_*8;
+	host_dev_filter->raw_table_size_ = host_filter->raw_table_size_*8;
 	host_dev_filter->projected_element_count_ = host_filter->projected_element_count_;
 	host_dev_filter->inserted_element_count_ = host_filter->inserted_element_count_ ;
 	host_dev_filter->random_seed_ = host_filter->random_seed_ ;
@@ -198,6 +200,7 @@ __global__ void bulk_insert_kernel(device_bloom_filter * bloom_map, uint64_t * v
 	uint64_t val = vals[tid];
 
 	bloom_map->insert(val);
+	__threadfence();
 }
 
  
