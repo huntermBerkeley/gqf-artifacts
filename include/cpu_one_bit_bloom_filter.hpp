@@ -30,7 +30,7 @@
 
 #include <iostream>
 
-static const std::size_t bits_per_char = 0x08;    // 8 bits in 1 char(unsigned)
+static const std::size_t bits_per_char = 0x20;    // 8 bits in 1 char(unsigned)
 static const unsigned char bit_mask[bits_per_char] = {
 	0x01,  //00000001
 	0x02,  //00000010
@@ -152,6 +152,7 @@ and estimated element insertion count.
 			else if (optp.table_size > maximum_size)
 				optp.table_size = maximum_size;
 
+
       std::cout << "Table size: " << optp.table_size << '\n';
       std::cout << "Num hashes: " << optp.number_of_hashes << '\n';
 			return true;
@@ -164,7 +165,7 @@ class bloom_filter
 	protected:
 
 		typedef unsigned int bloom_type;
-		typedef unsigned char cell_type;
+		typedef unsigned int cell_type;
 
 	public:
 
@@ -189,7 +190,10 @@ class bloom_filter
 		salt_count_ = p.optimal_parameters.number_of_hashes;
 		table_size_ = p.optimal_parameters.table_size;
 		generate_unique_salt();
-		raw_table_size_ = table_size_;
+
+
+		//raw table size should be 1/32 with space for runoff
+		raw_table_size_ = (table_size_ -1)/bits_per_char + 1;
 		bit_table_ = new cell_type[static_cast<std::size_t>(raw_table_size_)];
 		std::fill_n(bit_table_,raw_table_size_,0x00);
 	}
@@ -270,7 +274,7 @@ predicated/expected number of inserted elements.
 		}
 
 				std::vector<bloom_type> salt_;
-		unsigned char*          bit_table_;
+		unsigned int * bit_table_;
 		unsigned int            salt_count_;
 		unsigned long long int  table_size_;
 		unsigned long long int  raw_table_size_;
@@ -408,6 +412,50 @@ instances.
 			return hash;
 		}
 
+		// __host__ inline bloom_type hash_ap(const unsigned char* begin, std::size_t remaining_length, bloom_type hash) const
+		// {
+		// 	const unsigned char* itr = begin;
+		// 	unsigned int loop = 0;
+		// 	while (remaining_length >= 8)
+		// 	{
+		// 		const unsigned int& i1 = *(reinterpret_cast<const unsigned int*>(itr)); itr += sizeof(unsigned int);
+		// 		const unsigned int& i2 = *(reinterpret_cast<const unsigned int*>(itr)); itr += sizeof(unsigned int);
+		// 		hash ^= (hash <<  7) ^  i1 * (hash >> 3) ^
+		// 			(~((hash << 11) + (i2 ^ (hash >> 5))));
+		// 		remaining_length -= 8;
+		// 	}
+		// 	if (remaining_length)
+		// 	{
+		// 		if (remaining_length >= 4)
+		// 		{
+		// 			const unsigned int& i = *(reinterpret_cast<const unsigned int*>(itr));
+		// 			if (loop & 0x01)
+		// 				hash ^=    (hash <<  7) ^  i * (hash >> 3);
+		// 			else
+		// 				hash ^= (~((hash << 11) + (i ^ (hash >> 5))));
+		// 			++loop;
+		// 			remaining_length -= 4;
+		// 			itr += sizeof(unsigned int);
+		// 		}
+		// 		if (remaining_length >= 2)
+		// 		{
+		// 			const unsigned short& i = *(reinterpret_cast<const unsigned short*>(itr));
+		// 			if (loop & 0x01)
+		// 				hash ^=    (hash <<  7) ^  i * (hash >> 3);
+		// 			else
+		// 				hash ^= (~((hash << 11) + (i ^ (hash >> 5))));
+		// 			++loop;
+		// 			remaining_length -= 2;
+		// 			itr += sizeof(unsigned short);
+		// 		}
+		// 		if (remaining_length)
+		// 		{
+		// 			hash += ((*itr) ^ (hash * 0xA5A5A5A5)) + loop;
+		// 		}
+		// 	}
+		// 	return hash;
+		// }
+
 		//thrust::vector
 
 };
@@ -418,12 +466,12 @@ class device_bloom_filter
 	protected:
 
 		typedef unsigned int bloom_type;
-		typedef unsigned char cell_type;
+		typedef unsigned int cell_type;
 
 	public:
 
 		unsigned int * salt_;
-		unsigned char*          bit_table_;
+		unsigned int * bit_table_;
 		unsigned int            salt_count_;
 		unsigned long long int  table_size_;
 		unsigned long long int  raw_table_size_;
@@ -486,11 +534,11 @@ class device_bloom_filter
 			for (std::size_t i = 0; i < salt_size; ++i)
 			{
 
-				bloom_type hash_ap_result = hash_ap((unsigned char *) & key, sizeof(uint64_t),salt_[i]);
+				uint64_t hash_ap_result = hash_ap((unsigned char *) & key, sizeof(uint64_t),salt_[i]);
 				compute_indices(hash_ap_result,bit_index,bit);
 				//compute_indices(hash_ap(key_begin,length,salt_[i]),bit_index,bit);
 
-				bit_table_[bit_index] = 1;
+				atomicOr(bit_table_ + bit_index, 1 << bit);
 				//atomicCAS(& / bits_per_char], bit_mask[bit])
 				//bit_table_[bit_index / bits_per_char] |= ;
 			}
@@ -508,11 +556,11 @@ class device_bloom_filter
 			for (std::size_t i = 0; i < salt_size; ++i)
 			{
 
-				bloom_type hash_ap_result = hash_ap((unsigned char *) & key, sizeof(uint64_t),salt_[i]);
+				uint64_t hash_ap_result = hash_ap((unsigned char *) & key, sizeof(uint64_t),salt_[i]);
 				compute_indices(hash_ap_result,bit_index,bit);
 
 
-				if (! bit_table_[bit_index])
+				if (! (bit_table_[bit_index] & (1 << bit)))
 	//				if ((bit_table_[bit_index / bits_per_char] & bit_mask[bit]) != bit_mask[bit])
 				{
 					return false;
@@ -562,21 +610,25 @@ predicated/expected number of inserted elements.
 		}
 
 
-		__device__ inline void compute_indices(const bloom_type& hash, std::size_t& bit_index, std::size_t& bit) const
+		__device__ inline void compute_indices(const uint64_t& hash, std::size_t& bit_index, std::size_t& bit) const
 		{
-			bit_index = hash % table_size_;
-			//bit = bit_index % bits_per_char;
+			uint64_t slot = hash % table_size_;
+
+			bit_index = slot / bits_per_char;
+			bit = slot % bits_per_char;
 		}
 
 
-		__device__ inline bloom_type hash_ap(const unsigned char* begin, std::size_t remaining_length, bloom_type hash) const
+		__device__ inline uint64_t hash_ap(const unsigned char* begin, std::size_t remaining_length, bloom_type hash_seed) const
 		{
+
+			uint64_t hash = hash_seed;
 			const unsigned char* itr = begin;
 			unsigned int loop = 0;
 			while (remaining_length >= 8)
 			{
-				const unsigned int& i1 = *(reinterpret_cast<const unsigned int*>(itr)); itr += sizeof(unsigned int);
-				const unsigned int& i2 = *(reinterpret_cast<const unsigned int*>(itr)); itr += sizeof(unsigned int);
+				const unsigned long long int& i1 = *(reinterpret_cast<const unsigned int*>(itr)); itr += sizeof(unsigned int);
+				const unsigned long long int& i2 = *(reinterpret_cast<const unsigned int*>(itr)); itr += sizeof(unsigned int);
 				hash ^= (hash <<  7) ^  i1 * (hash >> 3) ^
 					(~((hash << 11) + (i2 ^ (hash >> 5))));
 				remaining_length -= 8;
@@ -585,7 +637,7 @@ predicated/expected number of inserted elements.
 			{
 				if (remaining_length >= 4)
 				{
-					const unsigned int& i = *(reinterpret_cast<const unsigned int*>(itr));
+					const unsigned  int& i = *(reinterpret_cast<const unsigned int*>(itr));
 					if (loop & 0x01)
 						hash ^=    (hash <<  7) ^  i * (hash >> 3);
 					else

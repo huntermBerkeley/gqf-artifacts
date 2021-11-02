@@ -1,12 +1,18 @@
 #!/bin/bash
-#SBATCH -A mp309
+#SBATCH -A m2865
 #SBATCH -N 1
 #SBATCH -C gpu
 #SBATCH -q regular
-#SBATCH -t 10:00
+#SBATCH -t 30:00
 #SBATCH -c 10
 #SBATCH -G 1
 #SBATCH -o test_output.dat
 
-echo "srun -N 1 -n 1 ./test 10"
-srun -N 1 -n 1 ./test 10
+echo "srun -N 1 -n 1 ./test 22"
+srun -N 1 -n 1 ./test 22 2
+echo "srun -N 1 -n 1 ./test 24"
+srun -N 1 -n 1 ./test 24 2
+echo "srun -N 1 -n 1 ./test 26"
+srun -N 1 -n 1 ./test 26 2
+echo "srun -N 1 -n 1 ./test 28"
+srun -N 1 -n 1 ./test 28 2

@@ -22,7 +22,7 @@
 #define NOT_FOUND UINT_MAX
 #endif
 
-namespace owens_filter {
+namespace sqf_filter {
 
 struct quotient_filter
 {

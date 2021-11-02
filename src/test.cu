@@ -2,252 +2,698 @@
  * ============================================================================
  *
  *        Authors:  Prashant Pandey <ppandey@cs.stonybrook.edu>
- *                  Rob Johnson <robj@vmware.com>
+ *                  Rob Johnson <robj@vmware.com>   
  *
  * ============================================================================
  */
 
-#include <cuda.h>
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <inttypes.h>
 #include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/mman.h>
-#include <unistd.h>
 #include <openssl/rand.h>
+#include <unistd.h>
+#include <math.h>
+#include <string.h>
+#include <assert.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <cuda.h>
+#include <cuda_runtime_api.h>
+#include <chrono>
 
-#include "include/gqf_int.cuh"
-#include "include/gqf_file.cuh"
-#include "hashutil.cuh"
-#include "include/gqf.cuh"
-//#include "src/gqf.cu"
-
-#define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
-#define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
-
-int main(int argc, char** argv) {
-	if (argc < 2) {
-		fprintf(stderr, "Please specify the log of the number of slots in the CQF.\n");
-		exit(1);
-
-	}
-	QF qf;
-	uint64_t qbits = atoi(argv[1]);
-	uint64_t rbits = 8;
-	uint64_t nhashbits = qbits + rbits;
-	uint64_t nslots = (1ULL << qbits);
-	//this can be changed to change the % it fills up
-	uint64_t nvals = 95 * nslots / 100;
-	//uint64_t nvals =  nslots/2;
-	//uint64_t nvals = 4;
-	//uint64_t nvals = 1;
-	uint64_t key_count = 1;
-	uint64_t* vals;
-
-	/* Initialise the CQF */
-	if (!qf_malloc(&qf, nslots, nhashbits, 0, QF_HASH_INVERTIBLE, false, 0)) {
-		fprintf(stderr, "Can't allocate CQF.\n");
-		abort();
-	}
+//include for cuRand generators
+#include "include/cu_wrapper.cuh"
 
 
 
-	/*
-	if (!qf_initfile(&qf, nslots, nhashbits, 0, QF_HASH_NONE, 0,
-									 "/tmp/mycqf.file")) {
-		fprintf(stderr, "Can't allocate CQF.\n");
-		abort();
-	}
-	*/
-	qf_set_auto_resize(&qf, false);
-	/* Generate random values */
-	vals = (uint64_t*)malloc(nvals * sizeof(vals[0]));
-	RAND_bytes((unsigned char*)vals, sizeof(*vals) * nvals);
-	//uint64_t* _vals;
-	for (uint64_t i = 0; i < nvals; i++) {
-		vals[i] = (1 * vals[i]) % qf.metadata->range;
-		//vals[i] = hash_64(vals[i], BITMASK(nhashbits));
-	}
-
-	// vals = (uint64_t *) malloc(nvals * sizeof(uint64_t));
-	// for (uint64_t i =0l; i< nvals; i++){
-	// 	vals[i] = i;
-	// }
-
-	srand(0);
-	/* Insert keys in the CQF */
-	printf("starting kernel\n");
-	qf_gpu_launch(&qf, vals, nvals, key_count, nhashbits, nslots);
-	cudaDeviceSynchronize();
-
-	printf("GPU launch succeeded\n");
-	fflush(stdout);
+#include "include/gqf_wrapper.cuh"
+#include "include/approx_wrapper.cuh"
+#include "include/rsqf_wrapper.cuh"
+#include "include/sqf_wrapper.cuh"
+#include "include/bloom_wrapper.cuh"
 
 
-	return 0;
 
-	/*
-	for (uint64_t i = 0; i < nvals; i++) {
-		int ret = qf_insert(&qf, vals[i], 0, key_count, QF_NO_LOCK);
-		if (ret < 0) {
-			fprintf(stderr, "failed insertion for key: %lx %d.\n", vals[i], 50);
-			if (ret == QF_NO_SPACE)
-				fprintf(stderr, "CQF is full.\n");
-			else if (ret == QF_COULDNT_LOCK)
-				fprintf(stderr, "TRY_ONCE_LOCK failed.\n");
-			else
-				fprintf(stderr, "Does not recognise return value.\n");
-			abort();
-		}
-	}
-	*/
-	printf("Testing inserts\n");
-	uint64_t failedCount = 0;
-	/* Lookup inserted keys and counts. */
-	for (uint64_t i = 0; i < nvals; i++) {
-		uint64_t count = qf_count_key_value(&qf, vals[i], 0, 0);
-		if (count < key_count) {
-			// fprintf(stderr, "failed lookup after insertion for %lx %ld.\n", vals[i],
-			// 	count);
-			failedCount+=1;
-	//		abort();
-		}
-	}
-	printf("Done finding, %llu failures\n", failedCount);
-	
+#ifndef  USE_MYRANDOM
+#define RFUN random
+#define RSEED srandom
+#else
+#define RFUN myrandom
+#define RSEED mysrandom
 
 
-#if 0
-	for (uint64_t i = 0; i < nvals; i++) {
-		uint64_t count = qf_count_key_value(&qf, vals[i], 0, 0);
-		if (count < key_count) {
-			fprintf(stderr, "failed lookup during deletion for %lx %ld.\n", vals[i],
-				count);
-			abort();
-		}
-		if (count > 0) {
-			/*fprintf(stdout, "deleting: %lx\n", vals[i]);*/
-			qf_delete_key_value(&qf, vals[i], 0, QF_NO_LOCK);
-			/*qf_dump(&qf);*/
-			uint64_t cnt = qf_count_key_value(&qf, vals[i], 0, 0);
-			if (cnt > 0) {
-				fprintf(stderr, "failed lookup after deletion for %lx %ld.\n", vals[i],
-					cnt);
-				abort();
-			}
-		}
-	}
+
+static unsigned int m_z = 1;
+static unsigned int m_w = 1;
+static void mysrandom (unsigned int seed) {
+	m_z = seed;
+	m_w = (seed<<16) + (seed >> 16);
+}
+
+static long myrandom()
+{
+	m_z = 36969 * (m_z & 65535) + (m_z >> 16);
+	m_w = 18000 * (m_w & 65535) + (m_w >> 16);
+	return ((m_z << 16) + m_w) % 0x7FFFFFFF;
+}
 #endif
 
-	/* Write the CQF to disk and read it back. */
-	/*
-	char filename[] = "/tmp/mycqf_serialized.cqf";
-	fprintf(stdout, "Serializing the CQF to disk.\n");
-	uint64_t total_size = qf_serialize(&qf, filename);
-	if (total_size < sizeof(qfmetadata) + qf.metadata->total_size_in_bytes) {
-		fprintf(stderr, "CQF serialization failed.\n");
-		abort();
-	}
-	qf_deletefile(&qf);
+static float tdiff (struct timeval *start, struct timeval *end) {
+	return (end->tv_sec-start->tv_sec) +1e-6*(end->tv_usec - start->tv_usec);
+}
 
-	QF file_qf;
-	fprintf(stdout, "Reading the CQF from disk.\n");
-	if (!qf_deserialize(&file_qf, filename)) {
-		fprintf(stderr, "Can't initialize the CQF from file: %s.\n", filename);
-		abort();
-	}
-	for (uint64_t i = 0; i < nvals; i++) {
-		uint64_t count = qf_count_key_value(&file_qf, vals[i], 0, 0);
-		if (count < key_count) {
-			fprintf(stderr, "failed lookup in file based CQF for %lx %ld.\n",
-							vals[i], count);
-			abort();
-		}
-		*/
-		//}
-	QF file_qf = qf;
-	//fprintf(stdout, "Testing iterator and unique indexes.\n");
-	printf("Testing iterator and unique indexes\n");
-	/* Initialize an iterator and validate counts. */
-	QFi qfi;
-	qf_iterator_from_position(&file_qf, &qfi, 0);
-	QF unique_idx;
-	if (!qf_malloc(&unique_idx, file_qf.metadata->nslots, nhashbits, 0,
-		QF_HASH_NONE, false, 0)) {
-		fprintf(stderr, "Can't allocate set.\n");
-		abort();
-	}
 
-	int64_t last_index = -1;
-	int i = 0;
-	qf_iterator_from_position(&file_qf, &qfi, 0);
-	while (!qfi_end(&qfi)) {
-		uint64_t key, value, count;
-		qfi_get_key(&qfi, &key, &value, &count);
-		if (count < key_count) {
-			fprintf(stderr, "Failed lookup during iteration for: %lx. Returned count: %ld\n",
-				key, count);
-			abort();
-		}
-		int64_t idx = qf_get_unique_index(&file_qf, key, value, 0);
-		if (idx == QF_DOESNT_EXIST) {
-			fprintf(stderr, "Failed lookup for unique index for: %lx. index: %ld\n",
-				key, idx);
-			abort();
-		}
-		if (idx <= last_index) {
-			fprintf(stderr, "Unique indexes not strictly increasing.\n");
-			abort();
-		}
-		last_index = idx;
-		if (qf_count_key_value(&unique_idx, key, 0, 0) > 0) {
-			fprintf(stderr, "Failed unique index for: %lx. index: %ld\n",
-				key, idx);
-			abort();
-		}
-		qf_insert(&unique_idx, key, 0, 1, QF_NO_LOCK);
-		int64_t newindex = qf_get_unique_index(&unique_idx, key, 0, 0);
-		if (idx < newindex) {
-			fprintf(stderr, "Index weirdness: index %dth key %ld was at %ld, is now at %ld\n",
-				i, key, idx, newindex);
-			//abort();
-		}
 
-		i++;
-		qfi_next(&qfi);
 
-		/* remove some counts  (or keys) and validate. */
-		fprintf(stdout, "Testing remove/delete_key.\n");
-		for (uint64_t i = 0; i < nvals; i++) {
-			uint64_t count = qf_count_key_value(&file_qf, vals[i], 0, 0);
-			/*if (count < key_count) {*/
-			/*fprintf(stderr, "failed lookup during deletion for %lx %ld.\n", vals[i],*/
-			/*count);*/
-			/*abort();*/
-			/*}*/
-			int ret = qf_delete_key_value(&file_qf, vals[i], 0, QF_NO_LOCK);
-			count = qf_count_key_value(&file_qf, vals[i], 0, 0);
-			if (count > 0) {
-				if (ret < 0) {
-					fprintf(stderr, "failed deletion for %lx %ld ret code: %d.\n",
-						vals[i], count, ret);
-					abort();
+typedef void * (*rand_init)(uint64_t maxoutputs, __uint128_t maxvalue, void *params);
+typedef int (*gen_rand)(void *state, uint64_t noutputs, __uint128_t *outputs);
+typedef void * (*duplicate_rand)(void *state);
+
+
+//filter ops
+typedef int (*init_op)(uint64_t nvals, uint64_t hash, uint64_t buf_size);
+typedef int (*destroy_op)();
+typedef int (*bulk_insert_op)(uint64_t * vals, uint64_t nvals);
+typedef uint64_t (*bulk_find_op)(uint64_t * vals, uint64_t nvals);
+
+
+typedef struct rand_generator {
+	rand_init init;
+	gen_rand gen;
+	duplicate_rand dup;
+} rand_generator;
+
+typedef struct filter {
+	init_op init;
+	destroy_op destroy;
+	bulk_insert_op bulk_insert;
+	bulk_find_op bulk_lookup;
+
+} filter;
+
+typedef struct uniform_pregen_state {
+	uint64_t maxoutputs;
+	uint64_t nextoutput;
+	__uint128_t *outputs;
+} uniform_pregen_state;
+
+typedef struct uniform_online_state {
+	uint64_t maxoutputs;
+	uint64_t maxvalue;
+	unsigned int seed;
+	char *buf;
+	int STATELEN;
+	struct random_data *rand_state;
+} uniform_online_state;
+
+typedef struct zipf_params {
+	double exp;
+	long universe;
+	long sample;
+} zipf_params;
+
+typedef struct zipfian_pregen_state {
+	zipf_params *params;
+	uint64_t maxoutputs;
+	uint64_t nextoutput;
+	__uint128_t *outputs;
+} zipfian_pregen_state;
+
+typedef struct app_params {
+	char *ip_file;
+	int num;
+} app_params;
+
+typedef struct app_pregen_state {
+	app_params *params;
+	uint64_t maxoutputs;
+	uint64_t nextoutput;
+	__uint128_t *outputs;
+} app_pregen_state;
+
+
+
+
+
+filter gqf = {
+	gqf_init,
+	gqf_destroy,
+	gqf_bulk_insert,
+	gqf_bulk_get
+};
+
+// filter mhm2_map = {
+// 	map_init,
+// 	map_destroy,
+// 	map_bulk_insert,
+// 	map_bulk_get
+// };
+
+filter bloom = {
+	bloom_init,
+	bloom_destroy,
+	bloom_bulk_insert,
+	bloom_bulk_get
+};
+
+// filter one_bit_bloom = {
+// 	one_bit_bloom_init,
+// 	one_bit_bloom_insert,
+// 	one_bit_bloom_lookup,
+// 	one_bit_bloom_range,
+// 	one_bit_bloom_destroy,
+// 	one_bit_bloom_iterator,
+// 	one_bit_bloom_get,
+// 	one_bit_bloom_next,
+// 	one_bit_bloom_end,
+// 	one_bit_bloom_bulk_insert,
+// 	one_bit_bloom_prep_vals,
+// 	one_bit_bloom_bulk_get,
+// 	one_bit_bloom_xnslots
+// };
+
+filter point = {
+	point_init,
+	point_destroy,
+	point_bulk_insert,
+	point_bulk_get
+};
+
+
+filter rsqf = {
+	rsqf_init,
+	rsqf_destroy,
+	rsqf_bulk_insert,
+	rsqf_bulk_get
+};
+
+filter sqf = {
+	sqf_init,
+	sqf_destroy,
+	sqf_bulk_insert,
+	sqf_bulk_get
+};
+
+uint64_t * zipfian_backing;
+
+
+uint64_t tv2msec(struct timeval tv)
+{
+	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
+int cmp_uint64_t(const void *a, const void *b)
+{
+	const uint64_t *ua = (const uint64_t*)a, *ub = (const uint64_t *)b;
+	return *ua < *ub ? -1 : *ua == *ub ? 0 : 1;
+}
+
+void usage(char *name)
+{
+	printf("%s [OPTIONS]\n"
+				 "Options are:\n"
+				 "  -n nslots     [ log_2 of filter capacity.  Default 22 ]\n"
+				 "  -r nruns      [ number of runs.  Default 1 ]\n"
+				 "  -p npoints    [ number of points on the graph.  Default 20 ]\n"
+				 "  -b buf_size   [ log_2 of buffer capacity, default is nslots/npoints ]\n"
+				 "  -m randmode   [ Data distribution, one of \n"
+				 "                    uniform_pregen\n"
+				 "                    uniform_online\n"
+				 "                    zipfian_pregen\n"
+				 "                    custom_pregen\n"
+				 "                  Default uniform_pregen ]\n"
+				 "  -d datastruct  [ Default gqf] [ gqf | map | bloom | bloom_one_bit ]\n"
+				 "  -a number of filters for merging  [ Default 0 ] [Optional]\n"
+				 "  -f outputfile  [ Default gqf. ]\n"
+				 "  -i input file for app specific benchmark [Optional]\n"
+				 "  -v num of values in the input file [Optional]\n"
+				 "  -u universe for zipfian distribution  [ Default nvals ] [Optional]\n"
+				 "  -s constant for zipfian distribution  [ Default 1.5 ] [Optional]\n",
+				 name);
+}
+
+int main(int argc, char **argv)
+{
+
+
+	uint32_t nbits = 22, nruns = 1;
+	unsigned int npoints = 20;
+	uint64_t nslots = (1ULL << nbits), nvals = 950*nslots/1000;
+	double s = 1.5; long universe = nvals;
+	int numvals = 0;
+	int numfilters = 0;
+	char *randmode = "uniform_pregen";
+	char *datastruct = "gqf";
+	char *outputfile = "gqf";
+	char *inputfile = "gqf";
+	void *param = NULL;
+
+	filter filter_ds;
+
+	unsigned int i, j, exp, run;
+	struct std::chrono::time_point<std::chrono::high_resolution_clock> tv_insert[100][1];
+	struct std::chrono::time_point<std::chrono::high_resolution_clock> tv_exit_lookup[100][1];
+	struct std::chrono::time_point<std::chrono::high_resolution_clock> tv_false_lookup[100][1];
+
+	struct std::chrono::duration<int64_t, std::nano> insert_times[100];
+	struct std::chrono::duration<int64_t, std::nano> exit_times[100];
+	struct std::chrono::duration<int64_t, std::nano> false_times[100];
+
+
+	uint64_t fps = 0;
+	//default buffer of 20;
+	uint64_t buf_bits = 20;
+	uint64_t buf_size = (1ULL << 20);
+
+
+	#ifndef __x86_64
+
+	printf("Detected IBM version\n");
+
+
+	const char *dir = "/gpfs/alpine/bif115/scratch/hjmccoy/";
+
+	printf("Writing files to %s\n", dir);
+
+	#else 
+
+	const char *dir = "./";
+
+	#endif
+	
+	const char *insert_op = "-insert.txt\0";
+	const char *exit_lookup_op = "-exists-lookup.txt\0";
+	const char *false_lookup_op = "-false-lookup.txt\0";
+	char filename_insert[256];
+	char filename_exit_lookup[256];
+	char filename_false_lookup[256];
+
+	/* Argument parsing */
+	int opt;
+	char *term;
+
+	while((opt = getopt(argc, argv, "n:r:p:b:m:d:a:f:i:v:s")) != -1) {
+		switch(opt) {
+			case 'n':
+				nbits = strtol(optarg, &term, 10);
+				if (*term) {
+					fprintf(stderr, "Argument to -n must be an integer\n");
+					usage(argv[0]);
+					exit(1);
 				}
-				uint64_t new_count = qf_count_key_value(&file_qf, vals[i], 0, 0);
-				if (new_count > 0) {
-					fprintf(stderr, "delete key failed for %lx %ld new count: %ld.\n",
-						vals[i], count, new_count);
-					abort();
+				nslots = (1ULL << nbits);
+				nvals = 950*nslots/1000;
+				universe = nvals;
+				//buf_size = nbits - log2(npoints);
+				break;
+			case 'r':
+				nruns = strtol(optarg, &term, 10);
+				if (*term) {
+					fprintf(stderr, "Argument to -r must be an integer\n");
+					usage(argv[0]);
+					exit(1);
 				}
+				break;
+			case 'p':
+				npoints = strtol(optarg, &term, 10);
+				if (*term) {
+					fprintf(stderr, "Argument to -p must be an integer\n");
+					usage(argv[0]);
+					exit(1);
+				}
+				break;
+			case 'b':
+				buf_bits = strtol(optarg, &term, 10);
+				if (*term) {
+					fprintf(stderr, "Argument to -n must be an integer\n");
+					usage(argv[0]);
+					exit(1);
+				}
+				buf_size = (1ULL << buf_bits);
+				break;
+			case 'm':
+				randmode = optarg;
+				break;
+			case 'd':
+				datastruct = optarg;
+				break;
+			case 'f':
+				outputfile = optarg;
+				break;
+			case 'i':
+				inputfile = optarg;
+				break;
+			case 'v':
+				numvals = (int)strtol(optarg, &term, 10);
+				break;
+			case 's':
+				s = strtod(optarg, NULL);
+				break;
+			case 'u':
+				universe = strtol(optarg, &term, 10);
+				break;
+			case 'a':
+				numfilters = strtol(optarg, &term, 10);
+				if (*term) {
+					fprintf(stderr, "Argument to -p must be an integer\n");
+					usage(argv[0]);
+					exit(1);
+				}
+				break;
+			default:
+				fprintf(stderr, "Unknown option\n");
+				usage(argv[0]);
+				exit(1);
+				break;
+		}
+	}
+
+
+
+
+	if (strcmp(datastruct, "gqf") == 0) {
+		filter_ds = gqf;
+	} else if (strcmp(datastruct, "bloom") == 0) {
+		filter_ds = bloom;
+	} else if (strcmp(datastruct, "point") == 0) {
+		filter_ds = point;
+	} else if (strcmp(datastruct, "rsqf") == 0) {
+		filter_ds = rsqf;
+	} else if (strcmp(datastruct, "sqf") == 0) {
+		filter_ds = sqf;
+	} else {
+		fprintf(stderr, "Unknown filter.\n");
+		usage(argv[0]);
+		exit(1);
+	}
+	
+
+	snprintf(filename_insert, strlen(dir) + strlen(outputfile) + strlen(insert_op) + strlen(datastruct) + 1, "%s%s%s", dir, outputfile, insert_op);
+	snprintf(filename_exit_lookup, strlen(dir) + strlen(outputfile) + strlen(exit_lookup_op) + 1, "%s%s%s", dir, outputfile, exit_lookup_op);
+
+	snprintf(filename_false_lookup, strlen(dir) + strlen(outputfile) + strlen(false_lookup_op) + 1, "%s%s%s", dir, outputfile, false_lookup_op);
+
+
+	FILE *fp_insert = fopen(filename_insert, "w");
+	FILE *fp_exit_lookup = fopen(filename_exit_lookup, "w");
+	FILE *fp_false_lookup = fopen(filename_false_lookup, "w");
+
+	if (fp_insert == NULL) {
+		printf("Can't open the data file %s\n", filename_insert);
+		exit(1);
+	}
+
+	if (fp_exit_lookup == NULL ) {
+	    printf("Can't open the data file %s\n", filename_exit_lookup);
+		exit(1);
+	}
+
+	if (fp_false_lookup == NULL) {
+		printf("Can't open the data file %s\n", filename_false_lookup);
+		exit(1);
+	}
+
+
+	for (run = 0; run < nruns; run++) {
+		fps = 0;
+		filter_ds.init(nbits, nbits+8, buf_size);
+		
+
+		//run setup here
+		// vals_gen_state = vals_gen->init(nvals, filter_ds.range(), param);
+
+		// if (strcmp(randmode, "zipfian_pregen") == 0) {
+		// 	for (exp =0; exp < 2*npoints; exp+=2){
+
+
+		// 	i = (exp/2)*(nvals/npoints);
+		// 	j = ((exp/2) + 1)*(nvals/npoints);
+		// 	printf("Round: %d\n", exp/2);
+
+		// 	for (;i < j; i += 1<<16) {
+		// 		int nitems = j - i < 1<<16 ? j - i : 1<<16;
+		// 		__uint128_t vals[1<<16];
+		// 		int m;
+		// 		assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
+
+
+		// 		}
+
+		// 	}	
+		// }
+
+
+
+
+
+		//init curand here
+		//setup for curand here
+		//three generators - two clones for get/find and one random for fp testing
+		curand_generator curand_put{};
+		curand_put.init(run, 0, buf_size);
+		curand_generator curand_get{};
+		curand_get.init(run, 0, buf_size);
+		curand_generator curand_false{};
+		curand_false.init((run+1)*2702173, 0, buf_size);
+		
+		cudaDeviceSynchronize();
+
+		sleep(1);
+
+
+
+
+		for (exp = 0; exp < 2*npoints; exp += 2) {
+			i = (exp/2)*(nvals/npoints);
+			j = ((exp/2) + 1)*(nvals/npoints);
+			//printf("Round: %d\n", exp/2);
+
+
+			insert_times[exp+1] = std::chrono::duration<int64_t>::zero();;
+			std::chrono::time_point<std::chrono::high_resolution_clock> insert_start;
+			std::chrono::time_point<std::chrono::high_resolution_clock> insert_end;
+
+			tv_insert[exp][run] = std::chrono::high_resolution_clock::now();
+
+			for (;i < j; i += buf_size) {
+				int nitems = j - i < buf_size ? j - i : buf_size;
+				uint64_t * vals;
+				//int m;
+				//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
+
+				//prep vals for filter
+				//cudaProfilerStart();
+
+				//get timing
+				insert_start = std::chrono::high_resolution_clock::now();
+
+				curand_put.gen_next_batch(nitems);
+				vals = curand_put.yield_backing();
+				//cudaDeviceSynchronize();
+				insert_end = std::chrono::high_resolution_clock::now();
+				
+				insert_times[exp+1] += insert_end-insert_start;
+
+			
+					
+					
+				filter_ds.bulk_insert(vals, nitems);
+					//cudaProfilerStop();
+
+				
 			}
+
+			cudaDeviceSynchronize();
+
+			tv_insert[exp+1][run] = std::chrono::high_resolution_clock::now();
+
+			//don't need this
+			//curand_test.reset_to_defualt();
+
+			exit_times[exp+1] =  std::chrono::duration<int64_t>::zero();
+			std::chrono::time_point<std::chrono::high_resolution_clock> exit_start;
+			std::chrono::time_point<std::chrono::high_resolution_clock> exit_end;
+
+			
+
+			i = (exp/2)*(nvals/npoints);
+			tv_exit_lookup[exp][run]= std::chrono::high_resolution_clock::now();
+			for (;i < j; i += buf_size) {
+				int nitems = j - i < buf_size ? j - i : buf_size;
+				
+				int m;
+				//assert(vals_gen->gen(old_vals_gen_state, nitems, vals) == nitems);
+			
+		
+				//int m;
+				//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
+				uint64_t * insert_vals;
+				//prep vals for filter
+
+				exit_start = std::chrono::high_resolution_clock::now();
+				curand_get.gen_next_batch(nitems);
+				insert_vals = curand_get.yield_backing();
+				exit_end = std::chrono::high_resolution_clock::now();
+				exit_times[exp+1] += exit_end-exit_start;
+
+				uint64_t result = filter_ds.bulk_lookup(insert_vals, nitems);
+				//uint64_t result = 0;
+				if (result != 0){
+
+				printf("Failed to find %llu items\n", result);
+				abort();
+
+				}
+
+			}
+
+			cudaDeviceSynchronize();
+			tv_exit_lookup[exp+1][run] = std::chrono::high_resolution_clock::now();
+
+			//this looks right
+			false_times[exp+1] = std::chrono::duration<int64_t>::zero();;
+			std::chrono::time_point<std::chrono::high_resolution_clock> false_start;
+			std::chrono::time_point<std::chrono::high_resolution_clock> false_end;
+
+			//curand_test.destroy();
+			//curand_generator othervals_curand{};
+			//othervals_curand.init_curand(5, 0, buf_size);
+
+			i = (exp/2)*(nvals/npoints);
+			tv_false_lookup[exp][run] = std::chrono::high_resolution_clock::now();
+			for (;i < j; i += buf_size) {
+				int nitems = j - i < buf_size ? j - i : buf_size;
+				uint64_t * othervals;
+				int m;
+
+				false_start = std::chrono::high_resolution_clock::now();
+				curand_false.gen_next_batch(nitems);
+				othervals = curand_false.yield_backing();
+				false_end = std::chrono::high_resolution_clock::now();
+				false_times[exp+1] += false_end-false_start;
+
+		
+
+					
+				fps += nitems-filter_ds.bulk_lookup(othervals, nitems);
+					
+				
+			}
+
+			cudaDeviceSynchronize();
+			tv_false_lookup[exp+1][run] = std::chrono::high_resolution_clock::now();
 		}
 
-		qf_deletefile(&file_qf);
 
-		fprintf(stdout, "Validated the CQF.\n");
+		//and destroy
+
+		//all inserts done, reset main counter
+
+
+
+
+		curand_put.destroy();
+		curand_get.destroy();
+		curand_false.destroy();
+
+		
+		
+		curand_generator get_end{};
+		get_end.init(run, 0, buf_size);
+		
+		for (exp = 0; exp < 2*npoints; exp += 2) {
+			i = (exp/2)*(nvals/npoints);
+			j = ((exp/2) + 1)*(nvals/npoints);
+			//printf("Round: %d\n", exp/2);
+
+
+			for (;i < j; i += buf_size) {
+				int nitems = j - i < buf_size ? j - i : buf_size;
+				uint64_t * vals;
+				//int m;
+				//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
+
+				//prep vals for filter
+				//cudaProfilerStart();
+				get_end.gen_next_batch(nitems);
+				vals = get_end.yield_backing();
+
+				uint64_t result = filter_ds.bulk_lookup(vals, nitems);
+				if (result != 0){
+
+					printf("Failed to find %llu items\n", result);
+					abort();
+
+				}
+
+
+			}	
+
+		}
+		
+		get_end.destroy();
+		
+		filter_ds.destroy();
+		cudaDeviceSynchronize();
+
+
 	}
+
+
+
+	printf("Wiring results to file: %s\n",  filename_insert);
+	fprintf(fp_insert, "x_0");
+	for (run = 0; run < nruns; run++) {
+		fprintf(fp_insert, "    y_%d", run);
+	}
+	fprintf(fp_insert, "\n");
+	for (exp = 0; exp < 2*npoints; exp += 2) {
+		fprintf(fp_insert, "%d", ((exp/2)*(100/npoints)));
+		for (run = 0; run < nruns; run++) {
+			fprintf(fp_insert, " %f",
+							0.001 * (nvals/npoints)/ ((tv_insert[exp+1][run] - tv_insert[exp][run])-insert_times[exp+1]).count()*1000000);
+		}
+		fprintf(fp_insert, "\n");
+	}
+	printf("Insert Performance written\n");
+
+	printf("Wiring results to file: %s\n", filename_exit_lookup);
+	fprintf(fp_exit_lookup, "x_0");
+	for (run = 0; run < nruns; run++) {
+		fprintf(fp_exit_lookup, "    y_%d", run);
+	}
+	fprintf(fp_exit_lookup, "\n");
+	for (exp = 0; exp < 2*npoints; exp += 2) {
+		fprintf(fp_exit_lookup, "%d", ((exp/2)*(100/npoints)));
+		for (run = 0; run < nruns; run++) {
+			fprintf(fp_exit_lookup, " %f",
+							0.001 * (nvals/npoints)/((tv_exit_lookup[exp+1][run]- tv_exit_lookup[exp][run])-exit_times[exp+1]).count()*1000000);
+		}
+		fprintf(fp_exit_lookup, "\n");
+	}
+	printf("Existing Lookup Performance written\n");
+
+	printf("Wiring results to file: %s\n", filename_false_lookup);
+	fprintf(fp_false_lookup, "x_0");
+	for (run = 0; run < nruns; run++) {
+		fprintf(fp_false_lookup, "    y_%d", run);
+	}
+	fprintf(fp_false_lookup, "\n");
+	for (exp = 0; exp < 2*npoints; exp += 2) {
+		fprintf(fp_false_lookup, "%d", ((exp/2)*(100/npoints)));
+		for (run = 0; run < nruns; run++) {
+			fprintf(fp_false_lookup, " %f",
+							0.001 * (nvals/npoints)/((tv_false_lookup[exp+1][run]- tv_false_lookup[exp][run])-false_times[exp+1]).count()*1000000);
+		}
+		fprintf(fp_false_lookup, "\n");
+	}
+	printf("False Lookup Performance written\n");
+
+	printf("FP rate: %f (%lu/%lu)\n", 1.0 * fps / nvals, fps, nvals);
+
+	fclose(fp_insert);
+	fclose(fp_exit_lookup);
+	fclose(fp_false_lookup);
+
+	return 0;
 }

@@ -1,37 +1,21 @@
-# cqf
-A General-Purpose Counting Filter: Counting Quotient Filter (CQF)
+# gqf
 
-This work appeared at SIGMOD 2017. If you use this software please cite us:
-```
-@inproceedings{DBLP:conf/sigmod/PandeyBJP17,
-  author    = {Prashant Pandey and
-               Michael A. Bender and
-               Rob Johnson and
-               Robert Patro},
-  title     = {A General-Purpose Counting Filter: Making Every Bit Count},
-  booktitle = {Proceedings of the 2017 {ACM} International Conference on Management
-               of Data, {SIGMOD} Conference 2017, Chicago, IL, USA, May 14-19, 2017},
-  pages     = {775--787},
-  year      = {2017},
-  crossref  = {DBLP:conf/sigmod/2017},
-  url       = {http://doi.acm.org/10.1145/3035918.3035963},
-  doi       = {10.1145/3035918.3035963},
-  timestamp = {Wed, 10 May 2017 22:12:12 +0200},
-  biburl    = {http://dblp.org/rec/bib/conf/sigmod/PandeyBJP17},
-  bibsource = {dblp computer science bibliography, http://dblp.org}
-}
-```
+GQF: A Practical Counting Quotient Filter for GPUs
+
 
 Overview
 --------
  The CQF supports approximate membership testing and counting the occurrences of
  items in a data set. This general-purpose AMQ is small and fast, has good
- locality of reference, scales out of RAM to SSD, and supports deletions,
- counting (even on skewed data sets), resizing, merging, and highly concurrent
+ locality of reference, and supports deletions,
+ counting (even on skewed data sets), resizing, and highly concurrent
  access.
 
 API
 --------
+
+* \_\_host\_\_ void qf_malloc_device(QF** qf, int nbits): Initializes a new GQF with 2^nbits slots, qf is set to point to the new filter
+* \_\_host\_\_ void qf_destroy_device(QF * qf): Frees the GQF pointed to by qf.
 * 'qf_insert(item, count)': insert an item to the filter
 * 'qf_count_key_value(item)': return the count of the item. Note that this
   method may return false positive results like Bloom filters or an over count.
@@ -40,7 +24,9 @@ API
 
 Build
 -------
-This library depends on libssl. 
+This library depends on [Thrust](https://thrust.github.io/). 
+
+In addition, one of the filters available for testing, the SQF, depends on [CUB](https://nvlabs.github.io/cub/) and [ModernGPU](https://moderngpu.github.io/intro.html). 
 
 The code uses two new instructions to implement select on machine words introduced 
 in intel's Haswell line of CPUs. However, there is also an alternate implementation
@@ -49,17 +35,20 @@ of select on machine words to work on CPUs older than Haswell.
 To build on a Haswell or newer hardware:
 ```bash
  $ make test
- $ ./test 24
+ $ ./test -n 28 -d filter_type
 ```
 
-To build on an older hardare (older than Haswell):
-```bash
- $ make NH=1 test
- $ ./test 24
- ```
 
- The argument to main is the log of the number of slots in the CQF. For example,
- to create a CQF with 2^30 slots, the argument will be 30.
+The argument to -n is the log of the number of slots in the GQF. For example,
+ to create a CQF with 2^30 slots, the argument will be -n 30.
+
+The argument to -d is the filter being tested. The currently supported filters are:
+
+ - gqf (GQF bulk API)
+ - point (GQF point API)
+ - sqf (Standard Quotient Filter from [Geil et al.](https://escholarship.org/uc/item/3v12f7dn))
+ - rsqf (Rank-Select Quotient Filter from [Geil et al.](https://escholarship.org/uc/item/3v12f7dn))
+ - bloom (Bloom Filter)
 
 Contributing
 ------------
@@ -68,5 +57,5 @@ Contributions via GitHub pull requests are welcome.
 
 Authors
 -------
-- Prashant Pandey <ppandey@cs.stonybrook.edu>
-- Rob Johnson <rob@cs.stonybrook.edu>
+- Hunter McCoy <hjmccoy@lbl.gov>
+- Prashant Pandey <prashantpa@vmware.com>

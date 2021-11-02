@@ -1,4 +1,4 @@
-TARGETS=test bm_gpu_only
+TARGETS=test old_test
 
 ifdef D
 	DEBUG=-g -G
@@ -47,49 +47,29 @@ all: $(TARGETS)
 
 # dependencies between programs and .o files
 
-test:								$(OBJDIR)/test.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
+old_test:								$(OBJDIR)/old_test.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
 										$(OBJDIR)/hashutil.o \
 										$(OBJDIR)/partitioned_counter.o
 
-test_threadsafe:		$(OBJDIR)/test_threadsafe.o $(OBJDIR)/gqf.o \
-										$(OBJDIR)/gqf_file.o $(OBJDIR)/hashutil.o \
-										$(OBJDIR)/partitioned_counter.o
 
-test_pc:						$(OBJDIR)/test_partitioned_counter.o $(OBJDIR)/gqf.o \
-										$(OBJDIR)/gqf_file.o $(OBJDIR)/hashutil.o \
-										$(OBJDIR)/partitioned_counter.o
-
-bm:									$(OBJDIR)/bm.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
-										$(OBJDIR)/zipf.o $(OBJDIR)/hashutil.o \
-										$(OBJDIR)/partitioned_counter.o
-
-bm_gpu_only:							$(OBJDIR)/bm_gpu_only.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
-										$(OBJDIR)/zipf.o $(OBJDIR)/hashutil.o \
+test:							$(OBJDIR)/test.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
+										$(OBJDIR)/hashutil.o \
 										$(OBJDIR)/partitioned_counter.o \
 										$(OBJDIR)/RSQF.o \
-										$(OBJDIR)/quotientFilter.o \
-										$(OBJDIR)/MurmurHash3.o
+										$(OBJDIR)/sqf.o \
 
 # dependencies between .o files and .h files
 
-$(OBJDIR)/test.o: 						$(LOC_INCLUDE)/gqf.cuh $(LOC_INCLUDE)/gqf_file.cuh \
+$(OBJDIR)/old_test.o: 						$(LOC_INCLUDE)/gqf.cuh $(LOC_INCLUDE)/gqf_file.cuh \
 															$(LOC_INCLUDE)/hashutil.cuh \
 															$(LOC_INCLUDE)/partitioned_counter.cuh
 
-$(OBJDIR)/test_threadsafe.o: 	$(LOC_INCLUDE)/gqf.cuh $(LOC_INCLUDE)/gqf_file.cuh \
-															$(LOC_INCLUDE)/hashutil.cuh \
-															$(LOC_INCLUDE)/partitioned_counter.cuh
 
-$(OBJDIR)/bm.o:								$(LOC_INCLUDE)/gqf_wrapper.cuh \
-															$(LOC_INCLUDE)/partitioned_counter.cuh
-
-
-$(OBJDIR)/bm_gpu_only.o:								$(LOC_INCLUDE)/gqf_wrapper.cuh \
+$(OBJDIR)/test.o:								$(LOC_INCLUDE)/gqf_wrapper.cuh \
 															$(LOC_INCLUDE)/partitioned_counter.cuh \
 															$(LOC_INCLUDE)/cu_wrapper.cuh \
 															$(LOC_INCLUDE)/RSQF.cuh \
-															$(LOC_INCLUDE)/quotientFilter.cuh \
-															$(LOC_INCLUDE)/MurmurHash3.cuh
+															$(LOC_INCLUDE)/sqf.cuh \
 
 
 
@@ -101,9 +81,7 @@ $(OBJDIR)/gqf.o:							$(LOC_SRC)/gqf.cu $(LOC_INCLUDE)/gqf.cuh
 $(OBJDIR)/gqf_file.o:					$(LOC_SRC)/gqf_file.cu $(LOC_INCLUDE)/gqf_file.cuh
 $(OBJDIR)/hashutil.o:					$(LOC_SRC)/hashutil.cu $(LOC_INCLUDE)/hashutil.cuh
 $(OBJDIR)/partitioned_counter.o:	$(LOC_INCLUDE)/partitioned_counter.cuh
-$(OBJDIR)/quotientFilter.o: $(LOC_SRC)/quotientFilter.cu $(LOC_INCLUDE)/quotientFilter.cuh
-$(OBJDIR)/MurmurHash3.o: $(LOC_SRC)/MurmurHash3.cu $(LOC_INCLUDE)/MurmurHash3.cuh
-
+$(OBJDIR)/sqf.o: $(LOC_SRC)/sqf.cu $(LOC_INCLUDE)/sqf.cuh
 
 #
 # generic build rules
@@ -112,7 +90,7 @@ $(OBJDIR)/MurmurHash3.o: $(LOC_SRC)/MurmurHash3.cu $(LOC_INCLUDE)/MurmurHash3.cu
 $(TARGETS):
 	$(LD) $^ -o $@ $(LDFLAGS)
 
-$(OBJDIR)/quotientFilter.o: $(LOC_SRC)/quotientFilter.cu | $(OBJDIR)
+$(OBJDIR)/sqf.o: $(LOC_SRC)/sqf.cu | $(OBJDIR)
 	$(CU) $(CUFLAGS) $(INCLUDE) --extended-lambda -dc $< -o $@
 
 $(OBJDIR)/%.o: $(LOC_SRC)/%.cu | $(OBJDIR)

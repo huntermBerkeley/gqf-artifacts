@@ -19,7 +19,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <cuda_profiler_api.h>
-#include "quotientFilter.cuh"
+#include "sqf.cuh"
 #include <thrust/device_vector.h>
 #include <thrust/sort.h>
 #include <thrust/scan.h>
@@ -28,7 +28,7 @@
 #include "../moderngpu/src/moderngpu/kernel_merge.hxx"
 
 
-namespace owens_filter {
+namespace sqf_filter {
 
 #ifndef LOW_BIT_MASK
 #define LOW_BIT_MASK(n) ((1U << n) - 1U)

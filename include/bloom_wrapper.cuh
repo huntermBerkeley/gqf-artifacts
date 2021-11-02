@@ -15,7 +15,7 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 //#include "include/bloom.cuh"
-#include "include/cpu_bloom_filter.hpp"
+#include "include/cpu_one_bit_bloom_filter.hpp"
 
 #ifndef BLOOM_CHECK
 #define BLOOM_CHECK(ans)                                                                  \
@@ -35,15 +35,6 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
 device_bloom_filter * bloom_map;
 
 
-extern inline void bloom_test(){
-
-	uint64_t x =0;
-	x+=1;
-	return;
-}
-
-
-extern inline uint64_t bloom_xnslots();
 
 extern inline int bloom_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t buf_size)
 {
@@ -51,10 +42,10 @@ extern inline int bloom_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t bu
 
 	bloom_parameters parameters;
 
-	uint64_t nslots = 1 << nbits;
+	uint64_t nslots = 1ULL << nbits;
 
 	parameters.projected_element_count = nslots;
-	parameters.false_positive_probability = 0.001;
+	parameters.false_positive_probability = 0.01;
 	parameters.random_seed = 0xA5A5A5A5;
 
 	if (!parameters)
@@ -78,13 +69,13 @@ extern inline int bloom_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t bu
 
 	unsigned int * dev_salt;
 
-	unsigned char * dev_bit_table;
+	unsigned int * dev_bit_table;
 
 	cudaMalloc((void**)& dev_salt, host_filter->salt_.size()*sizeof(unsigned int));
 
-	cudaMalloc((void **)& dev_bit_table, sizeof(char)*host_filter->raw_table_size_);
+	cudaMalloc((void **)& dev_bit_table, sizeof(unsigned int)*host_filter->raw_table_size_);
 
-	cudaMemset(dev_bit_table, 0, sizeof(char)*host_filter->raw_table_size_);
+	cudaMemset(dev_bit_table, 0, sizeof(unsigned int)*host_filter->raw_table_size_);
 
 	BLOOM_CHECK(cudaMemcpy(dev_salt, host_filter->salt_.data(), host_filter->salt_.size()*sizeof(unsigned int), cudaMemcpyHostToDevice));
 
@@ -94,6 +85,8 @@ extern inline int bloom_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t bu
 	//host_dev_filter->salt_ = host_filter->salt[0].data();
 
 	//need to copy over salt and bits
+
+	printf("Bytes Used: %llu\n", sizeof(unsigned int)*host_filter->raw_table_size_);
 
 
 
@@ -123,39 +116,25 @@ extern inline int bloom_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t bu
 	
 }
 
-//defunct don't use
-extern inline int bloom_insert(uint64_t val, uint64_t count)
-{
-	//qf_insert(g_quotient_filter, val, 0, count, QF_NO_LOCK);
-	return 0;
-}
 
-
-//defunct dont use
-extern inline int bloom_lookup(uint64_t val)
-{
-	return 0;
-	//qf_count_key_value(g_quotient_filter, val, 0, 0);
-}
-
-
-//defunct don't use
-//these funcs need to be defined for other tables, so they stay in the filter definition
-extern inline uint64_t bloom_range()
-{
-	return 0;
-}
-
-//shocker - don't use
-extern inline uint64_t bloom_xnslots()
-{
-	return 0;
-}
 
 extern inline int bloom_destroy()
 {
 	//bloom_map.clear();
-	
+	device_bloom_filter * host_dev_filter;
+
+	BLOOM_CHECK(cudaMallocManaged((void **) & host_dev_filter, sizeof(device_bloom_filter)));
+
+	cudaMemcpy(host_dev_filter, bloom_map, sizeof(device_bloom_filter), cudaMemcpyDeviceToDevice);
+
+
+	//free subcomponents
+	cudaFree(host_dev_filter->bit_table_);
+	cudaFree(host_dev_filter->salt_);
+
+	cudaFree(bloom_map);
+
+	cudaFree(host_dev_filter);
 
 	return 0;
 }
