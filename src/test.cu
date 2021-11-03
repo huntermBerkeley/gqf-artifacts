@@ -262,7 +262,8 @@ int main(int argc, char **argv)
 
 	uint64_t fps = 0;
 	//default buffer of 20;
-	uint64_t buf_bits = 20;
+	bool bufset = false;
+	uint64_t buf_bits = 18;
 	uint64_t buf_size = (1ULL << 20);
 
 
@@ -296,6 +297,12 @@ int main(int argc, char **argv)
 		switch(opt) {
 			case 'n':
 				nbits = strtol(optarg, &term, 10);
+
+				if (!bufset){
+					buf_bits = nbits-4;
+					buf_size = (1ULL << buf_bits);
+				}
+
 				if (*term) {
 					fprintf(stderr, "Argument to -n must be an integer\n");
 					usage(argv[0]);
@@ -324,6 +331,7 @@ int main(int argc, char **argv)
 				break;
 			case 'b':
 				buf_bits = strtol(optarg, &term, 10);
+				bufset=true;
 				if (*term) {
 					fprintf(stderr, "Argument to -n must be an integer\n");
 					usage(argv[0]);

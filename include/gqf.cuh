@@ -168,9 +168,9 @@ extern "C" {
 
 	
 
-	__host__ void bulk_insert_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes);
+	__host__ void bulk_insert(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes);
 
-	__host__ void bulk_insert_thrust_reduce(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes);
+	__host__ void bulk_insert_reduce(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes);
 
 
 
@@ -181,7 +181,7 @@ extern "C" {
 	__host__ void bulk_delete_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes);
 
 
-	__host__ uint64_t bulk_get_wrapper(QF * qf, uint64_t * vals, uint64_t nvals);
+	__host__ uint64_t bulk_get_misses_wrapper(QF * qf, uint64_t * vals, uint64_t nvals);
 	/* Set the counter for this key/value pair to count. 
 	 Return value: Same as qf_insert. 
 	 Returns 0 if new count is equal to old count.
@@ -236,8 +236,12 @@ extern "C" {
 		 in the QF.  If you want to see others, use an iterator. 
 		 May return QF_COULDNT_LOCK if called with QF_TRY_LOCK.  */
 
-    __device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal,  uint8_t flags);
-    
+    __device__ qf_returns point_insert_not_exists(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal,  uint8_t flags);
+
+    __device__ uint64_t point_query(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags);
+
+    __device__ uint64_t point_query_concurrent(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags);
+
 	__host__ __device__ uint64_t qf_query(const QF *qf, uint64_t key, uint64_t *value, uint8_t
 										flags);
 

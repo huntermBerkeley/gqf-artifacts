@@ -222,7 +222,7 @@ extern inline int gqf_bulk_insert(uint64_t * vals, uint64_t count)
 	//bulk_insert_bucketing_buffer_provided(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
 	//bulk_insert_one_hash(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
   //bulk_insert_bucketing_buffer_provided_timed(g_quotient_filter, vals, 0, 1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-	bulk_insert_no_atomics(g_quotient_filter, vals,0,1, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_sizes);
+	bulk_insert(g_quotient_filter, vals, count, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_sizes);
 
 	//bulk_insert_thrust_reduce(g_quotient_filter, vals,0,1, count, temp_slots_per_lock, temp_num_locks, QF_NO_LOCK, buffers, buffer_sizes);
 
@@ -235,7 +235,7 @@ extern inline uint64_t gqf_bulk_get(uint64_t * vals, uint64_t count){
 
   
 
-  return bulk_get_wrapper(g_quotient_filter, vals, count);
+  return bulk_get_misses_wrapper(g_quotient_filter, vals, count);
 
 }
 

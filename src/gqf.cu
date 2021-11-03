@@ -2592,218 +2592,8 @@ __device__ __forceinline__ uint64_t biggest_pow_2(uint64_t n){
 
 
 
-//provide merge of a section of the array
-__device__ void __bitonic_merge(uint64_t * array, uint64_t low, uint64_t n, uint64_t idx, bool dir){
-
-
-	if (n > 1){
-
-		uint64_t m = biggest_pow_2(n);
-
-		if (idx >= low && idx < low+n-m){
-
-			compare(array, idx, idx+m, dir);
-
-		}
-	//what spot right spot?
-	__syncthreads();
-
-	if (idx < m){
-		__bitonic_merge(array, low, m, idx, dir);
-	} else {
-
-		//need to verify this section
-		__bitonic_merge(array, low+m, n-m, idx-m, dir);
-	}
-	
-	}
-
-
-}
-
-//__device__ void __bitonic_sort(uint64_t * array, uint64_t low, uint64_t n, uint64_t idx, bool dir);
-
-
-__device__ void __bitonic_sort(uint64_t * array, uint64_t low, uint64_t n, uint64_t idx, bool dir){
-
-	if (n > 1){
-
-		//get power of two to separate on
-		uint64_t m = biggest_pow_2(n);
-
-
-		if (idx < m){
-			__bitonic_sort(array, low, m, idx, !dir);
-		} else {
-			__bitonic_sort(array, low+m, n-m, idx-m, dir);
-		}
-		//and perform final merge
-		__bitonic_merge(array, low, n, idx, dir);
-		
-	}
-
-
-}
-
-//in place bitonic sort
-__global__ void sort(uint64_t * array, uint64_t n){
-
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-	__bitonic_sort(array, 0, n, idx, true);
-
-}
-
-
-__device__ void swap(uint64_t * array, uint64_t first, uint64_t second){
-    
-    uint64_t temp = array[first];
-    array[first] = array[second];
-    array[second] = temp;
-}
-
-//give index to partition over
-__device__ uint64_t partition(uint64_t * array, uint64_t low, uint64_t high){
-    
-    
-    uint64_t index = low;
-    uint64_t pivot = high;
-    
-    for (uint64_t i = low; i < high; i++){
-        
-        if (array[i] < array[pivot]){
-            swap(array, i, index);
-            index++;
-        }
-    }
-    
-    swap(array, index, pivot);
-    
-    return index;
-    
-    
-}
-
-__device__ void selection_sort( uint64_t *data, uint64_t left, uint64_t right )
-{
-  for( int i = left ; i <= right ; ++i )
-  {
-    uint64_t min_val = data[i];
-    int min_idx = i;
-
-    // Find the smallest value in the range [left, right].
-    for( int j = i+1 ; j <= right ; ++j )
-    {
-      uint64_t val_j = data[j];
-      if( val_j < min_val )
-      {
-        min_idx = j;
-        min_val = val_j;
-      }
-    }
-
-    // Swap the values.
-    if( i != min_idx )
-    {
-      data[min_idx] = data[i];
-      data[i] = min_val;
-    }
-  }
-}
-
-
-//cpp code i wrote cause cori is down - this works in C
-__device__ bool assert_sorted(uint64_t * array, uint64_t nitems){
-    
-    uint64_t start = array[0];
-    
-    for (uint64_t i =1; i < nitems; i++){
-        
-        if (start > array[i]) return false;
-        start = array[i];
-    }
-    
-    return true;
-    
-}
-
-void print_arr(uint64_t * array, uint64_t nitems){
-    
-    for (uint64_t i =0; i < nitems; i++){
-        
-        printf("%llu ",array[i]);
-    }
-    printf("\n");
-}
-
-__device__ void quick_sort(uint64_t * array, uint64_t low, uint64_t high, uint64_t depth){
-    
-    if (low >= high) return;
-
-
-    if (depth >= MAX_DEPTH || high-low <= SELECT_BOUND){
-
-    	selection_sort(array, low, high);
-    	return;
-
-    }
-    
-    uint64_t pivot = partition(array, low, high);
- 
-    
-    //print_arr(array+low, high+1);
-    
-    //don't go below bounds
-    
-    
-    if (pivot != low) quick_sort(array, low, pivot-1, depth+1);
-    if (pivot != high) quick_sort(array, pivot+1, high, depth+1);
-    
-}
-
-__device__ void assert_sorted(uint64_t * array, uint64_t low, uint64_t high){
-
-	uint64_t smallest_key = array[low];
-
-	for (uint64_t i = low; i < high; i++){
-
-		assert(smallest_key <= array[i]);
-		smallest_key = array[i];
-
-	}
-
-}
-
-
-//end of cpp copy paste
-
-__global__ void bulk_quick_sort(uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts){
-
-
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-
-
-	if (idx >= num_buffers) return;
-
-
-	//at the start, we sort
-	//we are exceeding bounds by 1
-	//quick_sort(buffers[idx], 0, buffer_counts[idx]-1,0);
-	//no need to sort if empty - this will cause overflow as 0-1 == max_uint
-	if (buffer_counts[idx] > 0) {
-
-		quick_sort(buffers[idx], 0, buffer_counts[idx]-1, 0);
-
-		//assert(assert_sorted(buffers[idx], buffer_counts[idx]));
-
-	}
-}
-
-
-
-__global__ void hash_all(QF* qf, uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint64_t value, uint8_t flags) {
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+__global__ void hash_all(QF* qf, uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint8_t flags) {
+	uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 	if (idx >= nvals){
 		return;
 	}
@@ -2831,7 +2621,7 @@ __global__ void hash_all(QF* qf, uint64_t* vals, uint64_t* hashes, uint64_t nval
 //these are used to set the starting pointers of the next phase
 __global__ void count_off(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
 
-		int idx = threadIdx.x + blockDim.x * blockIdx.x;
+		uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 
 		if (idx >= num_keys) return;
 
@@ -2878,9 +2668,9 @@ __global__ void count_off(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, u
 // 1) Set all offsets to keys here based on relative offset + keys - skips the launch call later - TODO: double check that (keys + offset) - keys == offset. -- cpp says this works
 // 2) subtract sets of keys from each other to get the relative offsets - these will give offsets, last key needs to subtract from origin pointer
 // this means that the keys here are set to point to the START of their bucket
-__global__ void set_buffers_binary(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, uint64_t ** buffers, uint64_t value, uint8_t flags){
+__global__ void set_buffers_binary(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, uint64_t ** buffers, uint8_t flags){
 
-		int idx = threadIdx.x + blockDim.x * blockIdx.x;
+		uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 
 		if (idx >= num_buffers) return;
 
@@ -2958,7 +2748,7 @@ __global__ void set_buffers_binary(QF * qf, uint64_t num_keys, uint64_t slots_pe
 __global__ void set_buffer_lens(QF * qf, uint64_t num_keys, uint64_t * keys, uint64_t num_buffers, uint64_t * buffer_sizes, uint64_t ** buffers){
 
 
-	int idx = threadIdx.x + blockDim.x*blockIdx.x;
+	uint64_t idx = threadIdx.x + blockDim.x*blockIdx.x;
 
 	if (idx >= num_buffers) return;
 
@@ -2985,7 +2775,7 @@ __global__ void set_buffer_lens(QF * qf, uint64_t num_keys, uint64_t * keys, uin
 //A variant of count off that takes in prehashed keys
 __global__ void count_off_hashed(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
 
-		int idx = threadIdx.x + blockDim.x * blockIdx.x;
+		uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 
 		if (idx >= num_keys) return;
 
@@ -3028,7 +2818,7 @@ __global__ void get_bucket_info(QF* qf, uint64_t num_buffers, volatile uint64_t 
 __global__ void count_insert(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, uint64_t ** buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
 
 
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 
 
 
@@ -3068,7 +2858,7 @@ __global__ void count_insert(QF * qf, uint64_t num_keys, uint64_t slots_per_lock
 __global__ void count_insert_hashed(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, uint64_t ** buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
 
 
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 
 
 
@@ -3099,7 +2889,7 @@ __global__ void count_insert_hashed(QF * qf, uint64_t num_keys, uint64_t slots_p
 __global__ void insert_from_buffers(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness){
 
 
-	int idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
+	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
 
 
 
@@ -3231,7 +3021,7 @@ __global__ void insert_from_buffers_thrust(QF* qf, uint64_t num_buffers, uint64_
 __global__ void delete_from_buffers_hashed(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness){
 
 
-	int idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
+	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
 
 
 
@@ -3275,7 +3065,7 @@ __global__ void delete_from_buffers_hashed(QF* qf, uint64_t num_buffers, uint64_
 __global__ void insert_from_buffers_timed(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness, uint64_t * min, uint64_t * max, uint64_t * average, uint64_t * count){
 
 
-	int idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
+	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
 
 
 
@@ -3314,7 +3104,7 @@ __global__ void insert_from_buffers_timed(QF* qf, uint64_t num_buffers, uint64_t
 __global__ void insert_from_buffers_utilization(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness, uint64_t * insert_cycles, uint64_t * fence_cycles, uint64_t * sort_cycles){
 
 
-	int idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
+	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
 
 
 
@@ -3609,9 +3399,8 @@ __device__ qf_returns insert_kmer_not_exists(QF* qf, uint64_t hash, char forward
 
 
 
-__device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal,  uint8_t flags){
+__device__ qf_returns point_insert_not_exists(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags){
 
-	uint8_t encoded = encode_chars(forward, backward);
 
 	uint8_t query;
 
@@ -3625,7 +3414,7 @@ __device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t&
   			key = hash_64(key, BITMASK(qf->metadata->key_bits));
   	}
 
-	hash = key % qf->metadata->range;
+	uint64_t hash = key % qf->metadata->range;
 
 	uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
 	//uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
@@ -3671,58 +3460,156 @@ __device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t&
 }
 
 
+__device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t flags){
 
-__device__ qf_returns insert_kmer(QF* qf, uint64_t hash, char forward, char backward, char & returnedfwd, char & returnedback){
 
-	uint8_t encoded = encode_chars(forward, backward);
-
-	uint8_t query;
-
-	uint64_t bigquery;
 
 	bool boolFound;
 
+	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
+  		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
+  			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
+  		else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
+  			key = hash_64(key, BITMASK(qf->metadata->key_bits));
+  	}
 
-	//uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
-	hash = hash % qf->metadata->range;
+	uint64_t hash = key % qf->metadata->range;
 
-
-	uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
+	uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
+	//uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
 	uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
 
 	//encode extensions outside of the lock
 
-	lock_16(qf->runtimedata->locks, lock_index);
-	lock_16(qf->runtimedata->locks, lock_index+1);
+	while (true){
 
 
-	int found = qf_query(qf, hash, &bigquery, QF_NO_LOCK | QF_KEY_IS_HASH);
-
-	query = bigquery;
-
-	if (found == 0){
-
-		//uintt_t ret
-		qf_insert(qf, hash, encoded, 1, QF_NO_LOCK | QF_KEY_IS_HASH);
+		if (try_lock_16(qf->runtimedata->locks, lock_index)){
 
 
-	} else {
+			//this can also be a regular lock?
+			//if (try_lock_16(qf->runtimedata->locks, lock_index+1)){
 
-		decode_chars(query, returnedfwd, returnedback);
+
+					lock_16(qf->runtimedata->locks, lock_index+1);
+
+					
+					int ret = qf_insert(qf, hash, value, 1, QF_NO_LOCK | QF_KEY_IS_HASH);
+
+					__threadfence();
+					unlock_16(qf->runtimedata->locks, lock_index+1);
+					unlock_16(qf->runtimedata->locks, lock_index);
+
+
+					if (ret == QF_NO_SPACE) return QF_FULL;
+					return QF_ITEM_INSERTED;
+
+
+				//}
+
+
+			unlock_16(qf->runtimedata->locks, lock_index);
+			}
 
 	}
 
-	__threadfence();
-	unlock_16(qf->runtimedata->locks, lock_index+1);
-	unlock_16(qf->runtimedata->locks, lock_index);
+}
 
-	//obvious cast for clarity
+__device__ uint64_t point_query(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags){
 
-	if (found == 1) return QF_ITEM_FOUND;
 
-	return QF_ITEM_INSERTED;
+
+
+	bool boolFound;
+
+	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
+  		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
+  			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
+  		else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
+  			key = hash_64(key, BITMASK(qf->metadata->key_bits));
+  	}
+
+	uint64_t hash = key % qf->metadata->range;
+
+	uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
+	//uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
+	uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
+
+	//encode extensions outside of the lock
+
+
+	uint64_t query;
+	uint64_t ret = qf_query(qf, hash, &query, QF_NO_LOCK | QF_KEY_IS_HASH);
+
+	returnedVal = query;
+
+
+	
+	return ret;
+
+
+
 
 }
+
+__device__ uint64_t point_query_concurrent(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags){
+
+
+
+
+	bool boolFound;
+
+	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
+  		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
+  			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
+  		else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
+  			key = hash_64(key, BITMASK(qf->metadata->key_bits));
+  	}
+
+	uint64_t hash = key % qf->metadata->range;
+
+	uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
+	//uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
+	uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
+
+	//encode extensions outside of the lock
+
+	while (true){
+
+
+		if (try_lock_16(qf->runtimedata->locks, lock_index)){
+
+
+			//this can also be a regular lock?
+			//if (try_lock_16(qf->runtimedata->locks, lock_index+1)){
+
+
+					lock_16(qf->runtimedata->locks, lock_index+1);
+
+					uint64_t query;
+					uint64_t ret = qf_query(qf, hash, &query, QF_NO_LOCK | QF_KEY_IS_HASH);
+
+					__threadfence();
+					unlock_16(qf->runtimedata->locks, lock_index+1);
+					unlock_16(qf->runtimedata->locks, lock_index);
+
+					returnedVal = query;
+
+
+					
+					return ret;
+
+
+				//}
+
+
+			unlock_16(qf->runtimedata->locks, lock_index);
+			}
+
+	}
+
+}
+
 
 
 __global__ void point_bulk_get(QF * qf, uint64_t * hashes, uint64_t nitems, uint64_t * counter){
@@ -3731,13 +3618,14 @@ __global__ void point_bulk_get(QF * qf, uint64_t * hashes, uint64_t nitems, uint
 
 	if (tid >=nitems) return;
 
-	char first;
-	char second;
 
-	uint64_t bigquery;
+	uint8_t query;
 
 
-	if (qf_query(qf, hashes[tid] % qf->metadata->range, &bigquery, QF_NO_LOCK | QF_KEY_IS_HASH) ==0){
+	//point_query(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags)
+
+
+	if (point_query(qf, hashes[tid] % qf->metadata->range, 0, query, QF_NO_LOCK) ==0){
 
 		//on item not found increment 
 		atomicAdd((unsigned long long int *) counter, (unsigned long long int) 1);
@@ -3772,853 +3660,18 @@ __global__ void point_bulk_insert(QF * qf, uint64_t * hashes, uint64_t nitems){
 	if (tid >=nitems) return;
 
 
-	uint8_t val;
-	assert(point_insert(qf, hashes[tid], 0, &val, null) != QF_NO_SPACE);
+	assert(point_insert(qf, hashes[tid], 0, 0) != QF_NO_SPACE);
 
 }
 
 
-__host__ void bulk_insert_bucketing_premalloc(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags) {
-
-	uint64_t key_block_size = 24;
-	uint64_t key_block = (nvals -1)/key_block_size + 1;
-	//start with num_locks, get counts
-
-	volatile uint64_t * buffer_sizes;
-	CUDA_CHECK(cudaMalloc((void **) & buffer_sizes, num_locks*sizeof(uint64_t)));
-	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0, num_locks*sizeof(uint64_t)));
-	uint64_t ** buffers;
-	CUDA_CHECK(cudaMalloc((void **)&buffers, num_locks*sizeof(uint64_t*)));
-	uint64_t * buffer_backing;
-	cudaMalloc((void **)& buffer_backing, nvals*sizeof(uint64_t));
-
-	//printf("Number of items to be inserted: %llu\n", nvals);
-
-
-	//sort first
-	//sort<<<key_block, key_block_size>>>(keys, nvals);
-
-
-	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
-
-	//counts look good!
-	//copy over buffer to __host__, and malloc buffers
-	
-	cudaDeviceSynchronize();
-
-	create_buffers_premalloced(qf, buffers, buffer_backing, buffer_sizes, num_locks);
-	
-
-	//reset sizes
-	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0 ,num_locks*sizeof(uint64_t)));
-
-	count_insert<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, buffer_sizes, value, flags);
-
-
-
-
-	//and launch
-	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
-
-	cudaDeviceSynchronize();
-
-	auto start = std::chrono::high_resolution_clock::now();
-
-  bulk_quick_sort<<<key_block, key_block_size>>>(num_locks, buffers, buffer_sizes);
-
-	cudaDeviceSynchronize();
-
-	auto end = std::chrono::high_resolution_clock::now();
-
-	std::chrono::duration<double> diff = end-start;
-
-  std::cout << "Sorted " << nvals << " in " << diff.count() << " seconds\n";
-
-  printf("Items Sorted per second: %f\n", nvals/diff.count());
-
-
-
-
-	//time to insert
-	uint64_t evenness = 0;
-
-	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-	
-
-	evenness = 1;
-
-	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-
-
-	//free materials;
-	//TODO:
-	free_buffers_premalloced(qf, buffers, buffer_backing,  buffer_sizes, num_locks);
-
-}
-
-__host__ void bulk_insert_bucketing_buffer_provided(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, uint64_t * buffer_backing, volatile uint64_t * buffer_sizes) {
-
-	uint64_t key_block_size = 32;
-	uint64_t key_block = (nvals -1)/key_block_size + 1;
-	//start with num_locks, get counts
-
-
-	
-	//auto start_setup = std::chrono::high_resolution_clock::now();
-
-
-	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
-
-	//counts look good!
-	//copy over buffer to __host__, and malloc buffers
-	
-	//cudaDeviceSynchronize();
-
-
-	create_buffers_premalloced(qf, buffers, buffer_backing, buffer_sizes, num_locks);
-	//cudaDeviceSynchronize();
-
-	//reset sizes
-	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0 ,num_locks*sizeof(uint64_t)));
-
-	count_insert<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, buffer_sizes, value, flags);
-
-
-	//these can go at the end
-	//cudaDeviceSynchronize();
-
-	//auto end_setup = std::chrono::high_resolution_clock::now();
-
-	//std::chrono::duration<double> diff = end_setup-start_setup;
-
-	//printf("Num items: %llu, num_locks: %llu\n", nvals, num_locks);
-
-  //std::cout << "Setup in " << diff.count() << " seconds\n";
-
-  //printf("Items Sorted per second: %f\n", nvals/diff.count());
-
-	//and launch
-	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
-
-
-
-
-
-
-	//time to insert
-	uint64_t evenness = 0;
-
-	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-	
-
-	//cudaDeviceSynchronize();
-	//auto first = std::chrono::high_resolution_clock::now();
-
-	//diff = first-end_setup;
-
-  //std::cout << "First finished in " << diff.count() << " seconds\n";
-
-  //printf("Items Sorted per second: %f\n", nvals/diff.count());
-
-	evenness = 1;
-
-	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-
-
-	//free materials;
-	//cudaDeviceSynchronize();
-	//auto second = std::chrono::high_resolution_clock::now();
-
-	//diff = second-first;
-
-  //std::cout << "Second finished in " << diff.count() << " seconds\n";
-
-}
-
-//adding timers back in for profiling
-__host__ void bulk_insert_bucketing_buffer_provided_timed(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, uint64_t * buffer_backing, volatile uint64_t * buffer_sizes) {
-
-	uint64_t key_block_size = 32;
-	uint64_t key_block = (nvals -1)/key_block_size + 1;
-	//start with num_locks, get counts
-
-	printf("Per Item num blocks, block dim: (%llu, %llu): %llu threads\n", key_block, key_block_size, key_block*key_block_size);
-	printf("Locking num blocks, block dim: (%llu, %llu): %llu threads\n", (num_locks-1)/key_block_size+1, key_block_size, ((num_locks-1)/key_block_size+1)*key_block_size);
-
-	uint64_t * insert_timer;
-	uint64_t * fence_timer;
-	uint64_t * sort_timer;
-
-	uint64_t * bucket_max;
-	uint64_t * bucket_min;
-	uint64_t * bucket_avg;
-
-	cudaMallocManaged((void**)&bucket_max, sizeof(uint64_t));
-	cudaMallocManaged((void**)&bucket_min, sizeof(uint64_t));
-	cudaMallocManaged((void**)&bucket_avg, sizeof(uint64_t));
-
-	bucket_max[0] = 0;
-	bucket_min[0] = 0;
-	bucket_avg[0] = 0;
-
-	//set these timers to 0
-	cudaMallocManaged((void**)&insert_timer, sizeof(uint64_t));
-	cudaMallocManaged((void**)&fence_timer, sizeof(uint64_t));
-	cudaMallocManaged((void**)&sort_timer, sizeof(uint64_t));
-
-	insert_timer[0] = 0;
-	fence_timer[0] = 0;
-	sort_timer[0] = 0;
-
-
-	
-	auto start_setup = std::chrono::high_resolution_clock::now();
-
-	//sort!
-
-	thrust::sort(thrust::device, keys, keys+nvals);
-	//thrust::sort(thrust::host, A, A + N, thrust::greater<int>());
-
-
-
-	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
-
-	//counts look good!
-	//copy over buffer to __host__, and malloc buffers
-	
-	//cudaDeviceSynchronize();
-
-	get_bucket_info<<<(num_locks -1)/ key_block_size +1, key_block_size>>>(qf, num_locks, buffer_sizes, bucket_max, bucket_min, bucket_avg);
-
-	cudaDeviceSynchronize();
-
-	printf("Bucket Max: %llu\n", bucket_max[0]);
-	printf("Bucket Min: %llu\n", bucket_min[0]);
-	printf("Bucket Average: %f, %llu / %llu\n", 1.0 * bucket_avg[0] / num_locks, bucket_avg[0], num_locks);
-
-
-	create_buffers_premalloced(qf, buffers, buffer_backing, buffer_sizes, num_locks);
-	//cudaDeviceSynchronize();
-
-	//reset sizes
-	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0 ,num_locks*sizeof(uint64_t)));
-
-	count_insert<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, buffer_sizes, value, flags);
-
-
-	//these can go at the end
-	cudaDeviceSynchronize();
-
-	auto end_setup = std::chrono::high_resolution_clock::now();
-
-	std::chrono::duration<double> diff = end_setup-start_setup;
-
-	//printf("Num items: %llu, num_locks: %llu\n", nvals, num_locks);
-
-  std::cout << "Setup in " << diff.count() << " seconds\n";
-
-  //printf("Items Sorted per second: %f\n", nvals/diff.count());
-
-	//and launch
-	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
-
-
-
-
-
-	//time to insert
-	uint64_t evenness = 0;
-
-	insert_from_buffers_utilization<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness, insert_timer, fence_timer, sort_timer);
-	
-
-	cudaDeviceSynchronize();
-	auto first = std::chrono::high_resolution_clock::now();
-
-	diff = first-end_setup;
-
-  std::cout << "First finished in " << diff.count() << " seconds\n";
-
-  //printf("Items Sorted per second: %f\n", nvals/diff.count());
-
-	evenness = 1;
-
-	insert_from_buffers_utilization<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness, insert_timer, fence_timer, sort_timer);
-
-
-	//free materials;
-	cudaDeviceSynchronize();
-	auto second = std::chrono::high_resolution_clock::now();
-
-	diff = second-first;
-
-  std::cout << "Second finished in " << diff.count() << " seconds\n";
-
-  diff = second - start_setup;
-
-  std::cout << "inserts per second: " << nvals/diff.count() << "\n";
-
-  std::cout << "Summed cycles across " << num_locks << " theads\n";
-  std::cout << std::fixed << "cycles to sort: " << (*sort_timer)  << " cycles\n";
-  std::cout << std::fixed << "cycles to insert: " << (*insert_timer) << " cycles\n";
-  std::cout << std::fixed << "cycles to __threadfence(): " << (*fence_timer)  << " cycles\n";
-
-  cudaFree(insert_timer);
-  cudaFree(fence_timer);
-  cudaFree(sort_timer);
-
-}
-
-
-//kernel to assert that a device-side list is sorted
-__global__ void assert_sorted_kernel(uint64_t * vals, uint64_t low, uint64_t high){
-
-	uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-	if (idx >= high-1) return;
-
-	uint64_t my_val = vals[idx];
-	uint64_t next_val = vals[idx+1];
-
-	assert(my_val <= next_val);
-}
-
-//modified version of buffers_provided - performs an initial bulk hash, should save work over other versions
-//note: this DOES modify the given buffer
-//this *breaks* test.cu because that code resuses the buffer, works great on the test bed
-__host__ void bulk_insert_one_hash_timed(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, uint64_t * buffer_backing, volatile uint64_t * buffer_sizes) {
-
-	uint64_t key_block_size = 32;
-	uint64_t key_block = (nvals -1)/key_block_size + 1;
-	//start with num_locks, get counts
-
-
-	
-	auto start_hash = std::chrono::high_resolution_clock::now();
-
-	//keys are hashed, now need to treat them as hashed in all further functions
-	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, value, flags);
-
-	cudaDeviceSynchronize();
-
-
-	auto end_hash = std::chrono::high_resolution_clock::now();
-
-	std::chrono::duration<double> diff = end_hash-start_hash;
-
-
-	std::cout << "hashed in " << diff.count() << " seconds\n";
-
-
-	thrust::sort(thrust::device, keys, keys+nvals);
-
-
-	cudaDeviceSynchronize();
-
-	assert_sorted_kernel<<<key_block, key_block_size>>>(keys, 0, nvals);
-
-	cudaDeviceSynchronize();
-
-
-	auto end_sort = std::chrono::high_resolution_clock::now();
-
-	diff = end_sort-end_hash;
-
-
-	std::cout << "sorted in " << diff.count() << " seconds\n";
-
-
-	count_off_hashed<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
-
-	//counts look good!
-	//copy over buffer to __host__, and malloc buffers
-	
-	cudaDeviceSynchronize();
-
-	auto end_count_off = std::chrono::high_resolution_clock::now();
-
-	diff = end_count_off - end_sort;
-
-
-	std::cout << "count off in " << diff.count() << " seconds\n";
-
-
-	//NOTE: this call to premalloced uses nvals instead of buffer_backing: because the sort happens in place, we actually don't need a buffer for this func
-	create_buffers_premalloced(qf, buffers, keys, buffer_sizes, num_locks);
-	//cudaDeviceSynchronize();
-
-	cudaDeviceSynchronize();
-
-	auto end_buf = std::chrono::high_resolution_clock::now();
-
-	diff = end_buf - end_count_off;
-
-
-	std::cout << "set buffer sizes in " << diff.count() << " seconds\n";
-
-	//NOTE: This version doesn't need it, as the items are already in their buckets
-	//reset sizes
-	//CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0 ,num_locks*sizeof(uint64_t)));
-
-	cudaDeviceSynchronize();
-
-	auto end_memset = std::chrono::high_resolution_clock::now();
-
-	diff = end_memset - end_buf;
-
-
-	std::cout << "reset buffers in " << diff.count() << " seconds\n";
-
-	//NOTE: This version doesn't need this either, as the items are already in their buckets with correct sizes.
-	//I think this step can be avoided if we sort 
-	//do a count off
-	//count_insert_hashed<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, buffer_sizes, value, flags);
-
-
-	cudaDeviceSynchronize();
-
-	auto end_count_insert = std::chrono::high_resolution_clock::now();
-
-	diff = end_count_insert - end_memset;
-
-
-	std::cout << "filled buffers in " << diff.count() << " seconds\n";
-
-
-	//these can go at the end
-	//cudaDeviceSynchronize();
-
-	//auto end_setup = std::chrono::high_resolution_clock::now();
-
-	//std::chrono::duration<double> diff = end_setup-start_setup;
-
-	//printf("Num items: %llu, num_locks: %llu\n", nvals, num_locks);
-
-  //std::cout << "Setup in " << diff.count() << " seconds\n";
-
-  //printf("Items Sorted per second: %f\n", nvals/diff.count());
-
-	//and launch
-	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
-
-
-
-
-
-	//time to insert
-	uint64_t evenness = 0;
-
-	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-	
-
-	//cudaDeviceSynchronize();
-	//auto first = std::chrono::high_resolution_clock::now();
-
-	//diff = first-end_setup;
-
-  //std::cout << "First finished in " << diff.count() << " seconds\n";
-
-  //printf("Items Sorted per second: %f\n", nvals/diff.count());
-
-  cudaDeviceSynchronize();
-
-	auto first_insert = std::chrono::high_resolution_clock::now();
-
-	diff = first_insert - end_count_insert;
-
-
-	std::cout << "even buffers dumped in " << diff.count() << " seconds\n";
-
-	evenness = 1;
-
-	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-
-	cudaDeviceSynchronize();
-
-	auto second_insert = std::chrono::high_resolution_clock::now();
-
-	diff = second_insert - first_insert;
-
-
-	std::cout << "odd buffers dumped in " << diff.count() << " seconds\n";
-
-	evenness = 1;
-	//free materials;
-	//cudaDeviceSynchronize();
-	//auto second = std::chrono::high_resolution_clock::now();
-
-	//diff = second-first;
-
-  //std::cout << "Second finished in " << diff.count() << " seconds\n";
-
-}
-
-__host__ void bulk_insert_one_hash(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, uint64_t * buffer_backing, volatile uint64_t * buffer_sizes) {
-
-	uint64_t key_block_size = 32;
-	uint64_t key_block = (nvals -1)/key_block_size + 1;
-	//start with num_locks, get counts
-
-
-
-	//keys are hashed, now need to treat them as hashed in all further functions
-	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, value, flags);
-
-	
-
-
-	thrust::sort(thrust::device, keys, keys+nvals);
-
-
-
-	count_off_hashed<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
-
-	//counts look good!
-	//copy over buffer to __host__, and malloc buffers
-	
-	//cudaDeviceSynchronize();
-
-
-	create_buffers_premalloced(qf, buffers, buffer_backing, buffer_sizes, num_locks);
-	//cudaDeviceSynchronize();
-
-	//reset sizes
-	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0 ,num_locks*sizeof(uint64_t)));
-
-	//I think this step can be avoided if we hash
-	count_insert_hashed<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, buffer_sizes, value, flags);
-
-
-	//these can go at the end
-	//cudaDeviceSynchronize();
-
-	//auto end_setup = std::chrono::high_resolution_clock::now();
-
-	//std::chrono::duration<double> diff = end_setup-start_setup;
-
-	//printf("Num items: %llu, num_locks: %llu\n", nvals, num_locks);
-
-  //std::cout << "Setup in " << diff.count() << " seconds\n";
-
-  //printf("Items Sorted per second: %f\n", nvals/diff.count());
-
-	//and launch
-	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
-
-
-
-
-
-	//time to insert
-	uint64_t evenness = 0;
-
-	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-	
-
-	//cudaDeviceSynchronize();
-	//auto first = std::chrono::high_resolution_clock::now();
-
-	//diff = first-end_setup;
-
-  //std::cout << "First finished in " << diff.count() << " seconds\n";
-
-  //printf("Items Sorted per second: %f\n", nvals/diff.count());
-
-	evenness = 1;
-
-	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-
-
-	//free materials;
-	//cudaDeviceSynchronize();
-	//auto second = std::chrono::high_resolution_clock::now();
-
-	//diff = second-first;
-
-  //std::cout << "Second finished in " << diff.count() << " seconds\n";
-
-}
-
-
-__host__ void bulk_insert_bucketing(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags) {
-
-	uint64_t key_block_size = 24;
-	uint64_t key_block = (nvals -1)/key_block_size + 1;
-	//start with num_locks, get counts
-
-	volatile uint64_t * buffer_sizes;
-	CUDA_CHECK(cudaMalloc((void **) & buffer_sizes, num_locks*sizeof(uint64_t)));
-	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0, num_locks*sizeof(uint64_t)));
-
-	printf("Number of items to be inserted: %llu\n", nvals);
-
-	auto bucketing_start = std::chrono::high_resolution_clock::now();
-
-	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
-	auto count_timer = std::chrono::high_resolution_clock::now();
-
-  std::chrono::duration<double> diff = count_timer-bucketing_start;
-
-  std::cout << "Counted in " << diff.count() << " seconds\n";
-
-	//counts look good!
-	//copy over buffer to __host__, and malloc buffers
-	uint64_t ** buffers;
-	CUDA_CHECK(cudaMalloc((void **)&buffers, num_locks*sizeof(uint64_t*)));
-
-	create_buffers(qf, buffers, buffer_sizes, num_locks);
-	cudaDeviceSynchronize();
-
-	//reset sizes
-	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0 ,num_locks*sizeof(uint64_t)));
-
-	auto malloced = std::chrono::high_resolution_clock::now();
-
-  diff = malloced-count_timer;
-
-  std::cout << "Malloced in " << diff.count() << " seconds\n";
-
-	count_insert<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, buffer_sizes, value, flags);
-
-
-
-
-	//and launch
-	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
-	cudaDeviceSynchronize();
-
-
-	auto fill= std::chrono::high_resolution_clock::now();
-
-  diff = fill-malloced;
-
-  std::cout << "Filled Buffers in " << diff.count() << " seconds\n";
-
-	//time to insert
-	uint64_t evenness = 0;
-
-	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-	
-
-	evenness = 1;
-
-	insert_from_buffers<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-
-
-	cudaDeviceSynchronize();
-
-	auto insert= std::chrono::high_resolution_clock::now();
-
-  diff = insert-fill;
-
-  std::cout << "Inserted in CQF in " << diff.count() << " seconds\n";
-
-	//free materials;
-	//TODO:
-	free_buffers(qf, buffers, buffer_sizes, num_locks);
-
-	cudaDeviceSynchronize();
-
-	auto free= std::chrono::high_resolution_clock::now();
-
-  diff = free-insert;
-
-  std::cout << "Freed Buffers in " << diff.count() << " seconds\n";
-
-  diff = free-bucketing_start;
-
-  std::cout << "Total time is " << diff.count() << " seconds\n";
-
-
-}
-
-__host__ void bulk_insert_bucketing_timed(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags) {
-
-	uint64_t key_block_size = 24;
-	uint64_t key_block = (nvals -1)/key_block_size + 1;
-	//start with num_locks, get counts
-
-	volatile uint64_t * buffer_sizes;
-	CUDA_CHECK(cudaMalloc((void **) & buffer_sizes, num_locks*sizeof(uint64_t)));
-	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0, num_locks*sizeof(uint64_t)));
-
-	printf("Number of items to be inserted: %llu\n", nvals);
-
-	auto bucketing_start = std::chrono::high_resolution_clock::now();
-
-	count_off<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffer_sizes, value, flags);
-	cudaDeviceSynchronize();
-	//(QF * qf, uint64_t num_keys, uint64_t * keys, uint64_t num_buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
-	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
-	cudaDeviceSynchronize();
-	fflush(stdout);
-
-	auto count_timer = std::chrono::high_resolution_clock::now();
-
-  std::chrono::duration<double> diff = count_timer-bucketing_start;
-
-  std::cout << "Counted in " << diff.count() << " seconds\n";
-
-	//counts look good!
-	//copy over buffer to __host__, and malloc buffers
-	uint64_t ** buffers;
-	CUDA_CHECK(cudaMalloc((void **)&buffers, num_locks*sizeof(uint64_t*)));
-
-	create_buffers(qf, buffers, buffer_sizes, num_locks);
-	cudaDeviceSynchronize();
-
-	//reset sizes
-	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0 ,num_locks*sizeof(uint64_t)));
-
-	auto malloced = std::chrono::high_resolution_clock::now();
-
-  diff = malloced-count_timer;
-
-  std::cout << "Malloced in " << diff.count() << " seconds\n";
-
-	count_insert<<<key_block, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, buffer_sizes, value, flags);
-
-
-
-
-	//and launch
-	//print_counts<<<1,1>>>(num_locks, buffer_sizes);
-	cudaDeviceSynchronize();
-
-	//lets malloc some buffers
-	uint64_t * min;
-	uint64_t * max;
-	uint64_t * average;
-	uint64_t * sum_avg;
-
-	cudaMallocManaged((void**)&min, sizeof(uint64_t));
-	cudaMallocManaged((void**)&max, sizeof(uint64_t));
-	cudaMallocManaged((void**)&average, sizeof(uint64_t));
-	cudaMallocManaged((void**)&sum_avg, sizeof(uint64_t));
-
-	min[0] = 1LL<<60;
-	max[0] = 0;
-	average[0] = 0;
-	sum_avg[0] = 0;
-
-
-	auto fill= std::chrono::high_resolution_clock::now();
-
-  diff = fill-malloced;
-
-  std::cout << "Filled Buffers in " << diff.count() << " seconds\n";
-
-
-
-	//time to insert
-	uint64_t evenness = 0;
-
-	insert_from_buffers_timed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness, min, max, average, sum_avg);
-	
-	cudaDeviceSynchronize();
-
-	printf("Evens: Min: %llu, Max: %llu, average: %f\n", *min, *max, 1.0*average[0]/sum_avg[0]);
-	printf("Min: %f, Max: %f, Avg: %f\n", (1.0)*(*min)/CYCLES_PER_SECOND, (1.0)*(*max)/CYCLES_PER_SECOND, 1.0*(1.0*average[0]/sum_avg[0])/CYCLES_PER_SECOND);
-	min[0] = 1LL<<60;
-	max[0] = 0;
-	average[0] = 0;
-	sum_avg[0] = 0;
-
-	cudaDeviceSynchronize();
-
-	evenness = 1;
-
-	insert_from_buffers_timed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness, min, max, average, sum_avg);
-
-
-	cudaDeviceSynchronize();
-
-	printf("odds: Min: %llu, Max: %llu, average: %f\n", *min, *max, 1.0*average[0]/sum_avg[0]);
-	printf("Min: %f, Max: %f, Avg: %f\n", (1.0)*(*min)/CYCLES_PER_SECOND, (1.0)*(*max)/CYCLES_PER_SECOND, 1.0*(1.0*average[0]/sum_avg[0])/CYCLES_PER_SECOND);
-	
-
-
-	auto insert= std::chrono::high_resolution_clock::now();
-
-  diff = insert-fill;
-
-  std::cout << "Inserted in CQF in " << diff.count() << " seconds\n";
-
-	//free materials;
-	//TODO:
-	free_buffers(qf, buffers, buffer_sizes, num_locks);
-
-	cudaDeviceSynchronize();
-
-	auto free= std::chrono::high_resolution_clock::now();
-
-  diff = free-insert;
-
-  std::cout << "Freed Buffers in " << diff.count() << " seconds\n";
-
-  diff = free-bucketing_start;
-
-  std::cout << "Total time is " << diff.count() << " seconds\n";
-
-  cudaFree(min);
-  cudaFree(max);
-  cudaFree(average);
-  cudaFree(sum_avg);
-
-
-}
-
-//given a fill ratio and a start, calculate num_locks and insert
-//returns the end of the nvals
-__host__ uint64_t bulk_insert_bucketing_smart(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t start, double fill_ratio, uint64_t nslots, uint64_t xnslots, uint8_t flags){
-
-
-	//first one will be two passes
-	//< 50% and <95%
-	uint64_t num_slots = nslots;
-
-
-	double fill_ratio_start = 1.0*start/num_slots;
-
-	uint64_t end_val = fill_ratio*num_slots;
-
-	if (end_val > nvals){
-		end_val = nvals;
-		fill_ratio = 1.0*nvals/num_slots;
-	}
-
-	//calculate lock size
-
-	uint64_t num_items_to_insert = end_val - start;
-
-	//std::log(10)
-	uint64_t num_slots_per_lock = 1.0*EXP_BEFORE_FAILURE * std::log(nvals) / std::log(fill_ratio);
-
-	uint64_t num_locks = (xnslots - 1)/num_slots_per_lock+1;
-
-	//can't just ask for xnslots
-
-	printf("Moving fill ratio from %f to %f\n", fill_ratio_start, fill_ratio);
-
-	printf("Inserting %llu items starting from %llu\n", num_items_to_insert, start);
-
-	printf("Lock size: %llu, # locks %llu\n", num_slots_per_lock, num_locks);
-
-	printf("Total slots in existence %llu, slots covered %llu\n", xnslots, num_locks*num_slots_per_lock);
-
-
-	bulk_insert_bucketing(qf, keys+start, value, count, num_items_to_insert, num_slots_per_lock, num_locks, flags);
-
-	return end_val;
-
-}
 
 
 //modified version of buffers_provided - performs an initial bulk hash, should save work over other versions
 //note: this DOES modify the given buffer - fine for all versions now
 //This variant performs an ititial sort that allows us to save time overall
 //as we avoid the atomic count-off and any sort of cross-thread communication
-__host__ void bulk_insert_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
+__host__ void bulk_insert(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
 
 	uint64_t key_block_size = 32;
 	uint64_t key_block = (nvals -1)/key_block_size + 1;
@@ -4627,13 +3680,13 @@ __host__ void bulk_insert_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uin
 
 
 	//keys are hashed, now need to treat them as hashed in all further functions
-	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, value, flags);
+	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, flags);
 
 
 	thrust::sort(thrust::device, keys, keys+nvals);
 
 
-	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, value, flags);
+	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, flags);
 
 	
 	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, num_locks, (uint64_t *) buffer_sizes, buffers);
@@ -4659,7 +3712,7 @@ __host__ void bulk_insert_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uin
 //note: this DOES modify the given buffer - fine for all versions now
 //This variant performs an ititial sort that allows us to save time overall
 //as we avoid the atomic count-off and any sort of cross-thread communication
-__host__ void bulk_insert_thrust_reduce(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
+__host__ void bulk_insert_reduce(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
 
 	uint64_t key_block_size = 32;
 	uint64_t key_block = (nvals -1)/key_block_size + 1;
@@ -4668,7 +3721,7 @@ __host__ void bulk_insert_thrust_reduce(QF* qf, uint64_t* keys, uint64_t value, 
 
 
 	//keys are hashed, now need to treat them as hashed in all further functions
-	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, value, flags);
+	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, flags);
 
 
 	thrust::sort(thrust::device, keys, keys+nvals);
@@ -4697,7 +3750,7 @@ __host__ void bulk_insert_thrust_reduce(QF* qf, uint64_t* keys, uint64_t value, 
 	uint64_t * new_key_counts = thrust::raw_pointer_cast(thrust_vals);
 
 
-	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, new_nvals, slots_per_lock, new_keys, num_locks, buffers, value, flags);
+	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, new_nvals, slots_per_lock, new_keys, num_locks, buffers, flags);
 
 	
 	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, new_nvals, new_keys, num_locks, (uint64_t *) buffer_sizes, buffers);
@@ -4733,13 +3786,13 @@ __host__ void bulk_delete_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uin
 
 
 	//keys are hashed, now need to treat them as hashed in all further functions
-	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, value, flags);
+	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, flags);
 
 
 	thrust::sort(thrust::device, keys, keys+nvals);
 
 
-	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, value, flags);
+	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, flags);
 
 	
 	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, num_locks, (uint64_t *) buffer_sizes, buffers);
@@ -4760,122 +3813,11 @@ __host__ void bulk_delete_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uin
 
 
 }
-
-//modified version of buffers_provided - performs an initial bulk hash, should save work over other versions
-//note: this DOES modify the given buffer - fine for all versions now
-//This variant performs an ititial sort that allows us to save time overall
-//as we avoid the atomic count-off and any sort of cross-thread communication
-__host__ void bulk_insert_no_atomics_smart(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
-
-	uint64_t key_block_size = 32;
-	uint64_t key_block = (nvals -1)/key_block_size + 1;
-	//start with num_locks, get counts
-
-
-
-	//keys are hashed, now need to treat them as hashed in all further functions
-	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, value, flags);
-
-
-	thrust::sort(thrust::device, keys, keys+nvals);
-
-
-	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, value, flags);
-
-	
-	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, num_locks, (uint64_t *) buffer_sizes, buffers);
-
-
-	//insert_from_buffers_hashed_onepass<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes);
-	
-	//return;
-
-	uint64_t evenness = 0;
-
-	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-	
-
-	evenness = 1;
-
-	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
-
-
-}
-
-
-
-//need a precalculation for max possible #locks
-__host__ uint64_t bulk_insert_bucketing_smart_buffer_provided(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t start, double fill_ratio, uint64_t nslots, uint64_t xnslots, uint8_t flags, uint64_t ** buffers, uint64_t * buffer_backing, volatile uint64_t * buffer_sizes){
-
-
-	//first one will be two passes
-	//< 50% and <95%
-	uint64_t num_slots = nslots;
-
-
-	double fill_ratio_start = 1.0*start/num_slots;
-
-	uint64_t end_val = fill_ratio*num_slots;
-
-	if (end_val > nvals){
-		end_val = nvals;
-		fill_ratio = 1.0*nvals/num_slots;
-	}
-
-	//calculate lock size
-
-	uint64_t num_items_to_insert = end_val - start;
-
-	//std::log(10)
-	uint64_t num_slots_per_lock = 2.0*EXP_BEFORE_FAILURE * std::log(nvals) / std::log(fill_ratio);
-
-	uint64_t num_locks = (xnslots - 1)/num_slots_per_lock+1;
-
-	//can't just ask for xnslots
-
-	printf("Moving fill ratio from %f to %f\n", fill_ratio_start, fill_ratio);
-
-	printf("Inserting %llu items starting from %llu\n", num_items_to_insert, start);
-
-	printf("Lock size: %llu, # locks %llu\n", num_slots_per_lock, num_locks);
-
-	printf("Total slots in existence %llu, slots covered %llu\n", xnslots, num_locks*num_slots_per_lock);
-
-
-	//bulk_insert_bucketing(qf, keys+start, value, count, num_items_to_insert, num_slots_per_lock, num_locks, flags);
-
-	bulk_insert_bucketing_buffer_provided_timed(qf, keys+start, value, count, nvals, num_slots_per_lock, num_locks, flags, buffers, buffer_backing, buffer_sizes);
-
-
-	return end_val;
-
-}
-
-__host__ void bulk_insert_bucketing_steps(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, double fill_steps, uint64_t nslots, uint64_t xnslots, uint8_t flags){
-
-	uint64_t start = 0;
-
-	double fill_ratio = 0.0;
-
-	while (fill_ratio < 1.0){
-
-		fill_ratio+=fill_steps;
-
-		start = bulk_insert_bucketing_smart(qf, keys, value, count, nvals, start, fill_ratio, nslots, xnslots, flags);
-
-	}
-
-	return;
-
-
-
-	}
-
 
 
 
 __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, volatile uint32_t* locks, int evenness, uint8_t flags) {
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 
 	int n_threads = blockDim.x * gridDim.x;
 	//start and end points in the keys array
@@ -4957,7 +3899,7 @@ __global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint6
 
 __global__ void qf_insert_evenness_nolock(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t num_locks, volatile uint32_t* locks, int evenness, uint8_t flags) {
 	
-	int idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
+	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
 
 	if (idx >= num_locks) return;
 
@@ -5170,162 +4112,14 @@ __global__ void fill_buffers(QF* qf, cudaStream_t * streams, uint64_t * hashes, 
 
 
 
-__host__ void qf_bulk_hash_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint32_t* QFlocks, uint8_t flags) {
+__global__ void bulk_get_misses(QF * qf, uint64_t * vals,  uint64_t nvals, uint64_t key_count, uint64_t * counter, uint8_t flags){
 
-  //first alloc hash space
-
-  printf("Starting bulk insert\n");
-  uint64_t* hashed;
-	CUDA_CHECK(cudaMalloc((void**)&hashed, sizeof(uint64_t) * nvals));
-
-	//hash items
-	int block_size = 1024;
-	int num_blocks = (nvals + block_size - 1) / block_size;
-
-  printf("Before hash all\n");
-  fflush(stdout);
-	hash_all <<< num_blocks, block_size >>> (qf, keys, hashed, nvals, value, flags);
-
-  cudaDeviceSynchronize();
-  //now allocate buffers
-  //atm these are arbitrary
-
-  uint64_t** buffers;
-  uint32_t* buffer_lens;
-  uint32_t * locks;
-
-  printf("mallocing buffers\n");
-  fflush(stdout);
-  //allocate
-  CUDA_CHECK(cudaMalloc((void**)&buffers, sizeof(uint64_t*) * NUM_BUFFERS));
-
-  printf("buffers allocated?\n");
-  fflush(stdout);
-
-  for (int i=0; i < NUM_BUFFERS; i++){
-
-    printf("Working on %d\n", i);
-    fflush(stdout);
-    uint64_t *temp_buffer;
-    CUDA_CHECK(cudaMalloc((void**)&temp_buffer, sizeof(uint64_t*) * MAX_BUFFER_SIZE));
-    CUDA_CHECK(cudaMemset(temp_buffer, 0, sizeof(uint64_t) * MAX_BUFFER_SIZE));
-    cudaDeviceSynchronize();
-
-    //update buffer pointers
-    //crap this needs to be set - the buffer[i] is device code :(
-    initBuffer<<<1,1>>>(buffers, temp_buffer, i);
-    cudaDeviceSynchronize();
-
-  }
-
-  //ok devices are buffered, lets see those insides
-
-
-
-
-  CUDA_CHECK(cudaMalloc((void**)&buffer_lens, sizeof(uint32_t) * NUM_BUFFERS));
-  CUDA_CHECK(cudaMemset(buffer_lens, 0, sizeof(uint32_t) * NUM_BUFFERS));
-
-  CUDA_CHECK(cudaMalloc((void**)&locks, sizeof(uint32_t) * NUM_BUFFERS));
-  CUDA_CHECK(cudaMemset(locks, 0, sizeof(uint32_t) * NUM_BUFFERS));
-
-  bufferSanityCheck<<<1,1>>>(buffers, buffer_lens);
-
-  //buffers should be good after this, lets start filling!
-
-  //lets init streams
-  cudaStream_t streams[NUM_BUFFERS];
-  for (int i=0; i < NUM_BUFFERS; i++){
-    cudaStreamCreate(&streams[i]);
-  }
-
-  fill_buffers<<<1,1>>>(qf, streams, hashed, nvals, qf->metadata->xnslots, buffers, buffer_lens, locks);
-
-  cudaDeviceSynchronize();
-  for (int i=0; i < NUM_BUFFERS; i++){
-    cudaStreamDestroy(streams[i]);
-  }
-
-
-}
-
-__host__ void qf_bulk_insert(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, volatile uint32_t* locks, uint8_t flags) {
-	//todo: number of threads
-	uint64_t evenness = 1;
-	//num_blocks = 100;
-	//block_size = 320;
-  uint64_t block_size = 256;
-	uint64_t num_blocks = (nvals - 1) / block_size +1;
-
-	printf("%llu blocks of size %llu\n", num_blocks, block_size);
-	qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
-//	printf("sizeofqf is %lu\n", qf->metadata->xnslots);
-	//evenness = 0;
-	//qf_insert_evenness <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, locks, evenness, flags);
-
-	//qf_dump_kernel<<<1,1>>>(qf);
-
-
-}
-
-//this func will take in a set of keys and consume them, freeing memory when done
-// with locking / threadfence, we can launch as many of these as possible
-__host__ void qf_bulk_insert_streaming(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, volatile uint32_t* locks, uint8_t flags) {
-
-	cudaStream_t temp_stream;
-	cudaStreamCreate(& temp_stream);
-
-	uint64_t evenness = 1;
-	uint64_t block_size = 32;
-	uint64_t num_blocks = (nvals/400 - 1) / block_size +1;
-
-
-	qf_insert_evenness <<< num_blocks, block_size, 0, temp_stream>>> (qf, keys, value, count, nvals, locks, evenness, flags);
-
-	cudaFree(keys);
-
-	cudaStreamDestroy(temp_stream);
-
-}
-
-
-__host__ void qf_bulk_insert_nolock(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t num_locks, volatile uint32_t* locks, uint8_t flags) {
-	//todo: number of threads
-	uint64_t evenness = 1;
-	int block_size = 32;
-	int num_blocks = (num_locks-1)/block_size + 1;
-	
-  //int block_size = 1024;
-	//int num_blocks = (nvals + block_size - 1) / block_size;
-	qf_insert_evenness_nolock <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, num_locks, locks, evenness, flags);
-//	printf("sizeofqf is %lu\n", qf->metadata->xnslots);
-	evenness = 0;
-	qf_insert_evenness_nolock <<< num_blocks, block_size >>> (qf, keys, value, count, nvals, num_locks, locks, evenness, flags);
-
-}
-
-
-__host__ void copy_to_host(QF* host, QF* device) {
-	qfruntime runtime;
-	qfmetadata metadata;
-	//qfblock* blocks = malloc(qf_get_total_size_in_bytes(device));
-
-	//copy back to host
-	//may need to resize host qf before copying back when we start to support resizing.
-	CUDA_CHECK(cudaMemcpy(host->runtimedata, device->runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(host->metadata, device->metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
-	CUDA_CHECK(cudaMemcpy(host->blocks, device->blocks, qf_get_total_size_in_bytes(device), cudaMemcpyDeviceToHost));
-}
-
-
-__global__ void bulk_get(QF * qf, uint64_t * vals,  uint64_t nvals, uint64_t key_count, uint64_t * counter, uint8_t flags){
-
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
+	uint64_t tid = threadIdx.x + blockDim.x * blockIdx.x;
 
   //should never happen, but just in case
-  if (idx >= nvals) return;
+  if (tid >= nvals) return;
 
-		uint64_t count = qf_count_key_value(qf, vals[idx], 0, 0);
+		uint64_t count = qf_count_key_value(qf, vals[tid], 0, 0);
 
 		if (count < key_count) {
 
@@ -5334,14 +4128,32 @@ __global__ void bulk_get(QF * qf, uint64_t * vals,  uint64_t nvals, uint64_t key
 		}
 }
 
-__host__ uint64_t bulk_get_wrapper(QF * qf, uint64_t * vals, uint64_t nvals){
+__global__ void bulk_get_kernel(QF * qf, uint64_t * vals,  uint64_t nvals, uint64_t * returns, uint8_t flags){
+
+	uint64_t tid = threadIdx.x + blockDim.x * blockIdx.x;
+
+  //should never happen, but just in case
+  if (tid >= nvals) return;
+
+	returns[tid]  = qf_count_key_value(qf, vals[tid], 0, flags);
+
+}
+
+__host__ void bulk_get(QF * qf, uint64_t nvals, uint64_t * vals, uint64_t * returns){
+
+	bulk_get_kernel<<<(nvals-1)/512+1, 512>>>(qf, vals, nvals, returns, QF_NO_LOCK);
+
+}
+
+
+__host__ uint64_t bulk_get_misses_wrapper(QF * qf, uint64_t * vals, uint64_t nvals){
 
 	uint64_t * misses;
 	//this is fine, should never be triggered
   cudaMallocManaged((void **)&misses, sizeof(uint64_t));
   cudaMemset(misses, 0, sizeof(uint64_t));
 
-  bulk_get<<<(nvals-1)/512+1, 512>>>(qf, vals, nvals, 1, misses, QF_NO_LOCK);
+  bulk_get_misses<<<(nvals-1)/512+1, 512>>>(qf, vals, nvals, 1, misses, QF_NO_LOCK);
 
   cudaDeviceSynchronize();
   uint64_t toReturn = *misses;
@@ -5470,9 +4282,9 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t ke
   //bulk_insert_bucketing_buffer_provided_timed(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
   
 
-  bulk_insert_thrust_reduce(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_sizes);
+  //bulk_insert_reduce(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_sizes);
   
-  //bulk_insert_no_atomics(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_sizes);
+  bulk_insert(_qf, _vals, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_sizes);
   
   //bulk_insert_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
 
@@ -5525,7 +4337,7 @@ __host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t ke
 
   auto get_start = std::chrono::high_resolution_clock::now();
 
-  bulk_get<<<(nvals-1)/1024+1, 1024>>>(_qf, _vals, nvals, key_count, misses, QF_NO_LOCK);
+  bulk_get_misses<<<(nvals-1)/1024+1, 1024>>>(_qf, _vals, nvals, key_count, misses, QF_NO_LOCK);
 
   cudaDeviceSynchronize();
 
