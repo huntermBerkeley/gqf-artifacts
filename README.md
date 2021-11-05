@@ -57,7 +57,7 @@ To build:
 
 
 The argument to -n is the log of the number of slots in the GQF. For example,
- to create a CQF with 2^30 slots, the argument will be -n 30.
+ to create a GQF with 2^30 slots, the argument will be -n 30.
 
 The argument to -d is the filter being tested. The currently supported filter types are:
 
