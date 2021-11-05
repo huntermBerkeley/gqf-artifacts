@@ -2,7 +2,8 @@
  * ============================================================================
  *
  *        Authors:  Prashant Pandey <ppandey@cs.stonybrook.edu>
- *                  Rob Johnson <robj@vmware.com>   
+ *                  Rob Johnson <robj@vmware.com> 
+ *                  Hunter McCoy <hjmccoy@lbl.gov>  
  *
  * ============================================================================
  */
@@ -78,6 +79,70 @@ extern "C" {
 		 hashed. */
 #define QF_KEY_IS_HASH (0x08)
 
+
+
+   /******************************************
+	GQF FUNCTIONS
+	*******************************************/
+	__host__ void qf_malloc_device(QF** qf, int nbits, bool bulk_config);
+	__host__ void qf_destroy_device(QF * qf);
+
+
+	/* POINT API */
+
+	//Lock and insert singular items
+	__device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t flags);
+
+	//combined query and insert
+    __device__ qf_returns point_insert_not_exists(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal,  uint8_t flags);
+
+    //query an item
+    __device__ uint64_t point_query(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags);
+
+    //Lock and query an item
+    __device__ uint64_t point_query_concurrent(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags);
+
+	
+
+
+
+	/* BULK API */
+
+
+	//Insert a batch of items in parallel
+	__host__ void bulk_insert(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags);
+
+	//Reduce input items before inserting
+	__host__ void bulk_insert_reduce(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags);
+
+	//delete a batch of items in parallel
+	__host__ void bulk_delete(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags);
+
+	//query a batch of items in parallel
+	__host__ void bulk_get(QF * qf, uint64_t nvals, uint64_t * vals, uint64_t * returns);
+
+
+
+
+	/* TESTING SUPPORT */
+
+	//These are helper functions that encapsulate pieces for testing
+
+	__host__ uint64_t point_get_wrapper(QF * qf, uint64_t * hashes, uint64_t nitems);
+
+	__global__ void point_bulk_insert(QF * qf, uint64_t * hashes, uint64_t nitems);
+
+	
+	//a version of bulk_get used for testing, counts the items not found and returns that count
+	__host__ uint64_t bulk_get_misses_wrapper(QF * qf, uint64_t * vals, uint64_t nvals);
+	
+
+
+
+    /******************************************
+	LEGACY CQF FUNCTIONS
+	*******************************************/
+
 	/******************************************
 		 The CQF defines low-level constructor and destructor operations
 		 that are designed to enable the application to manage the memory
@@ -104,8 +169,6 @@ extern "C" {
 		 can release that memory. */
 	void *qf_destroy(QF *qf);
 
-	/* Destroy a CQF living in device memory */
-	__host__ void qf_destroy_device(QF * qf);
 
 	/* Allocate a new CQF using "nslots" at "buffer" and copy elements from "qf"
 	 * into it. 
@@ -126,10 +189,7 @@ extern "C" {
 
 	__host__ bool qf_free(QF *qf);
 
-	__host__ void qf_free_gpu(QF * qf);
 
-	__host__ void qf_malloc_device(QF** qf, int nbits);
-	__host__ void qf_destroy_device(QF * qf);
 
 	/* Resize the QF to the specified number of slots.  Uses malloc() to
 	 * obtain the new memory, and calls free() on the old memory.
@@ -162,26 +222,6 @@ extern "C" {
 								flags);
 
 
-	__host__ uint64_t point_get_wrapper(QF * qf, uint64_t * hashes, uint64_t nitems);
-
-	__global__ void point_bulk_insert(QF * qf, uint64_t * hashes, uint64_t nitems);
-
-	
-
-	__host__ void bulk_insert(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes);
-
-	__host__ void bulk_insert_reduce(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes);
-
-
-
-	__host__ void free_buffers_premalloced(QF *qf, uint64_t**buffers, uint64_t * buffer_backing, volatile uint64_t*buffer_sizes, uint64_t num_buffers);
-
-
-	//delete a batch of items in parallel
-	__host__ void bulk_delete_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes);
-
-
-	__host__ uint64_t bulk_get_misses_wrapper(QF * qf, uint64_t * vals, uint64_t nvals);
 	/* Set the counter for this key/value pair to count. 
 	 Return value: Same as qf_insert. 
 	 Returns 0 if new count is equal to old count.
@@ -221,11 +261,6 @@ extern "C" {
 	/* batch inserts using GPU*/
 
 
-	/*
-		This is legacy code used to support test.cu, to initialize the GQF and insert items see gqf_wrapper.cuh
-	*/
-	__host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t key_count, uint64_t nhashbits, uint64_t nslots);
-
 	/****************************************
    Query functions
 	****************************************/
@@ -235,12 +270,6 @@ extern "C" {
 		 present in the QF. Only returns the first value associated with key
 		 in the QF.  If you want to see others, use an iterator. 
 		 May return QF_COULDNT_LOCK if called with QF_TRY_LOCK.  */
-
-    __device__ qf_returns point_insert_not_exists(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal,  uint8_t flags);
-
-    __device__ uint64_t point_query(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags);
-
-    __device__ uint64_t point_query_concurrent(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags);
 
 	__host__ __device__ uint64_t qf_query(const QF *qf, uint64_t key, uint64_t *value, uint8_t
 										flags);
@@ -378,8 +407,8 @@ extern "C" {
 		Debugging functions.
 	************************************/
 
-	void qf_dump(const QF *);
-	void qf_dump_metadata(const QF *qf);
+	__host__ __device__ void qf_dump(const QF *);
+	__host__ __device__ void qf_dump_metadata(const QF *qf);
 
 #ifdef __cplusplus
 }

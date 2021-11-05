@@ -2,7 +2,8 @@
  * ============================================================================
  *
  *        Authors:  Prashant Pandey <ppandey@cs.stonybrook.edu>
- *                  Rob Johnson <robj@vmware.com>   
+ *                  Rob Johnson <robj@vmware.com>  
+ *                  Hunter McCoy <hjmccoy@lbl.gov>  
  *
  * ============================================================================
  */
@@ -29,7 +30,6 @@ int * rsqf_returns;
 #define NUM_SLOTS_TO_LOCK (1ULL<<13)
 #endif
 
-extern inline uint64_t rsqf_xnslots();
 
 extern inline int rsqf_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t buf_size)
 {
@@ -46,35 +46,6 @@ extern inline int rsqf_init(uint64_t nbits, uint64_t num_hash_bits, uint64_t buf
 	return 0;
 }
 
-extern inline int rsqf_insert(uint64_t val, uint64_t count)
-{
-	//qf_insert(g_quotient_filter, val, 0, count, QF_NO_LOCK);
-	return 0;
-}
-
-extern inline int rsqf_lookup(uint64_t val)
-{
-
-	return 0;
-	//return qf_count_key_value(g_quotient_filter, val, 0, 0);
-}
-
-extern inline uint64_t rsqf_range()
-{
-	//fix me im on device
-	//have to deep copy
-
-	
-	return 0;
-}
-
-extern inline uint64_t rsqf_xnslots()
-{
-	//fix me im on device
-	//have to deep copy
-
-	return 0;
-}
 
 extern inline int rsqf_destroy()
 {
@@ -83,32 +54,6 @@ extern inline int rsqf_destroy()
 	//I'll write my own if its a problem - this is a memory leak but it may not matter :D
 
 	return 0;
-}
-
-extern inline int rsqf_iterator(uint64_t pos)
-{
-	qf_iterator_from_position(g_quotient_filter, &g_quotient_filter_itr, pos);
-	return 0;
-}
-
-/* Returns 0 if the iterator is still valid (i.e. has not reached the
- * end of the QF. */
-extern inline int rsqf_get(uint64_t *key, uint64_t *value, uint64_t *count)
-{
-	return qfi_get_hash(&g_quotient_filter_itr, key, value, count);
-}
-
-/* Advance to next entry.  Returns whether or not another entry is
- * found.  */
-extern inline int rsqf_next()
-{
-	return qfi_next(&g_quotient_filter_itr);
-}
-
-/* Check to see if the if the end of the QF */
-extern inline int rsqf_end()
-{
-	return qfi_end(&g_quotient_filter_itr);
 }
 
 
@@ -194,19 +139,5 @@ extern inline uint64_t rsqf_bulk_get(uint64_t * vals, uint64_t count){
 
 }
 
-//replace vals with a cudaMalloced Array for gpu inserts
-extern inline uint64_t * rsqf_prep_vals(__uint128_t * vals, uint64_t count){
-
-
-	uint64_t *hostvals;
-	//= (uint64_t * ) calloc(count, sizeof(uint64_t));
-	cudaMallocManaged((void **)&hostvals, count*sizeof(uint64_t));
-
-	for (uint64_t i=0; i < count; i++){
-		hostvals[i] = vals[i];
-	}
-
-	return hostvals;
-}
 
 #endif

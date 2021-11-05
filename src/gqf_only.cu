@@ -1,8 +1,9 @@
 /*
  * ============================================================================
  *
- *        Authors:  Prashant Pandey <ppandey@cs.stonybrook.edu>
- *                  Rob Johnson <robj@vmware.com>
+ *        Authors:  
+ *					Prashant Pandey <ppandey@cs.stonybrook.edu>
+ *                  Hunter McCoy <hjmccoy@lbl.gov
  *
  * ============================================================================
  */
@@ -21,9 +22,10 @@
 #include <openssl/rand.h>
 #include <random>
 #include <assert.h>
+#include <chrono>
+#include <iostream>
 
 #include "include/gqf_int.cuh"
-#include "include/gqf_file.cuh"
 #include "hashutil.cuh"
 #include "include/gqf.cuh"
 //#include "src/gqf.cu"
@@ -37,14 +39,34 @@
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		fprintf(stderr, "Please specify the log of the number of slots in the CQF.\n");
+
+		printf("Usage: ./gqf_only 28 [nbits] 0 [0 bulk, 1 reduce] 0 [0 random, 1 file, 2 random copies] filename\n");
+
 		exit(1);
 
 	}
-	if (argc < 3) {
+	if (argc < 3){
+
+		fprintf(stderr, "Please specify 'bulk' or 'reduce'\n");
+		printf("Usage: ./gqf_only 28 [nbits] 0 [0 bulk, 1 reduce] 0 [0 random, 1 file, 2 random copies] filename\n");
+
+		exit(1);
+	}
+
+	if (argc < 4) {
 		fprintf(stderr, "Please specify random or preset data.\n");
+		printf("Usage: ./gqf_only 28 [nbits] 0 [0 bulk, 1 reduce] 0 [0 random, 1 file, 2 random copies] filename\n");
+
 		exit(1);
 
 	}
+
+	printf("This is a test to show how the GQF performs on skewed data.\n");
+	printf("Most testing is handled by test.cu which has optimized .\n");
+	printf("Generation is done using RAND_bytes and a single CPU thread, expect a long  wait while data is generated.\n");
+	printf("For the Zipfian data used in our experiments, email hjmccoy@lbl.gov");
+
+
 	QF qf;
 	uint64_t qbits = atoi(argv[1]);
 	uint64_t rbits = 8;
@@ -55,7 +77,6 @@ int main(int argc, char** argv) {
 	//uint64_t nvals =  nslots/2;
 	//uint64_t nvals = 4;
 	//uint64_t nvals = 1;
-	uint64_t key_count = 1;
 	uint64_t* vals;
 
 	uint64_t * nums;
@@ -67,18 +88,20 @@ int main(int argc, char** argv) {
 		abort();
 	}
 
-	//check if pregen
-	int preset = atoi(argv[2]);
 
+	bool bulk = true;
 
+	if (atoi(argv[2]) != 0){
 
-	/*
-	if (!qf_initfile(&qf, nslots, nhashbits, 0, QF_HASH_NONE, 0,
-									 "/tmp/mycqf.file")) {
-		fprintf(stderr, "Can't allocate CQF.\n");
-		abort();
+		printf("Using reduce.\n");
+		bulk = false;
+
 	}
-	*/
+
+
+	//check if pregen
+	int preset = atoi(argv[3]);
+
 
 	nums = (uint64_t*)malloc(nvals * sizeof(vals[0]));
 	counts = (uint64_t*)malloc(nvals * sizeof(vals[0]));
@@ -90,11 +113,11 @@ int main(int argc, char** argv) {
 
 	if (preset == 1){
 
-		
 		printf("Using preset data\n");
 
 		std::fstream preset_data;
-		preset_data.open("/global/cscratch1/sd/hunterm/zipfian/zipf_data/zipfian_file_" + std::to_string( (int) qbits));
+
+		preset_data.open(argv[4]);
 
 		if (preset_data.is_open()){
 			std::string tp;
@@ -110,6 +133,8 @@ int main(int argc, char** argv) {
 
 
 
+		} else {
+			printf("Error opening file %s\n", argv[4]);
 		}
 
 		preset_data.close();
@@ -123,6 +148,8 @@ int main(int argc, char** argv) {
 
 
 	} else if (preset == 2){
+
+
 
 
 		RAND_bytes((unsigned char*)nums, sizeof(*vals) * nvals);
@@ -183,7 +210,13 @@ int main(int argc, char** argv) {
 
 	
 
-	
+	//copy vals to device
+
+	uint64_t * dev_vals;
+
+	cudaMalloc((void **)&dev_vals, nvals*sizeof(uint64_t));
+
+	cudaMemcpy(dev_vals, vals, nvals*sizeof(uint64_t), cudaMemcpyHostToDevice);
 
 	// vals = (uint64_t *) malloc(nvals * sizeof(uint64_t));
 	// for (uint64_t i =0l; i< nvals; i++){
@@ -193,8 +226,54 @@ int main(int argc, char** argv) {
 	srand(0);
 	/* Insert keys in the CQF */
 	printf("starting kernel\n");
-	qf_gpu_launch(&qf, vals, nvals, key_count, nhashbits, nslots);
+	//qf_gpu_launch(&qf, vals, nvals, key_count, nhashbits, nslots);
+
+	QF* dev_qf;
+	qf_malloc_device(&dev_qf, qbits, true);
 	cudaDeviceSynchronize();
+	auto start = std::chrono::high_resolution_clock::now();
+
+	if (bulk){	
+		bulk_insert(dev_qf, nvals, dev_vals, 0);
+	} else {
+		bulk_insert_reduce(dev_qf, nvals, dev_vals, 0);
+	}
+	
+	cudaDeviceSynchronize();
+
+	auto end = std::chrono::high_resolution_clock::now();
+
+
+  	std::chrono::duration<double> diff = end-start;
+
+
+  	std::cout << "Inserted " << nvals << " in " << diff.count() << " seconds\n";
+
+  	printf("Inserts per second: %f\n", nvals/diff.count());
+
+	cudaMemcpy(dev_vals, vals, nvals*sizeof(uint64_t), cudaMemcpyHostToDevice);
+	cudaDeviceSynchronize();
+
+	start = std::chrono::high_resolution_clock::now();
+
+	uint64_t misses = bulk_get_misses_wrapper(dev_qf, dev_vals, nvals);
+
+	cudaDeviceSynchronize();
+
+	end = std::chrono::high_resolution_clock::now();
+
+
+  	diff = end-start;
+
+	assert(misses == 0);
+
+	std::cout << "Queried " << nvals << " in " << diff.count() << " seconds\n";
+
+  	printf("Queries per second: %f\n", nvals/diff.count());
+
+
+
+	qf_destroy_device(dev_qf);
 
 	printf("GPU launch succeeded\n");
 	fflush(stdout);
@@ -202,164 +281,4 @@ int main(int argc, char** argv) {
 
 	return 0;
 
-	/*
-	for (uint64_t i = 0; i < nvals; i++) {
-		int ret = qf_insert(&qf, vals[i], 0, key_count, QF_NO_LOCK);
-		if (ret < 0) {
-			fprintf(stderr, "failed insertion for key: %lx %d.\n", vals[i], 50);
-			if (ret == QF_NO_SPACE)
-				fprintf(stderr, "CQF is full.\n");
-			else if (ret == QF_COULDNT_LOCK)
-				fprintf(stderr, "TRY_ONCE_LOCK failed.\n");
-			else
-				fprintf(stderr, "Does not recognise return value.\n");
-			abort();
-		}
-	}
-	*/
-	printf("Testing inserts\n");
-	uint64_t failedCount = 0;
-	/* Lookup inserted keys and counts. */
-	for (uint64_t i = 0; i < nvals; i++) {
-		uint64_t count = qf_count_key_value(&qf, vals[i], 0, 0);
-		if (count < key_count) {
-			// fprintf(stderr, "failed lookup after insertion for %lx %ld.\n", vals[i],
-			// 	count);
-			failedCount+=1;
-	//		abort();
-		}
-	}
-	printf("Done finding, %llu failures\n", failedCount);
-	
-
-
-#if 0
-	for (uint64_t i = 0; i < nvals; i++) {
-		uint64_t count = qf_count_key_value(&qf, vals[i], 0, 0);
-		if (count < key_count) {
-			fprintf(stderr, "failed lookup during deletion for %lx %ld.\n", vals[i],
-				count);
-			abort();
-		}
-		if (count > 0) {
-			/*fprintf(stdout, "deleting: %lx\n", vals[i]);*/
-			qf_delete_key_value(&qf, vals[i], 0, QF_NO_LOCK);
-			/*qf_dump(&qf);*/
-			uint64_t cnt = qf_count_key_value(&qf, vals[i], 0, 0);
-			if (cnt > 0) {
-				fprintf(stderr, "failed lookup after deletion for %lx %ld.\n", vals[i],
-					cnt);
-				abort();
-			}
-		}
-	}
-#endif
-
-	/* Write the CQF to disk and read it back. */
-	/*
-	char filename[] = "/tmp/mycqf_serialized.cqf";
-	fprintf(stdout, "Serializing the CQF to disk.\n");
-	uint64_t total_size = qf_serialize(&qf, filename);
-	if (total_size < sizeof(qfmetadata) + qf.metadata->total_size_in_bytes) {
-		fprintf(stderr, "CQF serialization failed.\n");
-		abort();
-	}
-	qf_deletefile(&qf);
-
-	QF file_qf;
-	fprintf(stdout, "Reading the CQF from disk.\n");
-	if (!qf_deserialize(&file_qf, filename)) {
-		fprintf(stderr, "Can't initialize the CQF from file: %s.\n", filename);
-		abort();
-	}
-	for (uint64_t i = 0; i < nvals; i++) {
-		uint64_t count = qf_count_key_value(&file_qf, vals[i], 0, 0);
-		if (count < key_count) {
-			fprintf(stderr, "failed lookup in file based CQF for %lx %ld.\n",
-							vals[i], count);
-			abort();
-		}
-		*/
-		//}
-	QF file_qf = qf;
-	//fprintf(stdout, "Testing iterator and unique indexes.\n");
-	printf("Testing iterator and unique indexes\n");
-	/* Initialize an iterator and validate counts. */
-	QFi qfi;
-	qf_iterator_from_position(&file_qf, &qfi, 0);
-	QF unique_idx;
-	if (!qf_malloc(&unique_idx, file_qf.metadata->nslots, nhashbits, 0,
-		QF_HASH_NONE, false, 0)) {
-		fprintf(stderr, "Can't allocate set.\n");
-		abort();
-	}
-
-	int64_t last_index = -1;
-	i = 0;
-	qf_iterator_from_position(&file_qf, &qfi, 0);
-	while (!qfi_end(&qfi)) {
-		uint64_t key, value, count;
-		qfi_get_key(&qfi, &key, &value, &count);
-		if (count < key_count) {
-			fprintf(stderr, "Failed lookup during iteration for: %lx. Returned count: %ld\n",
-				key, count);
-			abort();
-		}
-		int64_t idx = qf_get_unique_index(&file_qf, key, value, 0);
-		if (idx == QF_DOESNT_EXIST) {
-			fprintf(stderr, "Failed lookup for unique index for: %lx. index: %ld\n",
-				key, idx);
-			abort();
-		}
-		if (idx <= last_index) {
-			fprintf(stderr, "Unique indexes not strictly increasing.\n");
-			abort();
-		}
-		last_index = idx;
-		if (qf_count_key_value(&unique_idx, key, 0, 0) > 0) {
-			fprintf(stderr, "Failed unique index for: %lx. index: %ld\n",
-				key, idx);
-			abort();
-		}
-		qf_insert(&unique_idx, key, 0, 1, QF_NO_LOCK);
-		int64_t newindex = qf_get_unique_index(&unique_idx, key, 0, 0);
-		if (idx < newindex) {
-			fprintf(stderr, "Index weirdness: index %dth key %ld was at %ld, is now at %ld\n",
-				i, key, idx, newindex);
-			//abort();
-		}
-
-		i++;
-		qfi_next(&qfi);
-
-		/* remove some counts  (or keys) and validate. */
-		fprintf(stdout, "Testing remove/delete_key.\n");
-		for (uint64_t i = 0; i < nvals; i++) {
-			uint64_t count = qf_count_key_value(&file_qf, vals[i], 0, 0);
-			/*if (count < key_count) {*/
-			/*fprintf(stderr, "failed lookup during deletion for %lx %ld.\n", vals[i],*/
-			/*count);*/
-			/*abort();*/
-			/*}*/
-			int ret = qf_delete_key_value(&file_qf, vals[i], 0, QF_NO_LOCK);
-			count = qf_count_key_value(&file_qf, vals[i], 0, 0);
-			if (count > 0) {
-				if (ret < 0) {
-					fprintf(stderr, "failed deletion for %lx %ld ret code: %d.\n",
-						vals[i], count, ret);
-					abort();
-				}
-				uint64_t new_count = qf_count_key_value(&file_qf, vals[i], 0, 0);
-				if (new_count > 0) {
-					fprintf(stderr, "delete key failed for %lx %ld new count: %ld.\n",
-						vals[i], count, new_count);
-					abort();
-				}
-			}
-		}
-
-		qf_deletefile(&file_qf);
-
-		fprintf(stdout, "Validated the CQF.\n");
-	}
 }

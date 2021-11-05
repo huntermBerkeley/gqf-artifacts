@@ -3,6 +3,7 @@
  *
  *        Authors:  Prashant Pandey <ppandey@cs.stonybrook.edu>
  *                  Rob Johnson <robj@vmware.com>   
+ *                  Hunter McCoy <hjmccoy@lbl.gov> 
  *
  * ============================================================================
  */
@@ -15,7 +16,7 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 //#include "include/bloom.cuh"
-#include "include/cpu_one_bit_bloom_filter.hpp"
+#include "include/bloom_filter.hpp"
 
 #ifndef BLOOM_CHECK
 #define BLOOM_CHECK(ans)                                                                  \
@@ -140,34 +141,6 @@ extern inline int bloom_destroy()
 }
 
 
-//defunct
-extern inline int bloom_iterator(uint64_t pos)
-{
-	//qf_iterator_from_position(g_quotient_filter, &g_quotient_filter_itr, pos);
-	return 0;
-}
-
-
-extern inline int bloom_get(uint64_t *key, uint64_t *value, uint64_t *count)
-{
-	return 0; //qfi_get_hash(&g_quotient_filter_itr, key, value, count);
-}
-
-
-extern inline int bloom_next()
-{
-	//return qfi_next(&g_quotient_filter_itr);
-	return 0;
-}
-
-/* Check to see if the if the end of the QF */
-extern inline int bloom_end()
-{
-	return 0;
-	//return qfi_end(&g_quotient_filter_itr);
-}
-
-
 //this one does work!
 __global__ void bulk_insert_kernel(device_bloom_filter * bloom_map, uint64_t * vals, uint64_t count){
 
@@ -232,17 +205,6 @@ extern inline uint64_t bloom_bulk_get(uint64_t * vals, uint64_t count){
 
 	return toReturn;
 }
-  //return bloom_map.bulk_find(vals, count);
 
-//replace vals with a cudaMalloced Array for gpu inserts
-//I solemnly swear I will clean this up later
-extern inline uint64_t * bloom_prep_vals(__uint128_t * vals, uint64_t count){
-
-
-	uint64_t *hostvals;
-
-
-	return hostvals;
-}
 
 #endif

@@ -2,7 +2,8 @@
  * ============================================================================
  *
  *        Authors:  Prashant Pandey <ppandey@cs.stonybrook.edu>
- *                  Rob Johnson <robj@vmware.com>   
+ *                  Rob Johnson <robj@vmware.com>  
+ *                  Hunter McCoy <hjmccoy@lbl.gov>  
  *
  * ============================================================================
  */
@@ -27,7 +28,7 @@
 
 
 #include "include/gqf_wrapper.cuh"
-#include "include/approx_wrapper.cuh"
+#include "include/point_wrapper.cuh"
 #include "include/rsqf_wrapper.cuh"
 #include "include/sqf_wrapper.cuh"
 #include "include/bloom_wrapper.cuh"
@@ -58,16 +59,7 @@ static long myrandom()
 }
 #endif
 
-static float tdiff (struct timeval *start, struct timeval *end) {
-	return (end->tv_sec-start->tv_sec) +1e-6*(end->tv_usec - start->tv_usec);
-}
 
-
-
-
-typedef void * (*rand_init)(uint64_t maxoutputs, __uint128_t maxvalue, void *params);
-typedef int (*gen_rand)(void *state, uint64_t noutputs, __uint128_t *outputs);
-typedef void * (*duplicate_rand)(void *state);
 
 
 //filter ops
@@ -77,11 +69,6 @@ typedef int (*bulk_insert_op)(uint64_t * vals, uint64_t nvals);
 typedef uint64_t (*bulk_find_op)(uint64_t * vals, uint64_t nvals);
 
 
-typedef struct rand_generator {
-	rand_init init;
-	gen_rand gen;
-	duplicate_rand dup;
-} rand_generator;
 
 typedef struct filter {
 	init_op init;
@@ -90,46 +77,6 @@ typedef struct filter {
 	bulk_find_op bulk_lookup;
 
 } filter;
-
-typedef struct uniform_pregen_state {
-	uint64_t maxoutputs;
-	uint64_t nextoutput;
-	__uint128_t *outputs;
-} uniform_pregen_state;
-
-typedef struct uniform_online_state {
-	uint64_t maxoutputs;
-	uint64_t maxvalue;
-	unsigned int seed;
-	char *buf;
-	int STATELEN;
-	struct random_data *rand_state;
-} uniform_online_state;
-
-typedef struct zipf_params {
-	double exp;
-	long universe;
-	long sample;
-} zipf_params;
-
-typedef struct zipfian_pregen_state {
-	zipf_params *params;
-	uint64_t maxoutputs;
-	uint64_t nextoutput;
-	__uint128_t *outputs;
-} zipfian_pregen_state;
-
-typedef struct app_params {
-	char *ip_file;
-	int num;
-} app_params;
-
-typedef struct app_pregen_state {
-	app_params *params;
-	uint64_t maxoutputs;
-	uint64_t nextoutput;
-	__uint128_t *outputs;
-} app_pregen_state;
 
 
 
@@ -216,19 +163,8 @@ void usage(char *name)
 				 "  -r nruns      [ number of runs.  Default 1 ]\n"
 				 "  -p npoints    [ number of points on the graph.  Default 20 ]\n"
 				 "  -b buf_size   [ log_2 of buffer capacity, default is nslots/npoints ]\n"
-				 "  -m randmode   [ Data distribution, one of \n"
-				 "                    uniform_pregen\n"
-				 "                    uniform_online\n"
-				 "                    zipfian_pregen\n"
-				 "                    custom_pregen\n"
-				 "                  Default uniform_pregen ]\n"
-				 "  -d datastruct  [ Default gqf] [ gqf | map | bloom | bloom_one_bit ]\n"
-				 "  -a number of filters for merging  [ Default 0 ] [Optional]\n"
-				 "  -f outputfile  [ Default gqf. ]\n"
-				 "  -i input file for app specific benchmark [Optional]\n"
-				 "  -v num of values in the input file [Optional]\n"
-				 "  -u universe for zipfian distribution  [ Default nvals ] [Optional]\n"
-				 "  -s constant for zipfian distribution  [ Default 1.5 ] [Optional]\n",
+				 "  -d datastruct  [ Default bulk] [ bulk | map | bloom | bloom_one_bit ]\n"
+				 "  -f outputfile  [ Default gqf. ]\n",
 				 name);
 }
 
@@ -239,14 +175,9 @@ int main(int argc, char **argv)
 	uint32_t nbits = 22, nruns = 1;
 	unsigned int npoints = 20;
 	uint64_t nslots = (1ULL << nbits), nvals = 950*nslots/1000;
-	double s = 1.5; long universe = nvals;
-	int numvals = 0;
-	int numfilters = 0;
-	char *randmode = "uniform_pregen";
-	char *datastruct = "gqf";
-	char *outputfile = "gqf";
-	char *inputfile = "gqf";
-	void *param = NULL;
+
+	const char *datastruct = "bulk";
+	const char *outputfile = "gqf";
 
 	filter filter_ds;
 
@@ -310,7 +241,6 @@ int main(int argc, char **argv)
 				}
 				nslots = (1ULL << nbits);
 				nvals = 950*nslots/1000;
-				universe = nvals;
 				//buf_size = nbits - log2(npoints);
 				break;
 			case 'r':
@@ -339,34 +269,11 @@ int main(int argc, char **argv)
 				}
 				buf_size = (1ULL << buf_bits);
 				break;
-			case 'm':
-				randmode = optarg;
-				break;
 			case 'd':
 				datastruct = optarg;
 				break;
 			case 'f':
 				outputfile = optarg;
-				break;
-			case 'i':
-				inputfile = optarg;
-				break;
-			case 'v':
-				numvals = (int)strtol(optarg, &term, 10);
-				break;
-			case 's':
-				s = strtod(optarg, NULL);
-				break;
-			case 'u':
-				universe = strtol(optarg, &term, 10);
-				break;
-			case 'a':
-				numfilters = strtol(optarg, &term, 10);
-				if (*term) {
-					fprintf(stderr, "Argument to -p must be an integer\n");
-					usage(argv[0]);
-					exit(1);
-				}
 				break;
 			default:
 				fprintf(stderr, "Unknown option\n");
@@ -379,7 +286,7 @@ int main(int argc, char **argv)
 
 
 
-	if (strcmp(datastruct, "gqf") == 0) {
+	if (strcmp(datastruct, "bulk") == 0) {
 		filter_ds = gqf;
 	} else if (strcmp(datastruct, "bloom") == 0) {
 		filter_ds = bloom;
@@ -513,6 +420,7 @@ int main(int argc, char **argv)
 
 			cudaDeviceSynchronize();
 
+
 			tv_insert[exp+1][run] = std::chrono::high_resolution_clock::now();
 
 			//don't need this
@@ -529,7 +437,6 @@ int main(int argc, char **argv)
 			for (;i < j; i += buf_size) {
 				int nitems = j - i < buf_size ? j - i : buf_size;
 				
-				int m;
 				//assert(vals_gen->gen(old_vals_gen_state, nitems, vals) == nitems);
 			
 		
@@ -558,6 +465,8 @@ int main(int argc, char **argv)
 			cudaDeviceSynchronize();
 			tv_exit_lookup[exp+1][run] = std::chrono::high_resolution_clock::now();
 
+			
+
 			//this looks right
 			false_times[exp+1] = std::chrono::duration<int64_t>::zero();;
 			std::chrono::time_point<std::chrono::high_resolution_clock> false_start;
@@ -572,7 +481,6 @@ int main(int argc, char **argv)
 			for (;i < j; i += buf_size) {
 				int nitems = j - i < buf_size ? j - i : buf_size;
 				uint64_t * othervals;
-				int m;
 
 				false_start = std::chrono::high_resolution_clock::now();
 				curand_false.gen_next_batch(nitems);
@@ -590,6 +498,7 @@ int main(int argc, char **argv)
 
 			cudaDeviceSynchronize();
 			tv_false_lookup[exp+1][run] = std::chrono::high_resolution_clock::now();
+			
 		}
 
 

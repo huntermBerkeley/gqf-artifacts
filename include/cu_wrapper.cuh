@@ -128,6 +128,8 @@ uint64_t * curand_generator::yield_backing(){
 	} else {
 
 		printf("generator not configured for this type yet.\n");
+
+		return nullptr;
 	}
 	
 }

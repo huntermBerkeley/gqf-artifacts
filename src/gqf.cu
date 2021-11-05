@@ -3,6 +3,7 @@
  *
  *        Authors:  Prashant Pandey <ppandey@cs.stonybrook.edu>
  *                  Rob Johnson <robj@vmware.com>
+ *                  Hunter McCoy <hjmccoy@lbl.gov> 
  *
  * ============================================================================
  */
@@ -160,19 +161,19 @@ __host__ __device__ static inline int popcnt(uint64_t val)
 	return val;
 }
 
-__device__ static inline int64_t bitscanreverse(uint64_t val)
-{
-	if (val == 0) {
-		return -1;
-	} else {
+// __device__ static inline int64_t bitscanreverse(uint64_t val)
+// {
+// 	if (val == 0) {
+// 		return -1;
+// 	} else {
 
-		asm("bsr %[val], %[val]"
-			: [val] "+l" (val)
-			:
-			: );
-		return val;
-	}
-}
+// 		asm("bsr %[val], %[val]"
+// 			: [val] "+l" (val)
+// 			:
+// 			: );
+// 		return val;
+// 	}
+// }
 
 __host__ __device__ static inline int popcntv(const uint64_t val, int ignore)
 {
@@ -376,87 +377,89 @@ __host__ __device__ void qf_dump(const QF *qf)
 	8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7
 };
 
- const uint8_t hostkSelectInByte[2048] = {
-   8, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0,
-   1, 0, 2, 0, 1, 0, 5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0,
-   2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0,
-   1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 5, 0, 1, 0, 2, 0, 1, 0,
-   3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 7, 0,
-   1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0,
-   2, 0, 1, 0, 5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0,
-   1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
-   4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 5, 0, 1, 0, 2, 0, 1, 0, 3, 0,
-   1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 8, 8, 8, 1,
-   8, 2, 2, 1, 8, 3, 3, 1, 3, 2, 2, 1, 8, 4, 4, 1, 4, 2, 2, 1, 4, 3, 3, 1, 3, 2,
-   2, 1, 8, 5, 5, 1, 5, 2, 2, 1, 5, 3, 3, 1, 3, 2, 2, 1, 5, 4, 4, 1, 4, 2, 2, 1,
-   4, 3, 3, 1, 3, 2, 2, 1, 8, 6, 6, 1, 6, 2, 2, 1, 6, 3, 3, 1, 3, 2, 2, 1, 6, 4,
-   4, 1, 4, 2, 2, 1, 4, 3, 3, 1, 3, 2, 2, 1, 6, 5, 5, 1, 5, 2, 2, 1, 5, 3, 3, 1,
-   3, 2, 2, 1, 5, 4, 4, 1, 4, 2, 2, 1, 4, 3, 3, 1, 3, 2, 2, 1, 8, 7, 7, 1, 7, 2,
-   2, 1, 7, 3, 3, 1, 3, 2, 2, 1, 7, 4, 4, 1, 4, 2, 2, 1, 4, 3, 3, 1, 3, 2, 2, 1,
-   7, 5, 5, 1, 5, 2, 2, 1, 5, 3, 3, 1, 3, 2, 2, 1, 5, 4, 4, 1, 4, 2, 2, 1, 4, 3,
-   3, 1, 3, 2, 2, 1, 7, 6, 6, 1, 6, 2, 2, 1, 6, 3, 3, 1, 3, 2, 2, 1, 6, 4, 4, 1,
-   4, 2, 2, 1, 4, 3, 3, 1, 3, 2, 2, 1, 6, 5, 5, 1, 5, 2, 2, 1, 5, 3, 3, 1, 3, 2,
-   2, 1, 5, 4, 4, 1, 4, 2, 2, 1, 4, 3, 3, 1, 3, 2, 2, 1, 8, 8, 8, 8, 8, 8, 8, 2,
-   8, 8, 8, 3, 8, 3, 3, 2, 8, 8, 8, 4, 8, 4, 4, 2, 8, 4, 4, 3, 4, 3, 3, 2, 8, 8,
-   8, 5, 8, 5, 5, 2, 8, 5, 5, 3, 5, 3, 3, 2, 8, 5, 5, 4, 5, 4, 4, 2, 5, 4, 4, 3,
-   4, 3, 3, 2, 8, 8, 8, 6, 8, 6, 6, 2, 8, 6, 6, 3, 6, 3, 3, 2, 8, 6, 6, 4, 6, 4,
-   4, 2, 6, 4, 4, 3, 4, 3, 3, 2, 8, 6, 6, 5, 6, 5, 5, 2, 6, 5, 5, 3, 5, 3, 3, 2,
-   6, 5, 5, 4, 5, 4, 4, 2, 5, 4, 4, 3, 4, 3, 3, 2, 8, 8, 8, 7, 8, 7, 7, 2, 8, 7,
-   7, 3, 7, 3, 3, 2, 8, 7, 7, 4, 7, 4, 4, 2, 7, 4, 4, 3, 4, 3, 3, 2, 8, 7, 7, 5,
-   7, 5, 5, 2, 7, 5, 5, 3, 5, 3, 3, 2, 7, 5, 5, 4, 5, 4, 4, 2, 5, 4, 4, 3, 4, 3,
-   3, 2, 8, 7, 7, 6, 7, 6, 6, 2, 7, 6, 6, 3, 6, 3, 3, 2, 7, 6, 6, 4, 6, 4, 4, 2,
-   6, 4, 4, 3, 4, 3, 3, 2, 7, 6, 6, 5, 6, 5, 5, 2, 6, 5, 5, 3, 5, 3, 3, 2, 6, 5,
-   5, 4, 5, 4, 4, 2, 5, 4, 4, 3, 4, 3, 3, 2, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 3, 8, 8, 8, 8, 8, 8, 8, 4, 8, 8, 8, 4, 8, 4, 4, 3, 8, 8, 8, 8, 8, 8,
-   8, 5, 8, 8, 8, 5, 8, 5, 5, 3, 8, 8, 8, 5, 8, 5, 5, 4, 8, 5, 5, 4, 5, 4, 4, 3,
-   8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 6, 8, 6, 6, 3, 8, 8, 8, 6, 8, 6, 6, 4, 8, 6,
-   6, 4, 6, 4, 4, 3, 8, 8, 8, 6, 8, 6, 6, 5, 8, 6, 6, 5, 6, 5, 5, 3, 8, 6, 6, 5,
-   6, 5, 5, 4, 6, 5, 5, 4, 5, 4, 4, 3, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 7, 8, 7,
-   7, 3, 8, 8, 8, 7, 8, 7, 7, 4, 8, 7, 7, 4, 7, 4, 4, 3, 8, 8, 8, 7, 8, 7, 7, 5,
-   8, 7, 7, 5, 7, 5, 5, 3, 8, 7, 7, 5, 7, 5, 5, 4, 7, 5, 5, 4, 5, 4, 4, 3, 8, 8,
-   8, 7, 8, 7, 7, 6, 8, 7, 7, 6, 7, 6, 6, 3, 8, 7, 7, 6, 7, 6, 6, 4, 7, 6, 6, 4,
-   6, 4, 4, 3, 8, 7, 7, 6, 7, 6, 6, 5, 7, 6, 6, 5, 6, 5, 5, 3, 7, 6, 6, 5, 6, 5,
-   5, 4, 6, 5, 5, 4, 5, 4, 4, 3, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 5, 8, 8, 8, 8, 8, 8, 8, 5, 8, 8, 8, 5, 8, 5, 5, 4, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 6, 8, 6,
-   6, 4, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 6, 8, 6, 6, 5, 8, 8, 8, 6, 8, 6, 6, 5,
-   8, 6, 6, 5, 6, 5, 5, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8,
-   8, 8, 8, 8, 8, 7, 8, 8, 8, 7, 8, 7, 7, 4, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 7,
-   8, 7, 7, 5, 8, 8, 8, 7, 8, 7, 7, 5, 8, 7, 7, 5, 7, 5, 5, 4, 8, 8, 8, 8, 8, 8,
-   8, 7, 8, 8, 8, 7, 8, 7, 7, 6, 8, 8, 8, 7, 8, 7, 7, 6, 8, 7, 7, 6, 7, 6, 6, 4,
-   8, 8, 8, 7, 8, 7, 7, 6, 8, 7, 7, 6, 7, 6, 6, 5, 8, 7, 7, 6, 7, 6, 6, 5, 7, 6,
-   6, 5, 6, 5, 5, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 5, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 6,
-   8, 6, 6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7,
-   8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 7, 8, 7, 7, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 7, 8, 7, 7, 6, 8, 8, 8, 8,
-   8, 8, 8, 7, 8, 8, 8, 7, 8, 7, 7, 6, 8, 8, 8, 7, 8, 7, 7, 6, 8, 7, 7, 6, 7, 6,
-   6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 7, 8, 7, 7, 6, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7
- };
+ // const uint8_t hostkSelectInByte[2048] = {
+ //   8, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0,
+ //   1, 0, 2, 0, 1, 0, 5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0,
+ //   2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0,
+ //   1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 5, 0, 1, 0, 2, 0, 1, 0,
+ //   3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 7, 0,
+ //   1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0,
+ //   2, 0, 1, 0, 5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0,
+ //   1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+ //   4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 5, 0, 1, 0, 2, 0, 1, 0, 3, 0,
+ //   1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 8, 8, 8, 1,
+ //   8, 2, 2, 1, 8, 3, 3, 1, 3, 2, 2, 1, 8, 4, 4, 1, 4, 2, 2, 1, 4, 3, 3, 1, 3, 2,
+ //   2, 1, 8, 5, 5, 1, 5, 2, 2, 1, 5, 3, 3, 1, 3, 2, 2, 1, 5, 4, 4, 1, 4, 2, 2, 1,
+ //   4, 3, 3, 1, 3, 2, 2, 1, 8, 6, 6, 1, 6, 2, 2, 1, 6, 3, 3, 1, 3, 2, 2, 1, 6, 4,
+ //   4, 1, 4, 2, 2, 1, 4, 3, 3, 1, 3, 2, 2, 1, 6, 5, 5, 1, 5, 2, 2, 1, 5, 3, 3, 1,
+ //   3, 2, 2, 1, 5, 4, 4, 1, 4, 2, 2, 1, 4, 3, 3, 1, 3, 2, 2, 1, 8, 7, 7, 1, 7, 2,
+ //   2, 1, 7, 3, 3, 1, 3, 2, 2, 1, 7, 4, 4, 1, 4, 2, 2, 1, 4, 3, 3, 1, 3, 2, 2, 1,
+ //   7, 5, 5, 1, 5, 2, 2, 1, 5, 3, 3, 1, 3, 2, 2, 1, 5, 4, 4, 1, 4, 2, 2, 1, 4, 3,
+ //   3, 1, 3, 2, 2, 1, 7, 6, 6, 1, 6, 2, 2, 1, 6, 3, 3, 1, 3, 2, 2, 1, 6, 4, 4, 1,
+ //   4, 2, 2, 1, 4, 3, 3, 1, 3, 2, 2, 1, 6, 5, 5, 1, 5, 2, 2, 1, 5, 3, 3, 1, 3, 2,
+ //   2, 1, 5, 4, 4, 1, 4, 2, 2, 1, 4, 3, 3, 1, 3, 2, 2, 1, 8, 8, 8, 8, 8, 8, 8, 2,
+ //   8, 8, 8, 3, 8, 3, 3, 2, 8, 8, 8, 4, 8, 4, 4, 2, 8, 4, 4, 3, 4, 3, 3, 2, 8, 8,
+ //   8, 5, 8, 5, 5, 2, 8, 5, 5, 3, 5, 3, 3, 2, 8, 5, 5, 4, 5, 4, 4, 2, 5, 4, 4, 3,
+ //   4, 3, 3, 2, 8, 8, 8, 6, 8, 6, 6, 2, 8, 6, 6, 3, 6, 3, 3, 2, 8, 6, 6, 4, 6, 4,
+ //   4, 2, 6, 4, 4, 3, 4, 3, 3, 2, 8, 6, 6, 5, 6, 5, 5, 2, 6, 5, 5, 3, 5, 3, 3, 2,
+ //   6, 5, 5, 4, 5, 4, 4, 2, 5, 4, 4, 3, 4, 3, 3, 2, 8, 8, 8, 7, 8, 7, 7, 2, 8, 7,
+ //   7, 3, 7, 3, 3, 2, 8, 7, 7, 4, 7, 4, 4, 2, 7, 4, 4, 3, 4, 3, 3, 2, 8, 7, 7, 5,
+ //   7, 5, 5, 2, 7, 5, 5, 3, 5, 3, 3, 2, 7, 5, 5, 4, 5, 4, 4, 2, 5, 4, 4, 3, 4, 3,
+ //   3, 2, 8, 7, 7, 6, 7, 6, 6, 2, 7, 6, 6, 3, 6, 3, 3, 2, 7, 6, 6, 4, 6, 4, 4, 2,
+ //   6, 4, 4, 3, 4, 3, 3, 2, 7, 6, 6, 5, 6, 5, 5, 2, 6, 5, 5, 3, 5, 3, 3, 2, 6, 5,
+ //   5, 4, 5, 4, 4, 2, 5, 4, 4, 3, 4, 3, 3, 2, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 3, 8, 8, 8, 8, 8, 8, 8, 4, 8, 8, 8, 4, 8, 4, 4, 3, 8, 8, 8, 8, 8, 8,
+ //   8, 5, 8, 8, 8, 5, 8, 5, 5, 3, 8, 8, 8, 5, 8, 5, 5, 4, 8, 5, 5, 4, 5, 4, 4, 3,
+ //   8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 6, 8, 6, 6, 3, 8, 8, 8, 6, 8, 6, 6, 4, 8, 6,
+ //   6, 4, 6, 4, 4, 3, 8, 8, 8, 6, 8, 6, 6, 5, 8, 6, 6, 5, 6, 5, 5, 3, 8, 6, 6, 5,
+ //   6, 5, 5, 4, 6, 5, 5, 4, 5, 4, 4, 3, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 7, 8, 7,
+ //   7, 3, 8, 8, 8, 7, 8, 7, 7, 4, 8, 7, 7, 4, 7, 4, 4, 3, 8, 8, 8, 7, 8, 7, 7, 5,
+ //   8, 7, 7, 5, 7, 5, 5, 3, 8, 7, 7, 5, 7, 5, 5, 4, 7, 5, 5, 4, 5, 4, 4, 3, 8, 8,
+ //   8, 7, 8, 7, 7, 6, 8, 7, 7, 6, 7, 6, 6, 3, 8, 7, 7, 6, 7, 6, 6, 4, 7, 6, 6, 4,
+ //   6, 4, 4, 3, 8, 7, 7, 6, 7, 6, 6, 5, 7, 6, 6, 5, 6, 5, 5, 3, 7, 6, 6, 5, 6, 5,
+ //   5, 4, 6, 5, 5, 4, 5, 4, 4, 3, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 5, 8, 8, 8, 8, 8, 8, 8, 5, 8, 8, 8, 5, 8, 5, 5, 4, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 6, 8, 6,
+ //   6, 4, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 6, 8, 6, 6, 5, 8, 8, 8, 6, 8, 6, 6, 5,
+ //   8, 6, 6, 5, 6, 5, 5, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8,
+ //   8, 8, 8, 8, 8, 7, 8, 8, 8, 7, 8, 7, 7, 4, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 7,
+ //   8, 7, 7, 5, 8, 8, 8, 7, 8, 7, 7, 5, 8, 7, 7, 5, 7, 5, 5, 4, 8, 8, 8, 8, 8, 8,
+ //   8, 7, 8, 8, 8, 7, 8, 7, 7, 6, 8, 8, 8, 7, 8, 7, 7, 6, 8, 7, 7, 6, 7, 6, 6, 4,
+ //   8, 8, 8, 7, 8, 7, 7, 6, 8, 7, 7, 6, 7, 6, 6, 5, 8, 7, 7, 6, 7, 6, 6, 5, 7, 6,
+ //   6, 5, 6, 5, 5, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 5, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 6,
+ //   8, 6, 6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7,
+ //   8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 7, 8, 7, 7, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 7, 8, 7, 7, 6, 8, 8, 8, 8,
+ //   8, 8, 8, 7, 8, 8, 8, 7, 8, 7, 7, 6, 8, 8, 8, 7, 8, 7, 7, 6, 8, 7, 7, 6, 7, 6,
+ //   6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 7, 8, 7, 7, 6, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+ //   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7
+ // };
+
+
 __host__ __device__ static inline uint64_t _select64(uint64_t x, int k)
 {
 	if (k >= popcnt(x)) { return 64; }
@@ -478,7 +481,10 @@ __host__ __device__ static inline uint64_t _select64(uint64_t x, int k)
 #ifdef __CUDA_ARCH__
 	return place + gpukSelectInByte[((x >> place) & 0xFF) | (byteRank << 8)];
 #else
-	return place + hostkSelectInByte[((x >> place) & 0xFF) | (byteRank << 8)];
+
+	abort();
+	return 0;
+	//return place + hostkSelectInByte[((x >> place) & 0xFF) | (byteRank << 8)];
 #endif // __CUDA_ARCH__
 
 
@@ -696,27 +702,6 @@ __host__ __device__ static inline int offset_lower_bound(const QF *qf, uint64_t 
 	return boffset - slot_offset + popcnt(occupieds);
 }
 
-__host__ __device__ static inline int offset_lower_bound_verbose(const QF *qf, uint64_t slot_index)
-{
-	const qfblock * b = get_block(qf, slot_index / QF_SLOTS_PER_BLOCK);
-	const uint64_t slot_offset = slot_index % QF_SLOTS_PER_BLOCK;
-	const uint64_t boffset = b->offset;
-	const uint64_t occupieds = b->occupieds[0] & BITMASK(slot_offset+1);
-
-	printf("slot %llu, slot_offset %02lx, block offset %llu, occupieds: %d ", slot_index, slot_offset, boffset, popcnt(occupieds));
-	assert(QF_SLOTS_PER_BLOCK == 64);
-	if (boffset <= slot_offset) {
-		const uint64_t runends = (b->runends[0] & BITMASK(slot_offset)) >> boffset;
-		printf(" runends %d\n", popcnt(runends));
-		//printf("boffset < slot_offset, runends %llu, popcnt(occupieds) %d, popcnt(runends) %d\n", runends, popcnt(occupieds), popcnt(runends));
-		printf("returning %d\n", popcnt(occupieds)-popcnt(runends));
-		return popcnt(occupieds) - popcnt(runends);
-	}
-	printf("\n");
-	//printf("boffset > slot_offset, boffset-slotoffset %llu, popcnt(occupieds) %d\n", boffset-slot_offset, popcnt(occupieds));
-	printf("returning %d\n", boffset-slot_offset+popcnt(occupieds));
-	return boffset - slot_offset + popcnt(occupieds);
-}
 
 __host__ __device__ static inline int is_empty(const QF *qf, uint64_t slot_index)
 {
@@ -729,36 +714,14 @@ __host__ __device__ static inline int might_be_empty(const QF *qf, uint64_t slot
 		&& !is_runend(qf, slot_index);
 }
 
-__device__ static inline int probably_is_empty(const QF *qf, uint64_t slot_index)
-{
-	return get_slot(qf, slot_index) == 0
-		&& !is_occupied(qf, slot_index)
-		&& !is_runend(qf, slot_index);
-}
+// __device__ static inline int probably_is_empty(const QF *qf, uint64_t slot_index)
+// {
+// 	return get_slot(qf, slot_index) == 0
+// 		&& !is_occupied(qf, slot_index)
+// 		&& !is_runend(qf, slot_index);
+// }
 
 
-__host__ __device__ static inline uint64_t find_first_empty_slot_verbose(QF *qf, uint64_t from)
-{
-
-	printf("Starting find first - this will terminate in -1\n");
-	qf_dump_block(qf, from/QF_SLOTS_PER_BLOCK);
-	do {
-		int t = offset_lower_bound_verbose(qf, from);
-    //get block of from
-
-    if (t < 0){
-    	
-      printf("Finding first empty slot. T: %d, from: %llu\n - block %llu", t, from, from/QF_SLOTS_PER_BLOCK);
-      qf_dump(qf);
-    }
-		assert(t>=0);
-		if (t == 0)
-			break;
-		from = from + t;
-	} while(1);
-	printf("Next empty slot: %llu", from);
-	return from;
-}
 
 __host__ __device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_t from)
 {
@@ -1161,7 +1124,7 @@ __host__ __device__ static inline int remove_replace_slots_and_shift_remainders_
 		}
 	}
 
-	int num_slots_freed = old_length - total_remainders;
+	//int num_slots_freed = old_length - total_remainders;
 	//modify_metadata(&qf->runtimedata->pc_noccupied_slots, -num_slots_freed);
 	/*qf->metadata->noccupied_slots -= (old_length - total_remainders);*/
 	if (!total_remainders) {
@@ -1319,23 +1282,22 @@ __host__ __device__ static inline uint64_t decode_counter(const QF *qf, uint64_t
 /* return the next slot which corresponds to a
  * different element
  * */
-__device__ static inline uint64_t next_slot(QF *qf, uint64_t current)
-{
-	uint64_t rem = get_slot(qf, current);
-	current++;
+// __device__ static inline uint64_t next_slot(QF *qf, uint64_t current)
+// {
+// 	uint64_t rem = get_slot(qf, current);
+// 	current++;
 
-	while (get_slot(qf, current) == rem && current <= qf->metadata->nslots) {
-		current++;
-	}
-	return current;
-}
+// 	while (get_slot(qf, current) == rem && current <= qf->metadata->nslots) {
+// 		current++;
+// 	}
+// 	return current;
+// }
 
 
 //code for approx inserts
 
 __host__ __device__ static inline qf_returns insert1_if_not_exists(QF *qf, __uint64_t hash, uint8_t * value)
 {
-	int ret_distance = 0;
 	uint64_t hash_remainder           = hash & BITMASK(qf->metadata->bits_per_slot);
 	uint64_t hash_bucket_index        = hash >> qf->metadata->bits_per_slot;
 	uint64_t hash_bucket_block_offset = hash_bucket_index % QF_SLOTS_PER_BLOCK;
@@ -1367,7 +1329,6 @@ __host__ __device__ static inline qf_returns insert1_if_not_exists(QF *qf, __uin
 		METADATA_WORD(qf, occupieds, hash_bucket_index) |= 1ULL <<
 			(hash_bucket_block_offset % 64);
 
-		ret_distance = 0;
 		//modify_metadata(&qf->runtimedata->pc_ndistinct_elts, 1);
 
 
@@ -1387,7 +1348,7 @@ __host__ __device__ static inline qf_returns insert1_if_not_exists(QF *qf, __uin
 
 			/* Find the counter for this remainder if it exists. */
 			uint64_t current_remainder = get_slot(qf, runstart_index) >> qf->metadata->value_bits;
-			uint64_t zero_terminator = runstart_index;
+			//uint64_t zero_terminator = runstart_index;
 
 			
 
@@ -1443,7 +1404,7 @@ __host__ __device__ static inline qf_returns insert1_if_not_exists(QF *qf, __uin
 			shift_remainders(qf, insert_index, empty_slot_index);
 
 			set_slot(qf, insert_index, new_value);
-			ret_distance = insert_index - hash_bucket_index;
+			//ret_distance = insert_index - hash_bucket_index;
 
 			shift_runends(qf, insert_index, empty_slot_index-1, 1);
 			switch (operation) {
@@ -1967,7 +1928,7 @@ __host__ uint64_t qf_init(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t v
 	qf->metadata->ndistinct_elts = 0;
 	qf->metadata->noccupied_slots = 0;
 
-	qf->runtimedata->num_locks = ((qf->metadata->xnslots/NUM_SLOTS_TO_LOCK)+2)*LOCK_DIST;
+	qf->runtimedata->num_locks = ((qf->metadata->xnslots/NUM_SLOTS_TO_LOCK)+2);
 
 	pc_init(&qf->runtimedata->pc_nelts, (int64_t*)&qf->metadata->nelts, 8, 100);
 	pc_init(&qf->runtimedata->pc_ndistinct_elts, (int64_t*)&qf->metadata->ndistinct_elts, 8, 100);
@@ -2094,7 +2055,7 @@ __host__ bool qf_free(QF *qf)
 
 
 //consolidate all of the device construction into one convenient func!
-__host__ void qf_malloc_device(QF** qf, int nbits){
+__host__ void qf_malloc_device(QF** qf, int nbits, bool bulk_config){
 
 
 
@@ -2121,10 +2082,38 @@ __host__ void qf_malloc_device(QF** qf, int nbits){
 	qfblock* _blocks;
 
 	uint16_t * dev_locks;
+	uint64_t ** buffers;
+	uint64_t * buffer_sizes;
 
-	cudaMalloc((void ** )&dev_locks, host_qf.runtimedata->num_locks * sizeof(uint16_t));
 
-	cudaMemset(dev_locks, 0, host_qf.runtimedata->num_locks * sizeof(uint16_t));
+
+	if (bulk_config){
+
+		uint64_t num_locks = host_qf.runtimedata->num_locks;
+
+		//allocate 1 lock so that cudaFree doesn't break later
+		cudaMalloc((void ** )&dev_locks, 1 * sizeof(uint16_t));
+
+		//are these 2x necessary?
+	  cudaMalloc((void **) & buffer_sizes, 2*num_locks*sizeof(uint64_t));
+	  cudaMalloc((void **)&buffers, 2*num_locks*sizeof(uint64_t*));
+
+
+	} else {
+
+
+		//point API, multiply locks
+
+		cudaMalloc((void ** )&dev_locks, host_qf.runtimedata->num_locks*LOCK_DIST * sizeof(uint16_t));
+
+		cudaMemset(dev_locks, 0, host_qf.runtimedata->num_locks*LOCK_DIST * sizeof(uint16_t));
+
+		cudaMalloc((void **) & buffer_sizes, 1*sizeof(uint64_t));
+	  cudaMalloc((void **)&buffers, 1*sizeof(uint64_t*));
+
+	}
+
+	
 
 	//wipe and replace
 	free(host_qf.runtimedata->locks);
@@ -2133,6 +2122,16 @@ __host__ void qf_malloc_device(QF** qf, int nbits){
 	cudaMalloc((void**)&_runtime, sizeof(qfruntime));
 	cudaMalloc((void**)&_metadata, sizeof(qfmetadata));
 	cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(&host_qf));
+
+
+	//uint64_t num_locks = host_qf.runtimedata->num_locks;
+
+
+
+	//insert these into host_qf so dev qf has access.
+	//they don't need to be wiped as buffers are reset before every insert.
+	host_qf.runtimedata->buffers = buffers;
+	host_qf.runtimedata->buffer_sizes = buffer_sizes;
 
 	cudaMemcpy(_runtime, host_qf.runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice);
 	cudaMemcpy(_metadata, host_qf.metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice);
@@ -2157,6 +2156,7 @@ __host__ void qf_malloc_device(QF** qf, int nbits){
 }
 
 
+//TODO: make me destroy buffers modifiable
 __host__ void qf_destroy_device(QF * qf){
 
 	QF * host_qf;
@@ -2178,6 +2178,13 @@ __host__ void qf_destroy_device(QF * qf){
 
 		cudaFree(_runtime->locks);
 
+	if (_runtime->buffers != NULL){
+
+		cudaFree(_runtime->buffers);
+		cudaFree(_runtime->buffer_sizes);
+
+	}
+
 	if (_runtime->wait_times != NULL)
 		cudaFree(_runtime->wait_times);
 
@@ -2196,23 +2203,6 @@ __host__ void qf_destroy_device(QF * qf){
 
 }
 
-
-
-__host__ void qf_free_gpu(QF * qf){
-
-	QF hostQF;
-
-	//cudaMallocHost((void **)&hostQF, sizeof(QF));
-
-	cudaMemcpy(&hostQF, qf, sizeof(QF), cudaMemcpyDeviceToHost);
-
-	cudaFree(hostQF.runtimedata);
-	cudaFree(hostQF.metadata);
-	cudaFree(hostQF.blocks);
-
-	cudaFree(qf);
-	
-}
 
 __host__ void qf_copy(QF *dest, const QF *src)
 {
@@ -2472,42 +2462,7 @@ __host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t
 GPU Modifications
 --------------------------*/
 
-
-//TODO: it might expect a short int instead of uint16_t
-//TODO: needs to be 32 bits (whoops)
-__device__ uint16_t get_lock(volatile uint32_t* lock, int index) {
-	//set lock to 1 to claim
-	//returns 0 if success
-	uint32_t zero = 0;
-	uint32_t one = 1;
-	return atomicCAS((uint32_t *) &lock[index], zero, one);
-}
-
-//synchronous lock so that we can acquire multiple locks
-
-// __device__ uint16_t get_lock_wait(uint32_t * locks, int index){
-
-//   uint16_t result = 1;
-
-//   do {
-
-//     result = get_lock(locks, index);
-
-//   } while (result !=0);
-
-//   return result;
-
-// }
-
-__device__ uint16_t unlock(volatile uint32_t* lock, int index) {
-	//set lock to 0 to release
-	uint32_t zero = 0;
-	uint32_t one = 1;
-	//TODO: might need a __threadfence();
-	lock[index] = 0;
-}
-
-
+ 
 //approx filter locking code
 //locking implementation for the 16 bit locks
 //undefined behavior if you try to unlock a not locked lock
@@ -2593,6 +2548,7 @@ __device__ __forceinline__ uint64_t biggest_pow_2(uint64_t n){
 
 
 __global__ void hash_all(QF* qf, uint64_t* vals, uint64_t* hashes, uint64_t nvals, uint8_t flags) {
+	
 	uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 	if (idx >= nvals){
 		return;
@@ -2617,62 +2573,18 @@ __global__ void hash_all(QF* qf, uint64_t* vals, uint64_t* hashes, uint64_t nval
 
 
 
-//Get counts of which bucket a given item would like to move to
-//these are used to set the starting pointers of the next phase
-__global__ void count_off(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
-
-		uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-		if (idx >= num_keys) return;
-
-		//printf("idx %llu\n", idx);
-
-		uint64_t key = keys[idx];
-
-    //adding back in hashing here - this is inefficient
-    if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
-  		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
-  			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
-  		else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
-  			key = hash_64(key, BITMASK(qf->metadata->key_bits));
-  	}
-
-		uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
-
-    //printf("%d insert %d, key: %llu, hash: %llu \n", idx, i, key, hash);
-		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
-		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-		uint64_t lock_index = hash_bucket_index / slots_per_lock;
-
-		//counts are volatile, so atomic update
-		//this isn't as fast as a reduction, but should be fine for the moment.
-		atomicAdd((unsigned long long int *) buffer_counts+lock_index, 1);
-		//buffer_counts[lock_index] += 1;
-
-
-
-}
-
-//COPIED OVER FROM CYCLES BRANCH
-//things got deleted on this branch for some reason
-//so I'm moving back the more efficient version
-
-
-//a variant of count_off that uses binary search instead
-//this would avoid atomics and should reduce memory usage - myaybe faster :o
-//requires the keys to be sorted hashes - otherwise the results are just junk
-//something a la two passes may be necessary to save space / communication
-// threads set their boundaries - and then set their sizes
 
 //revised work pipeline
 // 1) Set all offsets to keys here based on relative offset + keys - skips the launch call later - TODO: double check that (keys + offset) - keys == offset. -- cpp says this works
 // 2) subtract sets of keys from each other to get the relative offsets - these will give offsets, last key needs to subtract from origin pointer
 // this means that the keys here are set to point to the START of their bucket
-__global__ void set_buffers_binary(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, uint64_t ** buffers, uint8_t flags){
+__global__ void set_buffers_binary(QF * qf, uint64_t num_keys, uint64_t * keys, uint8_t flags){
 
 		uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 
-		if (idx >= num_buffers) return;
+		if (idx >= qf->runtimedata->num_locks) return;
+
+		uint64_t slots_per_lock = NUM_SLOTS_TO_LOCK;
 
 		//since we are finding all boundaries, we only need
 
@@ -2736,7 +2648,7 @@ __global__ void set_buffers_binary(QF * qf, uint64_t num_keys, uint64_t slots_pe
 		index = lower + (upper - lower)/2;
 
 
-		buffers[idx] = keys + index;
+		qf->runtimedata->buffers[idx] = keys + index;
 		
 
 
@@ -2745,12 +2657,18 @@ __global__ void set_buffers_binary(QF * qf, uint64_t num_keys, uint64_t slots_pe
 //this can maybe be rolled into set_buffers_binary
 //it performs an identical set of operations that are O(1) here
 // O(log n) there, but maybe amortized
-__global__ void set_buffer_lens(QF * qf, uint64_t num_keys, uint64_t * keys, uint64_t num_buffers, uint64_t * buffer_sizes, uint64_t ** buffers){
+__global__ void set_buffer_lens(QF * qf, uint64_t num_keys, uint64_t * keys){
+
+
+	uint64_t num_buffers = qf->runtimedata->num_locks;
 
 
 	uint64_t idx = threadIdx.x + blockDim.x*blockIdx.x;
 
 	if (idx >= num_buffers) return;
+
+	uint64_t** buffers = qf->runtimedata->buffers;
+	uint64_t * buffer_sizes = qf->runtimedata->buffer_sizes;
 
 
 	//only 1 thread will diverge - should be fine - any cost already exists because of tail
@@ -2772,171 +2690,21 @@ __global__ void set_buffer_lens(QF * qf, uint64_t num_keys, uint64_t * keys, uin
 
 
 
-//A variant of count off that takes in prehashed keys
-__global__ void count_off_hashed(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
-
-		uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-		if (idx >= num_keys) return;
-
-		//printf("idx %llu\n", idx);
-
-		uint64_t hash = keys[idx];
-
-    //printf("%d insert %d, key: %llu, hash: %llu \n", idx, i, key, hash);
-		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
-		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-		uint64_t lock_index = hash_bucket_index / slots_per_lock;
-
-		//counts are volatile, so atomic update
-		//this isn't as fast as a reduction, but should be fine for the moment.
-		atomicAdd((unsigned long long int *) buffer_counts+lock_index, 1);
-		//buffer_counts[lock_index] += 1;
-
-
-}
-
-//lets see what the skew of the buffers looks li
-__global__ void get_bucket_info(QF* qf, uint64_t num_buffers, volatile uint64_t * buffer_counts, uint64_t * bucket_max, uint64_t * bucket_min, uint64_t * bucket_avg){
-
-	uint64_t tid = threadIdx.x + blockDim.x*blockIdx.x;
-
-	if (tid >= num_buffers) return;
-
-	uint64_t my_size = buffer_counts[tid];
-
-	atomicMax( (unsigned long long int *) bucket_max, my_size);
-	atomicMin( (unsigned long long int *) bucket_min, my_size);
-	atomicAdd( (unsigned long long int *) bucket_avg, my_size);
-
-
-}
-
-
-//given the allocated buffers, start inserting
-//may make sense to allocate the buffers as one contiguous array with uint64** directing to each section - ask Kathy/Prashant
-__global__ void count_insert(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, uint64_t ** buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
-
-
-	uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-
-
-	if (idx >= num_keys) return;
-
-
-
-	uint64_t key = keys[idx];
-
-    //adding back in hashing here - this is inefficient
-    if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
-  		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
-  			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
-  		else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
-  			key = hash_64(key, BITMASK(qf->metadata->key_bits));
-  	}
-
-	uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
-
-	uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-
-	uint64_t bucket_index = hash_bucket_index / slots_per_lock;
-
-	uint64_t my_slot = atomicAdd( (long long unsigned int *) (buffer_counts + bucket_index), (long long unsigned int) 1);
-
-
-	uint64_t to_insert = keys[idx];
-
-	buffers[bucket_index][my_slot] = to_insert;
-
-
-
-}
-
-//a variant of count_insert that takes in hashed keys
-
-__global__ void count_insert_hashed(QF * qf, uint64_t num_keys, uint64_t slots_per_lock, uint64_t * keys, uint64_t num_buffers, uint64_t ** buffers, volatile uint64_t * buffer_counts, uint64_t value, uint8_t flags){
-
-
-	uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-
-
-	if (idx >= num_keys) return;
-
-
-
-	uint64_t hash = keys[idx];
-
-	uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-
-	uint64_t bucket_index = hash_bucket_index / slots_per_lock;
-
-	uint64_t my_slot = atomicAdd( (long long unsigned int *) (buffer_counts + bucket_index), (long long unsigned int) 1);
-
-
-	//uint64_t to_insert = keys[idx];
-
-	buffers[bucket_index][my_slot] = hash;
-
-
-
-}
-
-//assign one thread per buffer, empty the buffer into the cqf
-//this will get called twice, once for even buffers and once for odd
-// so that locking isn't necessary
-__global__ void insert_from_buffers(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness){
-
-
-	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
-
-
-
-	if (idx >= num_buffers) return;
-
-
-	//at the start, we sort
-	//we are exceeding bounds by 1
-	//quick_sort(buffers[idx], 0, buffer_counts[idx]-1,0);
-	//no need to sort if empty - this will cause overflow as 0-1 == max_uint
-	// if (buffer_counts[idx] > 0) {
-
-	// 	quick_sort(buffers[idx], 0, buffer_counts[idx]-1, 0);
-
-	// 	//assert(assert_sorted(buffers[idx], buffer_counts[idx]));
-
-	// }
-	
-
-	uint64_t my_count = buffer_counts[idx];
-
-	for (uint64_t i =0; i < my_count; i++){
-
-		int ret = qf_insert(qf, buffers[idx][i], 0, 1, QF_NO_LOCK);
-
-		//internal threadfence. Bad? actually seems to be fine
-		//__threadfence();
-
-	}
-
-	__threadfence();
-
-
-
-
-}
-
 //insert from buffers using prehashed_data
-__global__ void insert_from_buffers_hashed(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness){
+__global__ void insert_from_buffers_hashed(QF* qf,  uint64_t evenness){
 
+
+	//uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts;
 
 	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
 
 
 
-	if (idx >= num_buffers) return;
+	if (idx >= qf->runtimedata->num_locks) return;
 
+
+	uint64_t * buffer_counts = qf->runtimedata->buffer_sizes;
+	uint64_t ** buffers = qf->runtimedata->buffers;
 
 	//at the start, we sort
 	//we are exceeding bounds by 1
@@ -2970,14 +2738,19 @@ __global__ void insert_from_buffers_hashed(QF* qf, uint64_t num_buffers, uint64_
 }
 
 //insert from buffers using prehashed_data
-__global__ void insert_from_buffers_thrust(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness, uint64_t * keys, uint64_t * vals){
+__global__ void insert_from_buffers_thrust(QF* qf, uint64_t evenness, uint64_t * keys, uint64_t * vals){
 
 
 	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
 
 
 
-	if (idx >= num_buffers) return;
+	if (idx >= qf->runtimedata->num_locks) return;
+
+
+
+	uint64_t * buffer_counts = qf->runtimedata->buffer_sizes;
+	uint64_t ** buffers = qf->runtimedata->buffers;
 
 
 	//at the start, we sort
@@ -3017,15 +2790,21 @@ __global__ void insert_from_buffers_thrust(QF* qf, uint64_t num_buffers, uint64_
 
 }
 
+
 //insert from buffers using prehashed_data
-__global__ void delete_from_buffers_hashed(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness){
+__global__ void delete_from_buffers_hashed(QF* qf, uint64_t evenness){
 
 
 	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
 
 
 
-	if (idx >= num_buffers) return;
+
+	if (idx >= qf->runtimedata->num_locks) return;
+
+
+	uint64_t ** buffers = qf->runtimedata->buffers;
+	uint64_t * buffer_counts = qf->runtimedata->buffer_sizes;
 
 
 	//at the start, we sort
@@ -3059,343 +2838,6 @@ __global__ void delete_from_buffers_hashed(QF* qf, uint64_t num_buffers, uint64_
 
 }
 
-//assign one thread per buffer, empty the buffer into the cqf
-//this will get called twice, once for even buffers and once for odd
-// so that locking isn't necessary
-__global__ void insert_from_buffers_timed(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness, uint64_t * min, uint64_t * max, uint64_t * average, uint64_t * count){
-
-
-	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
-
-
-
-	if (idx >= num_buffers) return;
-
-	uint64_t start = clock64();
-	
-
-	uint64_t my_count = buffer_counts[idx];
-
-	for (uint64_t i =0; i < my_count; i++){
-
-		int ret = qf_insert(qf, buffers[idx][i], 0, 1, QF_NO_LOCK);
-
-		//internal threadfence. Bad? actually seems to be fine
-		__threadfence();
-
-	}
-
-
-	uint64_t end = clock64();
-
-	uint64_t duration = end-start;
-
-	atomicAdd((long long unsigned int *) average, (long long unsigned int) duration);
-	atomicAdd((long long unsigned int *) count, (long long unsigned int) 1);
-	atomicMin((long long unsigned int *) min, (long long unsigned int) duration);
-	atomicMax((long long unsigned int *) max, (long long unsigned int) duration);
-	//__threadfence();
-
-
-
-
-}
-
-__global__ void insert_from_buffers_utilization(QF* qf, uint64_t num_buffers, uint64_t** buffers, volatile uint64_t * buffer_counts, uint64_t evenness, uint64_t * insert_cycles, uint64_t * fence_cycles, uint64_t * sort_cycles){
-
-
-	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
-
-
-
-	if (idx >= num_buffers) return;
-
-	uint64_t start = clock64();
-	
-
-	
-
-	uint64_t my_count = buffer_counts[idx];
-
-	//quick_sort(buffers[idx], 0, my_count, 0);
-
-	//assert_sorted(buffers[idx], 0, my_count);
-
-	uint64_t end_sort = clock64();
-
-
-	for (uint64_t i =0; i < my_count; i++){
-
-		int ret = qf_insert(qf, buffers[idx][i], 0, 1, QF_NO_LOCK);
-
-		//internal threadfence. Bad? actually seems to be fine
-		
-
-	}
-
-	uint64_t end_insert = clock64();
-
-	__threadfence();
-
-	uint64_t end_fence = clock64();
-
-	uint64_t duration_sort = end_sort - start;
-	uint64_t duration_insert = end_insert-end_sort;
-	uint64_t duration_fence = end_fence - end_insert;
-
-	atomicAdd((long long unsigned int *) insert_cycles, (long long unsigned int) duration_insert);
-	atomicAdd((long long unsigned int *) fence_cycles, (long long unsigned int) duration_fence);
-	atomicAdd((long long unsigned int *) sort_cycles, (long long unsigned int) duration_sort);
-	//atomicMin((long long unsigned int *) min, (long long unsigned int) duration);
-	//atomicMax((long long unsigned int *) max, (long long unsigned int) duration);
-	//__threadfence();
-
-
-
-
-}
-
-__global__ void print_counts(uint64_t num_locks, volatile uint64_t * buffer_counts){
-
-	int idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-	if (idx != 0) return;
-
-	for (uint64_t i =0; i < num_locks; i++){
-		printf("%*llu", 8, i);
-	}
-	printf("\n");
-
-	for (uint64_t i =0; i < num_locks; i++){
-		printf("%*llu", 8, buffer_counts[i]);
-	}
-	printf("\n");
-
-
-}
-
-__host__ void create_buffers(QF * qf, uint64_t** buffers, volatile uint64_t * buffer_sizes, uint64_t num_buffers){
-
-	uint64_t**buffers_host;
-
-	CUDA_CHECK(cudaMallocHost((void**)&buffers_host, num_buffers*sizeof(uint64_t *)));
-
-	uint64_t* buffer_sizes_host;
-
-	CUDA_CHECK(cudaMallocHost((void **)&buffer_sizes_host, num_buffers*sizeof(uint64_t)));
-
-	CUDA_CHECK(cudaMemcpy(buffer_sizes_host, (uint64_t *) buffer_sizes, num_buffers*sizeof(uint64_t), cudaMemcpyDeviceToHost));
-
-	for (uint64_t i =0; i < num_buffers; i++){
-
-		uint64_t * temp_buffer;
-		CUDA_CHECK(cudaMalloc((void **)&temp_buffer, buffer_sizes_host[i]*sizeof(uint64_t) ));
-
-		buffers_host[i] = temp_buffer;
-
-	}
-
-
-	CUDA_CHECK(cudaMemcpy(buffers, buffers_host, num_buffers*sizeof(uint64_t *), cudaMemcpyHostToDevice));
-
-	CUDA_CHECK(cudaFreeHost(buffers_host));
-	CUDA_CHECK(cudaFreeHost(buffer_sizes_host));
-
-
-}
-
-//save on malloc call and device_syncronize
-__host__ void create_buffers_premalloced(QF*qf, uint64_t** buffers, uint64_t * buffer_backing, volatile uint64_t * buffer_sizes, uint64_t num_buffers){
-
-	uint64_t**buffers_host;
-
-	CUDA_CHECK(cudaMallocHost((void**)&buffers_host, num_buffers*sizeof(uint64_t *)));
-
-	uint64_t* buffer_sizes_host;
-
-	CUDA_CHECK(cudaMallocHost((void **)&buffer_sizes_host, num_buffers*sizeof(uint64_t)));
-
-	CUDA_CHECK(cudaMemcpy(buffer_sizes_host, (uint64_t *) buffer_sizes, num_buffers*sizeof(uint64_t), cudaMemcpyDeviceToHost));
-
-
-	uint64_t counter = 0;
-
-	for (uint64_t i =0; i < num_buffers; i++){
-
-		//uint64_t * temp_buffer;
-		//CUDA_CHECK(cudaMalloc((void **)&temp_buffer, buffer_sizes_host[i]*sizeof(uint64_t) ));
-
-		buffers_host[i] = buffer_backing+counter;
-		counter += buffer_sizes_host[i];
-
-	}
-
-	cudaMemcpy(buffers, buffers_host, num_buffers*sizeof(uint64_t *), cudaMemcpyHostToDevice);
-	CUDA_CHECK(cudaFreeHost(buffers_host));
-	CUDA_CHECK(cudaFreeHost(buffer_sizes_host));
-
-
-}
-
-__host__ void free_buffers_premalloced(QF *qf, uint64_t**buffers, uint64_t * buffer_backing, volatile uint64_t*buffer_sizes, uint64_t num_buffers){
-
-
-
-	//free main buffers and sizes
-	CUDA_CHECK(cudaFree(buffers));
-	CUDA_CHECK(cudaFree((uint64_t *) buffer_sizes));
-	cudaFree(buffer_backing);
-
-	//CUDA_CHECK(cudaMemcpy(buffers, buffers_host, num_buffers*sizeof(uint64_t *), cudaMemcpyHostToDevice));
-
-
-
-
-
-}
-
-
-__host__ void free_buffers(QF *qf, uint64_t**buffers, volatile uint64_t*buffer_sizes, uint64_t num_buffers){
-
-
-	uint64_t**buffers_host;
-
-	CUDA_CHECK(cudaMallocHost((void**)&buffers_host, num_buffers*sizeof(uint64_t *)));
-
-	CUDA_CHECK(cudaMemcpy(buffers_host, buffers, num_buffers*sizeof(uint64_t), cudaMemcpyDeviceToHost));
-
-	for (uint64_t i =0; i < num_buffers; i++){
-
-		CUDA_CHECK(cudaFree(buffers_host[i]));
-
-	}
-
-	//free main buffers and sizes
-	CUDA_CHECK(cudaFree(buffers));
-	CUDA_CHECK(cudaFree((uint64_t *) buffer_sizes));
-
-	//CUDA_CHECK(cudaMemcpy(buffers, buffers_host, num_buffers*sizeof(uint64_t *), cudaMemcpyHostToDevice));
-
-
-
-	CUDA_CHECK(cudaFreeHost(buffers_host));
-
-
-}
-
-
-//APPROX FUNCS
-//convert a counter with 
-__host__ __device__ uint8_t encode_chars(char fwd, char back){
-
-	uint8_t base = 0;
-
-
-	//encodings of kmers relative to inputs,
-	//if you want to change this modify the const array
-	// kmer_vals in gqf.cu. F is unused and only exists to prevent crashes
-
-	//F is 000 0
-	//A is 001 1
-	//C is 010 2
-	//T is 011 3
-	//G is 100 4
-	//0/NULL is 101 5
-
-
-	for (uint8_t i =0; i < 5; i++){
-
-		if (kmer_vals[i] == fwd){
-
-			//printf("Front %d: %0x", i, i<<5);
-			base += i << 3;
-		}
-
-
-		if (kmer_vals[i] == back){
-			base += i;
-		}
-
-	}
-
-	return base;
-
-
-
-}
-
-
-//convert a counter with 
-__host__ __device__ void decode_chars(uint8_t stored, char & fwd, char & back){
-
-
-
-	//NULL is 000 0
-	//A is 001 1
-	//C is 010 2
-	//T is 011 3
-	//G is 100 4
-	//0 is 101 5
-
-	uint8_t upper = stored >> 3;
-	uint8_t lower = stored & 7;
-
-	fwd = kmer_vals[upper];
-	back = kmer_vals[lower];
-
-	if (fwd == 'F') fwd = '0';
-  if (back == 'F') back = '0';
-
-
-
-
-}
-
-
-
-__device__ qf_returns insert_kmer_not_exists(QF* qf, uint64_t hash, char forward, char backward, char & returnedfwd, char & returnedback){
-
-	uint8_t encoded = encode_chars(forward, backward);
-
-	uint8_t query;
-
-	
-	bool boolFound;
-
-	hash = hash % qf->metadata->range;
-
-	uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
-	uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
-
-	//encode extensions outside of the lock
-
-	lock_16(qf->runtimedata->locks, lock_index);
-	lock_16(qf->runtimedata->locks, lock_index+1);
-
-	//uint64_t query;
-
-	//int found = qf_query(qf, hash, &bigquery, QF_NO_LOCK | QF_KEY_IS_HASH);
-	//printf("being inserted/checked: %d\n", encoded);
-
-	qf_returns ret = qf_insert_not_exists(qf, hash, encoded, 1, QF_NO_LOCK | QF_KEY_IS_HASH, &query);
-
-
-	__threadfence();
-	unlock_16(qf->runtimedata->locks, lock_index+1);
-	unlock_16(qf->runtimedata->locks, lock_index);
-
-	//cast down
-
-	if (ret == QF_ITEM_FOUND){
-
-		decode_chars(query, returnedfwd, returnedback);
-
-	}
-	
-
-	//obvious cast for clarity
-	return ret;
-}
 
 
 
@@ -3404,8 +2846,6 @@ __device__ qf_returns point_insert_not_exists(QF* qf, uint64_t key, uint8_t valu
 
 	uint8_t query;
 
-
-	bool boolFound;
 
 	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
   		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
@@ -3463,9 +2903,6 @@ __device__ qf_returns point_insert_not_exists(QF* qf, uint64_t key, uint8_t valu
 __device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t flags){
 
 
-
-	bool boolFound;
-
 	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
   		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
   			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
@@ -3477,6 +2914,8 @@ __device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t 
 
 	uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
 	//uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
+
+
 	uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
 
 	//encode extensions outside of the lock
@@ -3520,8 +2959,6 @@ __device__ uint64_t point_query(QF* qf, uint64_t key, uint8_t value, uint8_t& re
 
 
 
-	bool boolFound;
-
 	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
   		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
   			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
@@ -3531,11 +2968,7 @@ __device__ uint64_t point_query(QF* qf, uint64_t key, uint8_t value, uint8_t& re
 
 	uint64_t hash = key % qf->metadata->range;
 
-	uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
-	//uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-	uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
 
-	//encode extensions outside of the lock
 
 
 	uint64_t query;
@@ -3555,9 +2988,6 @@ __device__ uint64_t point_query(QF* qf, uint64_t key, uint8_t value, uint8_t& re
 __device__ uint64_t point_query_concurrent(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags){
 
 
-
-
-	bool boolFound;
 
 	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
   		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
@@ -3665,17 +3095,43 @@ __global__ void point_bulk_insert(QF * qf, uint64_t * hashes, uint64_t nitems){
 }
 
 
+//set a uint64_t reference to point at device memory;
+__global__ void get_dev_nvals(QF* qf, uint64_t * external_nvals){
+
+
+	uint64_t tid = threadIdx.x + blockIdx.x*blockDim.x;
+
+	if (tid >= 1) return;
+
+	external_nvals[0] = qf->runtimedata->num_locks;
+
+}
+
+
 
 
 //modified version of buffers_provided - performs an initial bulk hash, should save work over other versions
 //note: this DOES modify the given buffer - fine for all versions now
 //This variant performs an ititial sort that allows us to save time overall
 //as we avoid the atomic count-off and any sort of cross-thread communication
-__host__ void bulk_insert(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
+__host__ void bulk_insert(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags) {
 
 	uint64_t key_block_size = 32;
 	uint64_t key_block = (nvals -1)/key_block_size + 1;
 	//start with num_locks, get counts
+
+
+	//This is slow, but there isn't a better way to do it
+	//we'll have to see how this affects performance
+	uint64_t * dev_num_locks;
+	cudaMallocManaged((void **)&dev_num_locks, sizeof(uint64_t));
+	get_dev_nvals<<<1,1>>>(qf, dev_num_locks);
+	cudaDeviceSynchronize();
+
+
+	uint64_t num_locks = dev_num_locks[0];
+
+	cudaFree(dev_num_locks);
 
 
 
@@ -3686,10 +3142,10 @@ __host__ void bulk_insert(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots
 	thrust::sort(thrust::device, keys, keys+nvals);
 
 
-	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, flags);
+	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, flags);
 
 	
-	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, num_locks, (uint64_t *) buffer_sizes, buffers);
+	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys);
 
 
 	//insert_from_buffers_hashed_onepass<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes);
@@ -3698,12 +3154,12 @@ __host__ void bulk_insert(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots
 
 	uint64_t evenness = 0;
 
-	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, evenness);
 	
 
 	evenness = 1;
 
-	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+	insert_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, evenness);
 
 
 }
@@ -3712,12 +3168,23 @@ __host__ void bulk_insert(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots
 //note: this DOES modify the given buffer - fine for all versions now
 //This variant performs an ititial sort that allows us to save time overall
 //as we avoid the atomic count-off and any sort of cross-thread communication
-__host__ void bulk_insert_reduce(QF* qf, uint64_t* keys, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
+__host__ void bulk_insert_reduce(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags) {
 
 	uint64_t key_block_size = 32;
 	uint64_t key_block = (nvals -1)/key_block_size + 1;
 	//start with num_locks, get counts
 
+
+	//This is slow, but there isn't a better way to 
+	uint64_t * dev_num_locks;
+	cudaMallocManaged((void **)&dev_num_locks, sizeof(uint64_t));
+	get_dev_nvals<<<1,1>>>(qf, dev_num_locks);
+	cudaDeviceSynchronize();
+
+
+	uint64_t num_locks = dev_num_locks[0];
+
+	cudaFree(dev_num_locks);
 
 
 	//keys are hashed, now need to treat them as hashed in all further functions
@@ -3750,11 +3217,13 @@ __host__ void bulk_insert_reduce(QF* qf, uint64_t* keys, uint64_t nvals, uint64_
 	uint64_t * new_key_counts = thrust::raw_pointer_cast(thrust_vals);
 
 
-	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, new_nvals, slots_per_lock, new_keys, num_locks, buffers, flags);
+	//set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, new_nvals, slots_per_lock, new_keys, num_locks, buffers, flags);
 
+	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, new_nvals, new_keys, flags);
 	
-	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, new_nvals, new_keys, num_locks, (uint64_t *) buffer_sizes, buffers);
+	//set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, new_nvals, new_keys, num_locks, (uint64_t *) buffer_sizes, buffers);
 
+	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, new_nvals, new_keys);
 
 	//insert_from_buffers_hashed_onepass<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes);
 	
@@ -3762,12 +3231,12 @@ __host__ void bulk_insert_reduce(QF* qf, uint64_t* keys, uint64_t nvals, uint64_
 
 	uint64_t evenness = 0;
 
-	insert_from_buffers_thrust<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness, new_keys,new_key_counts);
+	insert_from_buffers_thrust<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, evenness, new_keys,new_key_counts);
 	
 
 	evenness = 1;
 
-	insert_from_buffers_thrust<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness, new_keys, new_key_counts);
+	insert_from_buffers_thrust<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, evenness, new_keys, new_key_counts);
 
 
 	//free resources
@@ -3777,12 +3246,22 @@ __host__ void bulk_insert_reduce(QF* qf, uint64_t* keys, uint64_t nvals, uint64_
 
 }
 
-__host__ void bulk_delete_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
+__host__ void bulk_delete(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags) {
 
 	uint64_t key_block_size = 32;
 	uint64_t key_block = (nvals -1)/key_block_size + 1;
 	//start with num_locks, get counts
 
+	//This is slow, but there isn't a better way to 
+	uint64_t * dev_num_locks;
+	cudaMallocManaged((void **)&dev_num_locks, sizeof(uint64_t));
+	get_dev_nvals<<<1,1>>>(qf, dev_num_locks);
+	cudaDeviceSynchronize();
+
+
+	uint64_t num_locks = dev_num_locks[0];
+
+	cudaFree(dev_num_locks);
 
 
 	//keys are hashed, now need to treat them as hashed in all further functions
@@ -3792,11 +3271,13 @@ __host__ void bulk_delete_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uin
 	thrust::sort(thrust::device, keys, keys+nvals);
 
 
-	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, flags);
+	//set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, slots_per_lock, keys, num_locks, buffers, flags);
 
+	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, flags);
 	
-	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, num_locks, (uint64_t *) buffer_sizes, buffers);
+	//set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, num_locks, (uint64_t *) buffer_sizes, buffers);
 
+	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys);
 
 	//insert_from_buffers_hashed_onepass<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes);
 	
@@ -3804,309 +3285,16 @@ __host__ void bulk_delete_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uin
 
 	uint64_t evenness = 0;
 
-	delete_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+	delete_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, evenness);
 	
 
 	evenness = 1;
 
-	delete_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes, evenness);
+	delete_from_buffers_hashed<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, evenness);
 
 
 }
 
-
-
-__global__ void qf_insert_evenness(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, volatile uint32_t* locks, int evenness, uint8_t flags) {
-	uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-	int n_threads = blockDim.x * gridDim.x;
-	//start and end points in the keys array
-	int start = nvals * idx / n_threads;
-	int end = nvals * (idx + 1) / n_threads;
-
-  //need to add check for if idx >> nvals
-  if (n_threads >= nvals){
-    start = idx;
-    end = idx+1;
-    if (idx >= nvals) return;
-  }
-
-  //nslots or xnslots?
-  //int num_locks = qf->metadata->xnslots/NUM_SLOTS_TO_LOCK + 10;
-
-	//printf("Thread %d/%d: start %d end %d\n", idx, n_threads, start, end);
-	int i = start;
-	while (i < end) {
-
-    // if (i % 100 ==0){
-    //   printf("Still Alive %d/%llu\n", i,nvals);
-    // }
-		uint64_t key = keys[i];
-
-    //adding back in hashing here - this is inefficient
-    if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
-  		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
-  			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
-  		else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
-  			key = hash_64(key, BITMASK(qf->metadata->key_bits));
-  	}
-
-		uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
-
-    //printf("%d insert %d, key: %llu, hash: %llu \n", idx, i, key, hash);
-		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
-		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-		uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
-    //if this succeeds, implies we have an overwrite error with the lock
-    //uint64_t lock_index = 0;
-
-		//if (hash_bucket_index % 2 == evenness) {
-    if (true){
-      //printf("Even so inserting\n");
-      //printf("Idx %d grabbing bucket %llu, lock should be %llu, is %llu\n", idx, hash_bucket_index, hash_bucket_index / NUM_SLOTS_TO_LOCK, lock_index);
-			if (get_lock(locks, lock_index) == 0) {
-
-        if (get_lock(locks, lock_index+1) ==0){
-
-					int ret = qf_insert(qf, keys[i], 0, 1, QF_NO_LOCK);
-					if (ret < 0) {
-						printf("failed insertion for key: %d %llu", i, keys[i]);
-						if (ret == QF_NO_SPACE)
-							printf(" because CQF is full.\n");
-						else if (ret == QF_COULDNT_LOCK)
-							printf(" because TRY_ONCE_LOCK failed.\n");
-						else
-							printf(" because program does not recognise return value.\n");
-
-					}
-					i++;
-					__threadfence();
-	        unlock(locks, lock_index+1);
-					
-
-			}
-				unlock(locks, lock_index);
-			} 
-		}
-		else {
-			i++;
-		}
-
-	}
-	return;
-}
-
-
-__global__ void qf_insert_evenness_nolock(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t num_locks, volatile uint32_t* locks, int evenness, uint8_t flags) {
-	
-	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
-
-	if (idx >= num_locks) return;
-
-
-	int n_threads = blockDim.x * gridDim.x;
-	//start and end points in the keys array
-	int start = 0;
-	int end = nvals;
-
-  //nslots or xnslots?
-  //int num_locks = qf->metadata->xnslots/NUM_SLOTS_TO_LOCK + 10;
-
-	//printf("Thread %d/%d: start %d end %d\n", idx, n_threads, start, end);
-	int i = start;
-	while (i < end) {
-
-    // if (i % 100 ==0){
-    //   printf("Still Alive %d/%llu\n", i,nvals);
-    // }
-		uint64_t key = keys[i];
-
-    //adding back in hashing here - this is inefficient
-    if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
-  		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
-  			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
-  		else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
-  			key = hash_64(key, BITMASK(qf->metadata->key_bits));
-  	}
-
-		uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
-
-    //printf("%d insert %d, key: %llu, hash: %llu \n", idx, i, key, hash);
-		//uint64_t hash_remainder = hash & BITMASK(qf->metadata->bits_per_slot);
-		uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
-		uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
-    //if this succeeds, implies we have an overwrite error with the lock
-
-    if (lock_index != idx){
-    	i++;
-    	continue;
-
-    }
-    
-
-					int ret = qf_insert(qf, keys[i], 0, 1, QF_NO_LOCK);
-					if (ret < 0) {
-						printf("failed insertion for key: %d %llu", i, keys[i]);
-						if (ret == QF_NO_SPACE)
-							printf(" because CQF is full.\n");
-						else if (ret == QF_COULDNT_LOCK)
-							printf(" because TRY_ONCE_LOCK failed.\n");
-						else
-							printf(" because program does not recognise return value.\n");
-
-					
-	      
-					}
-					i++;
-
-	}
-	return;
-}
-
-
-
-__global__ void bufferSanityCheck(uint64_t**buffers, uint32_t* bufferLens){
-
-  int idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-  //should never happen, but just in case
-  if (idx != 0) return;
-
-  for (int i =0; i < NUM_BUFFERS; i++){
-
-    printf("Buffer %d, length: %llu:\n", i, bufferLens[i]);
-
-    for (int j =0; j < 10; j++){
-      printf("%llu ", buffers[i][j]);
-    }
-    printf("\n\n");
-
-  }
-}
-
-__global__ void initBuffer(uint64_t** buffers, uint64_t* temp_buffer, int i){
-
-  int idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-  //should never happen, but just in case
-  if (idx != 0) return;
-
-  buffers[i] = temp_buffer;
-
-
-}
-
-//inserts a buffer into the qf
-//at the moment, this just prints
-__device__ void process_buffer(QF* qf, uint64_t * buffer, uint64_t bufferLen, uint64_t bufferNum){
-
-  //grab the buffer, print it, and then free the memory
-  // uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
-  //
-  // if (idx != 0) return;
-
-  printf("Processing full buffer %llu of size %llu:\n", bufferNum, bufferLen);
-
-  for (int i =0; i < bufferLen; i++){
-    printf("%llu ", buffer[i]);
-  }
-  printf("\n\n");
-  //fflush(stdout);
-
-  //done with buffer, free
-  cudaFree(buffer);
-
-}
-
-
-//attempt to insert a hash into a buffer, if this fails then try again
-__device__ int insert_into_buffer(QF* qf, uint64_t hashVal, cudaStream_t cstream, uint64_t ** buffers, uint32_t * buffer_lens, uint32_t * locks, uint64_t num_buffer){
-
-  //whatever the current len is, grab it and assert not larger
-  //increment 1, return old address
-  uint64_t* buffer = buffers[num_buffer];
-
-  uint64_t nextFree = atomicAdd(buffer_lens + num_buffer, 1);
-
-  if (nextFree < MAX_BUFFER_SIZE){
-
-    //update lock
-    atomicAdd(locks+num_buffer,1);
-
-    //perform insert
-    buffer[nextFree] = hashVal;
-
-    atomicDec(locks+num_buffer,1);
-
-    return 0;
-
-  } else if (nextFree == MAX_BUFFER_SIZE){
-
-    //malloc and memset
-    uint64_t * new_buffer;
-    //these aren't allowed in device code?
-    //cudaMalloc((void**)&new_buffer, sizeof(uint64_t*) * MAX_BUFFER_SIZE);
-    //cudaMemset(new_buffer, 0, sizeof(uint64_t) * MAX_BUFFER_SIZE);
-
-    uint64_t * temp_buffer;
-
-    temp_buffer = buffer;
-
-    //wait
-    uint32_t active_locks = locks[num_buffer];
-    while (active_locks != 0){
-      active_locks = locks[num_buffer];
-    }
-
-    //overwrite buffer
-    buffers[num_buffer] = new_buffer;
-    buffer_lens[num_buffer] = 0;
-
-    //atm this will lock my warp up
-    process_buffer(qf, temp_buffer, MAX_BUFFER_SIZE, num_buffer);
-
-  }
-
-  //otherwise I failed
-  return 1;
-
-}
-
-
-//fill the buffers
-//as they get filled, export to the correct stream for processing
-__global__ void fill_buffers(QF* qf, cudaStream_t * streams, uint64_t * hashes, uint64_t nvals, uint64_t max_hash, uint64_t **buffers, uint32_t*buffer_lens, uint32_t* locks){
-
-
-  uint64_t idx = threadIdx.x + blockDim.x * blockIdx.x;
-
-  int n_threads = blockDim.x * gridDim.x;
-	//start and end points in the keys array
-	int start = nvals * idx / n_threads;
-	int end = nvals * (idx + 1) / n_threads;
-
-  //need to add check for if idx >> nvals
-  if (n_threads >= nvals){
-    start = idx;
-    end = idx+1;
-    if (idx >= nvals) return;
-  }
-
-  //for each hash, find associated buffer and fill
-  for (int i = start; i < end; i++){
-    uint64_t bufferid = hashes[start] * NUM_BUFFERS/max_hash;
-
-    while (true){
-      //1/bufferSize inserts should fail this
-      int result = insert_into_buffer(qf, hashes[start], streams[bufferid], buffers, buffer_lens, locks, bufferid);
-      if (result == 0) break;
-      printf("Failed to insert into buffer\n");
-    }
-
-  }
-
-
-}
 
 
 
@@ -4164,228 +3352,6 @@ __host__ uint64_t bulk_get_misses_wrapper(QF * qf, uint64_t * vals, uint64_t nva
 }
 
 
-__host__ void  qf_gpu_launch(QF* qf, uint64_t* vals, uint64_t nvals, uint64_t key_count, uint64_t nhashbits, uint64_t nslots) {
-
-	QF* _qf;
-	QF temp_qf;
-
-	qfruntime* _runtime;
-	qfmetadata* _metadata;
-	qfblock* _blocks;
-
-	
-
-	auto start = std::chrono::high_resolution_clock::now();
-
-  printf("Inside launch\n");
-	CUDA_CHECK(cudaMalloc((void**)&_runtime, sizeof(qfruntime)));
-	CUDA_CHECK(cudaMalloc((void**)&_metadata, sizeof(qfmetadata)));
-	CUDA_CHECK(cudaMalloc((void**)&_blocks, qf_get_total_size_in_bytes(qf)));
-
-	CUDA_CHECK(cudaMemcpy(_runtime, qf->runtimedata, sizeof(qfruntime), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(_metadata, qf->metadata, sizeof(qfmetadata), cudaMemcpyHostToDevice));
-	CUDA_CHECK(cudaMemcpy(_blocks, qf->blocks, qf_get_total_size_in_bytes(qf), cudaMemcpyHostToDevice));
-	temp_qf.runtimedata = _runtime;
-	temp_qf.metadata = _metadata;
-	temp_qf.blocks = _blocks;
-
-	CUDA_CHECK(cudaMalloc((void**)&_qf, sizeof(QF)));
-	CUDA_CHECK(cudaMemcpy((void**)_qf, &temp_qf, sizeof(QF), cudaMemcpyHostToDevice));
-
-	//etodo: locks
-  printf("Qf setup done\n");
-
-	uint64_t* _vals;
-	CUDA_CHECK(cudaMalloc(&_vals, sizeof(uint64_t) * nvals));
-
-	CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
-	// uint64_t* _hashed;
-	// CUDA_CHECK(cudaMalloc(&_hashed, sizeof(uint64_t) * nvals));
-  //
-	// //hash items
-	// int block_size = 1024;
-	// int num_blocks = (nvals + block_size - 1) / block_size;
-	// hash_all <<< num_blocks, block_size >>> (_vals, _hashed, nvals, nhashbits);
-
-	volatile uint32_t* _lock;
-
-	//TODO: pass this down into bulk insert - bad practice to have code recalculate values
-	int num_locks = qf->metadata->xnslots/NUM_SLOTS_TO_LOCK + 10;//todo: figure out nslots and why is 0
-
-	uint64_t xnslots = qf->metadata->xnslots;
-	uint64_t numslots = qf->metadata->nslots;
-
-  cudaMalloc((void**)&_lock, sizeof(uint32_t)*num_locks);
-  cudaDeviceSynchronize();
-  printf("Num locks %d\n", num_locks);
-  fflush( stdout );
-	CUDA_CHECK(cudaMemset( (uint32_t *) _lock, 0, sizeof(uint32_t) * num_locks));
-  printf("Locks set!\n");
-	cudaDeviceSynchronize();
-
-
-	//modified version
-	//here we need to establish num locks
-	//this only matters for bulk_insert_smart_buf_provided
-
-	//5 % fill ratio to start - this will be different for # npoints in bm_gpu_only
-	// uint64_t max_num_slots_per_lock = 1.0*EXP_BEFORE_FAILURE * std::log(nvals) / std::log(.05);
-
-	// uint64_t max_num_locks = (xnslots - 1)/max_num_slots_per_lock+1;
-
-
-	// volatile uint64_t * buffer_sizes;
-	// CUDA_CHECK(cudaMalloc((void **) & buffer_sizes, max_num_locks*sizeof(uint64_t)));
-	// CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0, max_num_locks*sizeof(uint64_t)));
-	// uint64_t ** buffers;
-	// CUDA_CHECK(cudaMalloc((void **)&buffers, max_num_locks*sizeof(uint64_t*)));
-	// uint64_t * buffer_backing;
-	// cudaMalloc((void **)& buffer_backing, nvals*sizeof(uint64_t));
-
-
-	//regular version
-	volatile uint64_t * buffer_sizes;
-	CUDA_CHECK(cudaMalloc((void **) & buffer_sizes, 2*num_locks*sizeof(uint64_t)));
-	CUDA_CHECK(cudaMemset((uint64_t *) buffer_sizes, 0, 2*num_locks*sizeof(uint64_t)));
-	uint64_t ** buffers;
-	CUDA_CHECK(cudaMalloc((void **)&buffers, 2*num_locks*sizeof(uint64_t*)));
-	uint64_t * buffer_backing;
-	cudaMalloc((void **)& buffer_backing, nvals*sizeof(uint64_t));
-
-
-
-
-	printf("Buffers allocated");
-	cudaDeviceSynchronize();
-
-	cudaProfilerStart();
-
-
-	auto s_insert = std::chrono::high_resolution_clock::now();
-
-  printf("Starting Bulk insert\n");
-  fflush(stdout);
-  //qf_bulk_insert(_qf, _vals, 0, 1, nvals, _lock, QF_NO_LOCK);
-	//qf_bulk_insert_nolock(_qf, _vals, 0, 1, nvals, num_locks, _lock, QF_NO_LOCK);
-	//bulk_insert_bucketing_timed(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK);
-
-  //bulk smart insert
-  //bulk_insert_bucketing_steps(_qf, _vals, 0, 1, nvals, .6, numslots, xnslots, QF_NO_LOCK);
-  //printf("\n\nmidpoint: %llu \n\n", midpoint);
-
-  //smarter inserts?
-  //uint64_t midpoint =  bulk_insert_bucketing_smart_buffer_provided(_qf, _vals, 0, 1, nvals, 0, .5, numslots, xnslots, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-  //bulk_insert_bucketing_smart_buffer_provided(_qf, _vals, 0, 1, nvals, midpoint, 1.0, numslots, xnslots, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-
-  //bulk_insert_one_hash_timed(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-
-  //bulk_insert_bucketing_buffer_provided_timed(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-  
-
-  //bulk_insert_reduce(_qf, _vals, 0, 1, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_sizes);
-  
-  bulk_insert(_qf, _vals, nvals, NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_sizes);
-  
-  //bulk_insert_no_atomics(QF* qf, uint64_t* keys, uint64_t value, uint64_t count, uint64_t nvals, uint64_t slots_per_lock, uint64_t num_locks, uint8_t flags, uint64_t ** buffers, volatile uint64_t * buffer_sizes) {
-
-
-  //uint64_t end_slot = bulk_insert_bucketing_smart(_qf, _vals, 0, 1, nvals, midpoint, 1.0, numslots, xnslots, QF_NO_LOCK);
-  //two step!
-  //bulk_insert_bucketing_buffer_provided_timed(_qf, _vals, 0, 1, nvals/2, NUM_SLOTS_TO_LOCK/2, 2*num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-  //bulk_insert_bucketing_buffer_provided_timed(_qf, _vals+nvals/2, 0, 1, nvals/2 + (nvals % 2), NUM_SLOTS_TO_LOCK, num_locks, QF_NO_LOCK, buffers, buffer_backing, buffer_sizes);
-
-
-	cudaDeviceSynchronize();
-  printf("Bulk Insert completed\n");
-
-  cudaProfilerStop();
-  
-  //remove me for actual code
-  free_buffers_premalloced(qf, buffers, buffer_backing,  buffer_sizes, num_locks);
-
-   auto s_end = std::chrono::high_resolution_clock::now();
-
-  cudaDeviceSynchronize();
-
-
-  auto end = std::chrono::high_resolution_clock::now();
-
-
-  std::chrono::duration<double> diff2 = s_end-s_insert;
-
-
-  std::cout << "Sans buffers, Inserted " << nvals << " in " << diff2.count() << " seconds\n";
-
-  printf("Inserts per second: %f\n", nvals/diff2.count());
-
-
-  std::chrono::duration<double> diff = end-start;
-
-  std::cout << "Inserted " << nvals << " in " << diff.count() << " seconds\n";
-
-  printf("Inserts per second: %f\n", nvals/diff.count());
-
-
-  CUDA_CHECK(cudaMemcpy(_vals, vals, sizeof(uint64_t) * nvals, cudaMemcpyHostToDevice));
-
-
-  uint64_t * misses;
-  cudaMalloc((void **)&misses, sizeof(uint64_t));
-  cudaMemset(misses, 0, sizeof(uint64_t));
-
-  cudaDeviceSynchronize();
-
-  auto get_start = std::chrono::high_resolution_clock::now();
-
-  bulk_get_misses<<<(nvals-1)/1024+1, 1024>>>(_qf, _vals, nvals, key_count, misses, QF_NO_LOCK);
-
-  cudaDeviceSynchronize();
-
-  auto get_timer = std::chrono::high_resolution_clock::now();
-
-  diff = get_timer-get_start;
-
-  std::cout << "Searched for " << nvals << " in " << diff.count() << " seconds\n";
-
-  printf("Gets per second: %f\n", nvals/diff.count());
-
-
-
-
-  uint64_t * host_misses;
-  cudaMallocHost((void **)&host_misses, sizeof(uint64_t));
-  cudaMemcpy(host_misses, misses, sizeof(uint64_t), cudaMemcpyDeviceToHost);
-
-  printf("Number of misses: %llu\n", *host_misses);
-
-	CUDA_CHECK(cudaMemcpy((void**)&temp_qf, _qf, sizeof(QF), cudaMemcpyDeviceToHost));
-  cudaDeviceSynchronize();
-
-	CUDA_CHECK(cudaMemcpy((void*)qf->metadata, temp_qf.metadata, sizeof(qfmetadata), cudaMemcpyDeviceToHost));
-  cudaDeviceSynchronize();
-
-  //Copy over runtime as well?
-  CUDA_CHECK(cudaMemcpy((void*)qf->runtimedata, temp_qf.runtimedata, sizeof(qfruntime), cudaMemcpyDeviceToHost));
-  cudaDeviceSynchronize();
-
-  //metadata is copied so this is safe
-  //erroring here because you can't check the metadata from a decice qf
-  uint64_t total_size = qf_get_total_size_in_bytes(qf);
-
-  CUDA_CHECK(cudaMemcpy((void*)qf->blocks, temp_qf.blocks, total_size, cudaMemcpyDeviceToHost));
-
-	//copy arrays back to host
-
-  cudaDeviceSynchronize();
-
-  //done
-  
-
-	//copy_to_host(qf, temp_qf);
-
-
-
-}
 
 __host__ __device__ int qf_set_count(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								 flags)

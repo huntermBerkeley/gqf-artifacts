@@ -180,7 +180,7 @@ class bloom_filter
 			desired_false_positive_probability_(0.0)
 	{}
 
-		__host__ __device__ bloom_filter(const bloom_parameters& p)
+		__host__ bloom_filter(const bloom_parameters& p)
 			: bit_table_(0),
 			projected_element_count_(p.projected_element_count),
 			inserted_element_count_(0),

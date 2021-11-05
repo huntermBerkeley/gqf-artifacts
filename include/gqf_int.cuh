@@ -83,6 +83,11 @@ extern "C" {
 		uint64_t num_locks;
 		volatile int metadata_lock;
 		uint16_t *locks;
+
+		//extra additions needed to move buffers into main code
+		uint64_t ** buffers;
+		uint64_t * buffer_sizes;
+
 		wait_time_data *wait_times;
 	} quotient_filter_runtime_data;
 

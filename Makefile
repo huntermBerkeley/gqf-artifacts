@@ -1,4 +1,4 @@
-TARGETS=test old_test
+TARGETS=test gqf_only
 
 ifdef D
 	DEBUG=-g -G
@@ -32,9 +32,9 @@ LD = nvcc
 
 CXXFLAGS = -Wall $(DEBUG) $(PROFILE) $(OPT) $(ARCH) -m64 -I. -Iinclude
 
-CUFLAGS = $(DEBUG) -arch=sm_70 -rdc=true -I. -Iinclude 
+CUFLAGS = $(DEBUG) -arch=sm_70 -rdc=true -I. -Iinclude
 
-CUDALINK = -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64 -L/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib6 -lcurand
+CUDALINK = -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64/compat -L/usr/common/software/sles15_cgpu/cuda/11.1.1/lib64 -L/usr/common/software/sles15_cgpu/cuda/11.1.1/extras/CUPTI/lib6 -lcurand --nvlink-options -suppress-stack-size-warning
 
 LDFLAGS = $(DEBUG) $(PROFILE) $(OPT) $(CUDALINK) -arch=sm_70 -lpthread -lssl -lcrypto -lm -lcuda -lcudart
 
@@ -47,12 +47,12 @@ all: $(TARGETS)
 
 # dependencies between programs and .o files
 
-old_test:								$(OBJDIR)/old_test.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
+gqf_only:								$(OBJDIR)/gqf_only.o $(OBJDIR)/gqf.o \
 										$(OBJDIR)/hashutil.o \
 										$(OBJDIR)/partitioned_counter.o
 
 
-test:							$(OBJDIR)/test.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
+test:							$(OBJDIR)/test.o $(OBJDIR)/gqf.o \
 										$(OBJDIR)/hashutil.o \
 										$(OBJDIR)/partitioned_counter.o \
 										$(OBJDIR)/RSQF.o \
@@ -60,7 +60,7 @@ test:							$(OBJDIR)/test.o $(OBJDIR)/gqf.o $(OBJDIR)/gqf_file.o \
 
 # dependencies between .o files and .h files
 
-$(OBJDIR)/old_test.o: 						$(LOC_INCLUDE)/gqf.cuh $(LOC_INCLUDE)/gqf_file.cuh \
+$(OBJDIR)/gqf_only.o: 						$(LOC_INCLUDE)/gqf.cuh \
 															$(LOC_INCLUDE)/hashutil.cuh \
 															$(LOC_INCLUDE)/partitioned_counter.cuh
 
@@ -78,7 +78,6 @@ $(OBJDIR)/test.o:								$(LOC_INCLUDE)/gqf_wrapper.cuh \
 
 $(OBJDIR)/RSQF.o: $(LOC_SRC)/RSQF.cu $(LOC_INCLUDE)/RSQF.cuh
 $(OBJDIR)/gqf.o:							$(LOC_SRC)/gqf.cu $(LOC_INCLUDE)/gqf.cuh
-$(OBJDIR)/gqf_file.o:					$(LOC_SRC)/gqf_file.cu $(LOC_INCLUDE)/gqf_file.cuh
 $(OBJDIR)/hashutil.o:					$(LOC_SRC)/hashutil.cu $(LOC_INCLUDE)/hashutil.cuh
 $(OBJDIR)/partitioned_counter.o:	$(LOC_INCLUDE)/partitioned_counter.cuh
 $(OBJDIR)/sqf.o: $(LOC_SRC)/sqf.cu $(LOC_INCLUDE)/sqf.cuh
