@@ -1,4 +1,4 @@
-TARGETS=test gqf_only
+TARGETS=test
 
 ifdef D
 	DEBUG=-g -G
@@ -47,6 +47,11 @@ all: $(TARGETS)
 
 # dependencies between programs and .o files
 
+cluster_length_test:					$(OBJDIR)/cluster_length_test.o $(OBJDIR)/gqf.o \
+										$(OBJDIR)/hashutil.o \
+										$(OBJDIR)/partitioned_counter.o
+
+
 gqf_only:								$(OBJDIR)/gqf_only.o $(OBJDIR)/gqf.o \
 										$(OBJDIR)/hashutil.o \
 										$(OBJDIR)/partitioned_counter.o
@@ -59,6 +64,12 @@ test:							$(OBJDIR)/test.o $(OBJDIR)/gqf.o \
 										$(OBJDIR)/sqf.o \
 
 # dependencies between .o files and .h files
+
+
+
+$(OBJDIR)/cluster_length_test.o: 			$(LOC_INCLUDE)/gqf.cuh \
+															$(LOC_INCLUDE)/hashutil.cuh \
+															$(LOC_INCLUDE)/partitioned_counter.cuh
 
 $(OBJDIR)/gqf_only.o: 						$(LOC_INCLUDE)/gqf.cuh \
 															$(LOC_INCLUDE)/hashutil.cuh \
