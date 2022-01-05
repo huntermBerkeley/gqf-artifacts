@@ -2822,9 +2822,11 @@ __global__ void delete_from_buffers_hashed(QF* qf, uint64_t evenness){
 
 	uint64_t my_count = buffer_counts[idx];
 
-	for (uint64_t i =0; i < my_count; i++){
 
-		int ret = qf_remove(qf, buffers[idx][i], 0, 1, QF_NO_LOCK | QF_KEY_IS_HASH);
+	//0 - my count for loop, working backwords should be faster?
+	for (uint64_t i = my_count; i >=1; i--){
+
+		int ret = qf_remove(qf, buffers[idx][i-1], 0, 1, QF_NO_LOCK | QF_KEY_IS_HASH);
 
 		//internal threadfence. Bad? actually seems to be fine
 		//__threadfence();

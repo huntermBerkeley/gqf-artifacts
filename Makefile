@@ -1,4 +1,4 @@
-TARGETS=test
+TARGETS=test gqf_only
 
 ifdef D
 	DEBUG=-g -G

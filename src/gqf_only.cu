@@ -272,6 +272,35 @@ int main(int argc, char** argv) {
   	printf("Queries per second: %f\n", nvals/diff.count());
 
 
+  	cudaMemcpy(dev_vals, vals, nvals*sizeof(uint64_t), cudaMemcpyHostToDevice);
+  	cudaDeviceSynchronize();
+
+  	start = std::chrono::high_resolution_clock::now();
+
+
+  	//delete a batch of items in parallel
+	bulk_delete(dev_qf, nvals, dev_vals, 0);
+
+	cudaDeviceSynchronize();
+
+	end = std::chrono::high_resolution_clock::now();
+
+
+  	diff = end-start;
+
+
+	std::cout << "Deleted" << nvals << " in " << diff.count() << " seconds\n";
+	printf("Deletes per second: %f\n", nvals/diff.count());
+
+	cudaMemcpy(dev_vals, vals, nvals*sizeof(uint64_t), cudaMemcpyHostToDevice);
+  	cudaDeviceSynchronize();
+
+  	misses = bulk_get_misses_wrapper(dev_qf, dev_vals, nvals);
+
+  	cudaDeviceSynchronize();
+
+  	//we should find no items, they have all been deleted.
+  	assert(misses == nvals);
 
 	qf_destroy_device(dev_qf);
 
