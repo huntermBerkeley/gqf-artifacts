@@ -73,6 +73,12 @@ MetaHipMer
 A version of this code has been integrated into MetaHipMer and is available [here](https://bitbucket.org/berkeleylab/mhm2/branch/cqf).
 
 
+Testing
+-------
+test.cu contains the tests used to compare the various filters
+gqf_verify.cu tests the correctness of the GQF on skewed, zipfian, and kmer (FASTQ) datasets, and verifies the correctness of operations like counting and deletions.
+
+
 Contributing
 ------------
 Contributions via GitHub pull requests are welcome.
