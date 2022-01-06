@@ -1,4 +1,4 @@
-TARGETS=test gqf_only
+TARGETS=gqf_verify
 
 ifdef D
 	DEBUG=-g -G
@@ -52,7 +52,7 @@ cluster_length_test:					$(OBJDIR)/cluster_length_test.o $(OBJDIR)/gqf.o \
 										$(OBJDIR)/partitioned_counter.o
 
 
-gqf_only:								$(OBJDIR)/gqf_only.o $(OBJDIR)/gqf.o \
+gqf_verify:								$(OBJDIR)/gqf_verify.o $(OBJDIR)/gqf.o \
 										$(OBJDIR)/hashutil.o \
 										$(OBJDIR)/partitioned_counter.o
 
@@ -71,7 +71,7 @@ $(OBJDIR)/cluster_length_test.o: 			$(LOC_INCLUDE)/gqf.cuh \
 															$(LOC_INCLUDE)/hashutil.cuh \
 															$(LOC_INCLUDE)/partitioned_counter.cuh
 
-$(OBJDIR)/gqf_only.o: 						$(LOC_INCLUDE)/gqf.cuh \
+$(OBJDIR)/gqf_verify.o: 						$(LOC_INCLUDE)/gqf.cuh \
 															$(LOC_INCLUDE)/hashutil.cuh \
 															$(LOC_INCLUDE)/partitioned_counter.cuh
 

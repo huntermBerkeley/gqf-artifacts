@@ -33,6 +33,8 @@
 #include <string>
 #include <algorithm>
 
+
+#define KMER_SIZE 19
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
 
@@ -40,7 +42,7 @@ int main(int argc, char** argv) {
 	if (argc < 2) {
 		fprintf(stderr, "Please specify the log of the number of slots in the CQF.\n");
 
-		printf("Usage: ./gqf_only 28 [nbits] 0 [0 bulk, 1 reduce] 0 [0 random, 1 file, 2 random copies] filename\n");
+		printf("Usage: ./gqf_only 28 [nbits] 0 [0 bulk, 1 reduce] 0 [0 random, 1 file, 2 random copies, fastq] filename\n");
 
 		exit(1);
 
@@ -48,22 +50,21 @@ int main(int argc, char** argv) {
 	if (argc < 3){
 
 		fprintf(stderr, "Please specify 'bulk' or 'reduce'\n");
-		printf("Usage: ./gqf_only 28 [nbits] 0 [0 bulk, 1 reduce] 0 [0 random, 1 file, 2 random copies] filename\n");
+		printf("Usage: ./gqf_only 28 [nbits] 0 [0 bulk, 1 reduce] 0 [0 random, 1 file, 2 random copies, 3 fastq] filename\n");
 
 		exit(1);
 	}
 
 	if (argc < 4) {
 		fprintf(stderr, "Please specify random or preset data.\n");
-		printf("Usage: ./gqf_only 28 [nbits] 0 [0 bulk, 1 reduce] 0 [0 random, 1 file, 2 random copies] filename\n");
+		printf("Usage: ./gqf_only 28 [nbits] 0 [0 bulk, 1 reduce] 0 [0 random, 1 file, 2 random copies, 3 fastq] filename\n");
 
 		exit(1);
 
 	}
 
-	printf("This is a test to show how the GQF performs on skewed data.\n");
-	printf("Most testing is handled by test.cu which has optimized .\n");
-	printf("Generation is done using RAND_bytes and a single CPU thread, expect a long  wait while data is generated.\n");
+	printf("This is a set of tests to verify GQF performance and correctness.\n");
+	printf("Testing against other filters is handled by test.cu.\n");
 	printf("For the Zipfian data used in our experiments, email hjmccoy@lbl.gov");
 
 
@@ -111,7 +112,112 @@ int main(int argc, char** argv) {
 
 	qf_set_auto_resize(&qf, false);
 
-	if (preset == 1){
+
+
+	if (preset == 3){
+
+
+		std::string filename (argv[4]);
+
+		std::vector<std::string> fastq_strings;
+
+		printf("Loading fastq file %s.\n", argv[4]);
+
+		printf("%s\n", argv[4]);
+
+
+
+		std::ifstream fastq_data (argv[4]);
+
+
+		if (!fastq_data){
+			std::cerr << "Cannot open file: " << argv[4] << std::endl;
+		}
+
+		//fastq_data.ignore();
+		std::string tp;
+
+
+		while(std::getline(fastq_data, tp)){
+
+		
+
+			if (tp.find_first_not_of("ACTGN") == std::string::npos){
+
+
+			
+
+			//std::cout << tp.c_str() << std::endl;
+			if (tp.size() > 0)
+			fastq_strings.push_back(tp.c_str());
+
+			
+			}
+		
+		}
+
+		fastq_data.close();
+
+		for (int i=0; i < 10; i++){
+			printf("%d: %s\n", i, fastq_strings[i].c_str());
+		}
+		
+		printf("Total # of reads: %d\n", fastq_strings.size());
+
+
+		//split to kmers
+		std::vector<std::string> kmers;
+
+
+		for (int i =0; i < fastq_strings.size(); i++){
+
+			for (int j = KMER_SIZE; j < fastq_strings[i].length(); j++){
+
+				kmers.push_back(fastq_strings[i].substr(j-KMER_SIZE, KMER_SIZE).c_str());
+
+			}
+		}
+
+		for (int i=0; i < 10; i++){
+			printf("%d: %s\n", i, kmers[i].c_str());
+		}
+
+		printf("# kmers: %llu\n", kmers.size());
+
+		fastq_strings.clear();
+
+		std::vector<uint64_t> hashes;
+
+
+		for (int i = 0; i < kmers.size(); i++){
+			hashes.push_back(MurmurHash64A(kmers[i].c_str(), KMER_SIZE, 1));
+		}
+		//uint64_t MurmurHash64A ( const void * key, int len, unsigned int seed )
+
+		for (int i=0; i < 10; i++){
+			printf("%d: %llu\n", i, hashes[i]);
+		}
+
+
+		printf("# hashes: %llu\n", hashes.size());
+
+		kmers.clear();
+
+		free(vals);
+
+		nvals = hashes.size();
+
+		vals = (uint64_t * ) malloc (nvals*sizeof(uint64_t));
+
+		memcpy(vals, hashes.data(), nvals*sizeof(uint64_t));
+
+		hashes.clear();
+
+		//return 0;
+
+
+
+	} else if (preset == 1){
 
 		printf("Using preset data\n");
 
@@ -157,6 +263,7 @@ int main(int argc, char** argv) {
 
 
 		printf("Generated backing data\n");
+		printf("Generation is done using RAND_bytes and a single CPU thread, expect a long wait while data is generated if nbits > 26.\n");
 		uint64_t cap = 10;
 
 
@@ -196,6 +303,8 @@ int main(int argc, char** argv) {
 	} else {
 
 		printf("Using regular data\n");
+		printf("Generation is done using RAND_bytes and a single CPU thread, expect a long wait while data is generated if nbits > 26.\n");
+	
 
 		/* Generate random values */
 		
@@ -289,7 +398,7 @@ int main(int argc, char** argv) {
   	diff = end-start;
 
 
-	std::cout << "Deleted" << nvals << " in " << diff.count() << " seconds\n";
+	std::cout << "Deleted " << nvals << " in " << diff.count() << " seconds\n";
 	printf("Deletes per second: %f\n", nvals/diff.count());
 
 	cudaMemcpy(dev_vals, vals, nvals*sizeof(uint64_t), cudaMemcpyHostToDevice);
