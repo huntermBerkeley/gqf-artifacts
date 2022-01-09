@@ -122,6 +122,9 @@ extern "C" {
 	__host__ void bulk_get(QF * qf, uint64_t nvals, uint64_t * vals, uint64_t * returns);
 
 
+	//move me once I successfully compile.
+		//Used exclusively for cluster empirical check
+
 
 
 	/* TESTING SUPPORT */
@@ -409,6 +412,13 @@ extern "C" {
 
 	__host__ __device__ void qf_dump(const QF *);
 	__host__ __device__ void qf_dump_metadata(const QF *qf);
+
+	//Moved to debug to allow host to check cluster lengths.
+	//static inline removed cause cuda has a hissy fit
+  __host__ uint64_t host_debug_find_first_empty_slot(QF *qf, uint64_t from);
+
+
+
 
 #ifdef __cplusplus
 }

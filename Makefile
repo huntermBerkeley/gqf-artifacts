@@ -1,4 +1,4 @@
-TARGETS=gqf_verify
+TARGETS=cluster_length_test
 
 ifdef D
 	DEBUG=-g -G

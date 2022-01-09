@@ -42,6 +42,7 @@
 #include "hashutil.cuh"
 #include "gqf.cuh"
 #include "gqf_int.cuh"
+#include <stdexcept>
 
 #include <cuda_profiler_api.h>
 
@@ -723,7 +724,8 @@ __host__ __device__ static inline int might_be_empty(const QF *qf, uint64_t slot
 
 
 
-__host__ __device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_t from)
+//static inlines were re-added, should
+__host__ __device__ uint64_t static inline find_first_empty_slot(QF *qf, uint64_t from)
 {
 
 	uint64_t start_from = from;
@@ -740,7 +742,64 @@ __host__ __device__ static inline uint64_t find_first_empty_slot(QF *qf, uint64_
     // }
 
 
+		//this assert breaks testing as we can't query the last slot for the next slot
+		//this throws an assertion, instead we want to throw an out of range exception
+		//that can be captured to finalize the test instead.
 		assert(t>=0);
+
+
+		//assert must happen, checks cannot happen in device code
+		//alternate version must exist that is host exclusive.
+
+		//if (t < 0) 	throw std::out_of_range("next free slot is before current slot, either final slot or gqf corruption.\n");
+
+		if (t == 0)
+			break;
+		from = from + t;
+	} while(1);
+
+
+	uint64_t bucket_start_from = start_from/NUM_SLOTS_TO_LOCK;
+	uint64_t end_start_from = from/NUM_SLOTS_TO_LOCK;
+
+	//testing without this gate to check if we see speed improvements
+	if (end_start_from>bucket_start_from+1){
+		printf("Find first empty ran over a bucket: %llu\n", end_start_from-bucket_start_from);
+	}
+
+	return from;
+}
+
+
+//exact same function as above, but forced to be host exclusive so that a try_catch statement in cluster counting will succeed.
+__host__ uint64_t host_debug_find_first_empty_slot(QF *qf, uint64_t from)
+{
+
+	uint64_t start_from = from;
+
+	do {
+		int t = offset_lower_bound(qf, from);
+    //get block of from
+
+    // if (t < 0){
+
+    // 	//this implies a failure in the code - you are going to 
+    // 	find_first_empty_slot_verbose(qf, start_from);
+  
+    // }
+
+
+		//this assert breaks testing as we can't query the last slot for the next slot
+		//this throws an assertion, instead we want to throw an out of range exception
+		//that can be captured to finalize the test instead.
+		//assert(t>=0);
+
+
+		//assert must happen, checks cannot happen in device code
+		//alternate version must exist that is host exclusive.
+
+		if (t < 0) 	throw std::out_of_range("next free slot is before current slot, either final slot or gqf corruption.\n");
+
 		if (t == 0)
 			break;
 		from = from + t;

@@ -277,43 +277,80 @@ int main(int argc, char** argv) {
 
   	cudaDeviceSynchronize();
 
+  	host_qf->metadata = host_metadata;
+  	host_qf->blocks = host_blocks;
+
 
   	std::vector<uint64_t> cluster_lens;
 
-  	//loop and count the zeros
-  	uint64_t counter = 0;
-
-  	for (int i =0; i < host_metadata->nblocks; i++){
-
-  		for (int j=0; j < QF_SLOTS_PER_BLOCK; j++){
+  	cudaDeviceSynchronize();
 
 
-  			if (host_blocks[i].slots[j] == 0){
+  	uint64_t current_index = 0;
+  	uint64_t next_index;
+
+  	bool do_continue = true;
+
+  	while (do_continue){
 
 
-  				if (counter != 0){
-  					cluster_lens.push_back(counter);
-  					counter = 0;
-  				}
-  				
-
-  			} else {
+  		try {
+  				next_index = host_debug_find_first_empty_slot(host_qf, current_index+1);	
+  		}
 
 
+  		catch (const std::exception& e){
 
+  			do_continue = false;
+  			break;
+  		}
+  	
 
-  				counter += 1;
+  		if (current_index == next_index){
+  			do_continue = false;
+  		} else{
 
-  			}
-  			
-
+  			cluster_lens.push_back(next_index - current_index);
+  			current_index = next_index;
   		}
   	}
 
+  	// //loop and count the zeros
+  	// uint64_t counter = 0;
 
-  	//uint64_t output_num = 0;
 
-  	cluster_lens.push_back(counter);
+
+  	// for (int i =0; i < host_metadata->nblocks; i++){
+
+  	// 	for (int j=0; j < QF_SLOTS_PER_BLOCK; j++){
+
+
+  	// 		if (host_blocks[i].slots[j] == 0){
+
+
+  	// 			if (counter != 0){
+  	// 				cluster_lens.push_back(counter);
+  	// 				counter = 0;
+  	// 			}
+  				
+
+  	// 		} else {
+
+
+
+
+  	// 			counter += 1;
+
+  	// 		}
+  			
+
+  	// 	}
+  	// }
+
+
+  	// //uint64_t output_num = 0;
+
+  	// cluster_lens.push_back(counter);
 
 
   	std::ofstream myfile;
