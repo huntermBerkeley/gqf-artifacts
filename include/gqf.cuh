@@ -417,6 +417,8 @@ extern "C" {
 	//static inline removed cause cuda has a hissy fit
   __host__ uint64_t host_debug_find_first_empty_slot(QF *qf, uint64_t from);
 
+  __host__ __device__ uint64_t first_empty_slot_wrapper(QF * qf, uint64_t from);
+
 
 
 

@@ -117,9 +117,14 @@ int main(int argc, char** argv) {
 	if (preset == 3){
 
 
+		uint64_t kmer_count = 0;
+
+
 		std::string filename (argv[4]);
 
-		std::vector<std::string> fastq_strings;
+		//std::vector<std::string> fastq_strings;
+
+		std::vector<std::string> kmers;
 
 		printf("Loading fastq file %s.\n", argv[4]);
 
@@ -138,53 +143,75 @@ int main(int argc, char** argv) {
 		std::string tp;
 
 
-		while(std::getline(fastq_data, tp)){
+		bool do_continue = true;
+
+		while(std::getline(fastq_data, tp) && do_continue){
 
 		
 
 			if (tp.find_first_not_of("ACTGN") == std::string::npos){
 
 
+
 			
 
 			//std::cout << tp.c_str() << std::endl;
-			if (tp.size() > 0)
-			fastq_strings.push_back(tp.c_str());
+			if (tp.size() > 0){
+
+
+				for (int j = KMER_SIZE; j < tp.length(); j++){
+
+					kmers.push_back(tp.substr(j-KMER_SIZE, KMER_SIZE).c_str());
+
+					kmer_count += 1;
+					if (kmer_count >= nvals){
+
+						do_continue = false;
+						break;
+					}
+
+				}
+			}
+
+
+				//break into kmers
+			}
+			//fastq_strings.push_back(tp.c_str());
 
 			
 			}
 		
-		}
+		//}
 
 		fastq_data.close();
 
-		for (int i=0; i < 10; i++){
-			printf("%d: %s\n", i, fastq_strings[i].c_str());
-		}
+		// for (int i=0; i < 10; i++){
+		// 	printf("%d: %s\n", i, fastq_strings[i].c_str());
+		// }
 		
-		printf("Total # of reads: %d\n", fastq_strings.size());
+		// printf("Total # of reads: %d\n", fastq_strings.size());
 
 
-		//split to kmers
-		std::vector<std::string> kmers;
+		// //split to kmers
 
 
-		for (int i =0; i < fastq_strings.size(); i++){
 
-			for (int j = KMER_SIZE; j < fastq_strings[i].length(); j++){
+		// for (int i =0; i < fastq_strings.size(); i++){
 
-				kmers.push_back(fastq_strings[i].substr(j-KMER_SIZE, KMER_SIZE).c_str());
+		// 	for (int j = KMER_SIZE; j < fastq_strings[i].length(); j++){
 
-			}
-		}
+		// 		kmers.push_back(fastq_strings[i].substr(j-KMER_SIZE, KMER_SIZE).c_str());
 
-		for (int i=0; i < 10; i++){
-			printf("%d: %s\n", i, kmers[i].c_str());
-		}
+		// 	}
+		// }
+
+		// for (int i=0; i < 10; i++){
+		// 	printf("%d: %s\n", i, kmers[i].c_str());
+		// }
 
 		printf("# kmers: %llu\n", kmers.size());
 
-		fastq_strings.clear();
+		//fastq_strings.clear();
 
 		std::vector<uint64_t> hashes;
 

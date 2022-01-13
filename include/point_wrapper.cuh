@@ -45,7 +45,7 @@ extern inline int point_destroy()
 
 
 
-extern inline int point_bulk_insert(uint64_t * vals, uint64_t count)
+extern inline int point_bulk_insert_wrapper(uint64_t * vals, uint64_t count)
 {
 
 	//calculate ratios
@@ -72,6 +72,11 @@ extern inline uint64_t point_bulk_get(uint64_t * vals, uint64_t count){
 	return point_get_wrapper(point_quotient_filter, vals, count);
 
 
+}
+
+extern inline void point_bulk_delete(uint64_t * vals, uint64_t count){
+
+	return;
 }
 
 

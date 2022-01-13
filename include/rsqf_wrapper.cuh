@@ -139,5 +139,12 @@ extern inline uint64_t rsqf_bulk_get(uint64_t * vals, uint64_t count){
 
 }
 
+extern inline void rsqf_bulk_delete(uint64_t * vals, uint64_t count){
+
+
+	return;
+}
+
+
 
 #endif

@@ -33,6 +33,93 @@
 #include <string>
 #include <algorithm>
 
+
+__global__ void one_thread_gqf_cluster(QF * qf, uint64_t * num_clusters){
+
+
+	uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+	if (tid != 0) return;
+
+	printf("Thread 0 on the case.\n");
+
+
+	uint64_t i =0;
+
+	uint64_t start =0;
+	uint64_t next_index;
+
+
+
+	while (start < qf->metadata->xnslots){
+
+		uint64_t next_index = first_empty_slot_wrapper(qf, start);
+
+
+
+		
+
+		
+
+		if (start == next_index){
+			start++;
+		} else {
+			//printf("cluster %llu : %llu -> %llu\n", i, start, next_index);
+			start = next_index;
+			i++;
+		}
+		
+
+	}
+	
+
+	num_clusters[0] = i;
+
+	
+}
+
+
+__global__ void one_thread_cluster_write(QF * qf, uint64_t * clusters){
+
+	uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+	if (tid != 0) return;
+
+
+	uint64_t i =0;
+
+	uint64_t start =0;
+	uint64_t next_index;
+
+
+
+	while (start < qf->metadata->xnslots){
+
+		uint64_t next_index = first_empty_slot_wrapper(qf, start);
+
+
+
+		
+
+		
+
+		if (start == next_index){
+			start++;
+		} else {
+
+			clusters[i] = next_index - start;
+			//printf("cluster %llu : %llu -> %llu\n", i, start, next_index);
+			start = next_index;
+			i++;
+		}
+		
+
+	}
+
+
+}
+
+
 #define MAX_VALUE(nbits) ((1ULL << (nbits)) - 1)
 #define BITMASK(nbits)((nbits) == 64 ? 0xffffffffffffffff : MAX_VALUE(nbits))
 
@@ -275,45 +362,86 @@ int main(int argc, char** argv) {
 
   	cudaMemcpy(host_blocks, host_qf->blocks, sizeof(qfblock)*host_metadata->nblocks, cudaMemcpyDeviceToHost);
 
+
+  	uint64_t * num_clusters;
+
+  	cudaMallocManaged((void **)& num_clusters, sizeof(uint64_t));
+
+  	cudaDeviceSynchronize();
+
+  	num_clusters[0] = 0;
+
   	cudaDeviceSynchronize();
 
   	host_qf->metadata = host_metadata;
   	host_qf->blocks = host_blocks;
 
 
-  	std::vector<uint64_t> cluster_lens;
+
+  	one_thread_gqf_cluster<<<1,1>>>(dev_qf, num_clusters);
+
+
+ // 	std::vector<uint64_t> cluster_lens;
 
   	cudaDeviceSynchronize();
 
 
-  	uint64_t current_index = 0;
-  	uint64_t next_index;
+  	uint64_t * cluster_counts;
 
-  	bool do_continue = true;
-
-  	while (do_continue){
+  	cudaMallocManaged((void **)&cluster_counts, num_clusters[0]*sizeof(uint64_t));
 
 
-  		try {
-  				next_index = host_debug_find_first_empty_slot(host_qf, current_index+1);	
-  		}
+  	printf("Num clusters seen by host: %llu\n", num_clusters[0]);
+
+  	cudaDeviceSynchronize();
+
+  	one_thread_cluster_write<<<1,1>>>(dev_qf, cluster_counts);
 
 
-  		catch (const std::exception& e){
+  	cudaDeviceSynchronize();
 
-  			do_continue = false;
-  			break;
-  		}
+
+  	printf("First len: %llu\n", cluster_counts[0]);
+
+
+
+  	// uint64_t current_index = 0;
+  	// uint64_t next_index;
+
+  	// bool do_continue = true;
+
+  	// while (do_continue){
+
+
+  	// 	try {
+  	// 			next_index = host_debug_find_first_empty_slot(host_qf, current_index+1);
+
+
+  	// 	if (next_index >= host_qf->metadata->nslots) do_continue = false;
+  	// 	break;
+
+  	// 	}
+
+  	// 	catch (const std::exception& e){
+
+  	// 		do_continue = false;
+  	// 		break;
+  	// 	}
   	
 
-  		if (current_index == next_index){
-  			do_continue = false;
-  		} else{
+  	// 	if (current_index == next_index){
+  	// 		do_continue = false;
+  	// 	} else{
 
-  			cluster_lens.push_back(next_index - current_index);
-  			current_index = next_index;
-  		}
-  	}
+  	// 		cluster_lens.push_back(next_index - current_index);
+  	// 		current_index = next_index;
+  	// 	}
+  	// }
+
+
+  	// printf("Finished main experiment.\n");
+
+  	// printf("Num clusters: %llu\n", cluster_lens.size());
 
   	// //loop and count the zeros
   	// uint64_t counter = 0;
@@ -361,13 +489,13 @@ int main(int argc, char** argv) {
 
 
 
-  	for (auto i: cluster_lens){
+  	for (uint64_t i =0; i < num_clusters[0]; i++){
 
-  		myfile << i << std::endl;
+  		myfile << cluster_counts[i] << std::endl;
 
   	}
 
-  	myfile.close();
+  	// myfile.close();
 
   	free(host_qf);
 

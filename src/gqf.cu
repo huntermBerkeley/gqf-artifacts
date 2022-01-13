@@ -771,6 +771,12 @@ __host__ __device__ uint64_t static inline find_first_empty_slot(QF *qf, uint64_
 }
 
 
+__host__ __device__ uint64_t first_empty_slot_wrapper(QF * qf, uint64_t from){
+
+	return find_first_empty_slot(qf, from);
+}
+
+
 //exact same function as above, but forced to be host exclusive so that a try_catch statement in cluster counting will succeed.
 __host__ uint64_t host_debug_find_first_empty_slot(QF *qf, uint64_t from)
 {

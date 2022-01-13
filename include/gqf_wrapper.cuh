@@ -77,4 +77,13 @@ extern inline uint64_t gqf_bulk_get(uint64_t * vals, uint64_t count){
 }
 
 
+extern inline void gqf_bulk_delete(uint64_t * vals, uint64_t count){
+
+	bulk_delete(g_quotient_filter, count, vals, QF_NO_LOCK);
+
+	cudaDeviceSynchronize();
+	return;
+}
+
+
 #endif

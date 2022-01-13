@@ -67,7 +67,7 @@ typedef int (*init_op)(uint64_t nvals, uint64_t hash, uint64_t buf_size);
 typedef int (*destroy_op)();
 typedef int (*bulk_insert_op)(uint64_t * vals, uint64_t nvals);
 typedef uint64_t (*bulk_find_op)(uint64_t * vals, uint64_t nvals);
-
+typedef void (*bulk_delete_op)(uint64_t * vals, uint64_t nvals);
 
 
 typedef struct filter {
@@ -75,6 +75,7 @@ typedef struct filter {
 	destroy_op destroy;
 	bulk_insert_op bulk_insert;
 	bulk_find_op bulk_lookup;
+	bulk_delete_op bulk_delete;
 
 } filter;
 
@@ -86,7 +87,8 @@ filter gqf = {
 	gqf_init,
 	gqf_destroy,
 	gqf_bulk_insert,
-	gqf_bulk_get
+	gqf_bulk_get,
+	gqf_bulk_delete
 };
 
 // filter mhm2_map = {
@@ -100,7 +102,8 @@ filter bloom = {
 	bloom_init,
 	bloom_destroy,
 	bloom_bulk_insert,
-	bloom_bulk_get
+	bloom_bulk_get,
+	bloom_bulk_delete
 };
 
 // filter one_bit_bloom = {
@@ -122,8 +125,9 @@ filter bloom = {
 filter point = {
 	point_init,
 	point_destroy,
-	point_bulk_insert,
-	point_bulk_get
+	point_bulk_insert_wrapper,
+	point_bulk_get,
+	point_bulk_delete
 };
 
 
@@ -131,14 +135,16 @@ filter rsqf = {
 	rsqf_init,
 	rsqf_destroy,
 	rsqf_bulk_insert,
-	rsqf_bulk_get
+	rsqf_bulk_get,
+	rsqf_bulk_delete
 };
 
 filter sqf = {
 	sqf_init,
 	sqf_destroy,
 	sqf_bulk_insert,
-	sqf_bulk_get
+	sqf_bulk_get,
+	sqf_bulk_delete
 };
 
 uint64_t * zipfian_backing;
@@ -163,8 +169,9 @@ void usage(char *name)
 				 "  -r nruns      [ number of runs.  Default 1 ]\n"
 				 "  -p npoints    [ number of points on the graph.  Default 20 ]\n"
 				 "  -b buf_size   [ log_2 of buffer capacity, default is nslots/npoints ]\n"
-				 "  -d datastruct  [ Default bulk] [ bulk | map | bloom | bloom_one_bit ]\n"
-				 "  -f outputfile  [ Default gqf. ]\n",
+				 "  -d datastruct [ Default bulk] [ bulk | point | bloom | sqf | rsqf ]\n"
+				 "  -f outputfile [ Default gqf. ]\n"
+				 "  -e            [ Test and record deletions. Disabled by default]\n",
 				 name);
 }
 
@@ -186,9 +193,12 @@ int main(int argc, char **argv)
 	struct std::chrono::time_point<std::chrono::high_resolution_clock> tv_exit_lookup[100][1];
 	struct std::chrono::time_point<std::chrono::high_resolution_clock> tv_false_lookup[100][1];
 
+	struct std::chrono::time_point<std::chrono::high_resolution_clock> tv_delete[100][1];
+
 	struct std::chrono::duration<int64_t, std::nano> insert_times[100];
 	struct std::chrono::duration<int64_t, std::nano> exit_times[100];
 	struct std::chrono::duration<int64_t, std::nano> false_times[100];
+	struct std::chrono::duration<int64_t, std::nano> delete_times[100];
 
 
 	uint64_t fps = 0;
@@ -216,15 +226,19 @@ int main(int argc, char **argv)
 	const char *insert_op = "-insert.txt\0";
 	const char *exit_lookup_op = "-exists-lookup.txt\0";
 	const char *false_lookup_op = "-false-lookup.txt\0";
+	const char *delete_op = "-deletions.txt\0";
 	char filename_insert[256];
 	char filename_exit_lookup[256];
 	char filename_false_lookup[256];
+	char filename_delete[256];
+
+	bool deletions = false;
 
 	/* Argument parsing */
 	int opt;
 	char *term;
 
-	while((opt = getopt(argc, argv, "n:r:p:b:m:d:a:f:i:v:s")) != -1) {
+	while((opt = getopt(argc, argv, "n:r:p:b:m:d:a:f:i:v:s:e")) != -1) {
 		switch(opt) {
 			case 'n':
 				nbits = strtol(optarg, &term, 10);
@@ -275,6 +289,10 @@ int main(int argc, char **argv)
 			case 'f':
 				outputfile = optarg;
 				break;
+			case 'e':
+				deletions = true;
+				break;
+
 			default:
 				fprintf(stderr, "Unknown option\n");
 				usage(argv[0]);
@@ -308,10 +326,13 @@ int main(int argc, char **argv)
 
 	snprintf(filename_false_lookup, strlen(dir) + strlen(outputfile) + strlen(false_lookup_op) + 1, "%s%s%s", dir, outputfile, false_lookup_op);
 
+	snprintf(filename_delete, strlen(dir) + strlen(outputfile) + strlen(delete_op) + 1, "%s%s%s", dir, outputfile, delete_op);
+
 
 	FILE *fp_insert = fopen(filename_insert, "w");
 	FILE *fp_exit_lookup = fopen(filename_exit_lookup, "w");
 	FILE *fp_false_lookup = fopen(filename_false_lookup, "w");
+	FILE *fp_delete = fopen(filename_delete, "w");
 
 	if (fp_insert == NULL) {
 		printf("Can't open the data file %s\n", filename_insert);
@@ -358,6 +379,9 @@ int main(int argc, char **argv)
 		// }
 
 
+		int seed = 1;
+
+
 
 
 
@@ -365,9 +389,9 @@ int main(int argc, char **argv)
 		//setup for curand here
 		//three generators - two clones for get/find and one random for fp testing
 		curand_generator curand_put{};
-		curand_put.init(run, 0, buf_size);
+		curand_put.init(run, seed, buf_size);
 		curand_generator curand_get{};
-		curand_get.init(run, 0, buf_size);
+		curand_get.init(run, seed, buf_size);
 		curand_generator curand_false{};
 		curand_false.init((run+1)*2702173, 0, buf_size);
 		
@@ -515,8 +539,40 @@ int main(int argc, char **argv)
 
 		
 		
+ 
+		//
+		// for (exp = 0; exp < 2*npoints; exp += 2) {
+		// 	i = (exp/2)*(nvals/npoints);
+		// 	j = ((exp/2) + 1)*(nvals/npoints);
+		// 	//printf("Round: %d\n", exp/2);
+
+
+		// 	for (;i < j; i += buf_size) {
+		// 		int nitems = j - i < buf_size ? j - i : buf_size;
+		// 		uint64_t * vals;
+		// 		//int m;
+		// 		//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
+
+		// 		//prep vals for filter
+		// 		//cudaProfilerStart();
+		// 		get_end.gen_next_batch(nitems);
+		// 		vals = get_end.yield_backing();
+
+		// 		uint64_t result = filter_ds.bulk_lookup(vals, nitems);
+		// 		if (result != 0){
+
+		// 			printf("Failed to find %llu items\n", result);
+		// 			abort();
+
+		// 		}
+
+
+		// 	}	
+
+		// }
+
 		curand_generator get_end{};
-		get_end.init(run, 0, buf_size);
+		get_end.init(run, seed, buf_size);
 		
 		for (exp = 0; exp < 2*npoints; exp += 2) {
 			i = (exp/2)*(nvals/npoints);
@@ -549,7 +605,177 @@ int main(int argc, char **argv)
 		}
 		
 		get_end.destroy();
+
+		// for (exp = 0; exp < 2*npoints; exp += 2) {
+		// 	i = (exp/2)*(nvals/npoints);
+		// 	j = ((exp/2) + 1)*(nvals/npoints);
+		// 	//printf("Round: %d\n", exp/2);
+
+
+		// 	delete_times[exp+1] = std::chrono::duration<int64_t>::zero();
+
+
+		// 	std::chrono::time_point<std::chrono::high_resolution_clock> delete_start;
+		// 	std::chrono::time_point<std::chrono::high_resolution_clock> delete_end;
+
+
+
+		// 	auto outer = std::chrono::high_resolution_clock::now();
+		// 	tv_delete[exp][run] = std::chrono::high_resolution_clock::now();
+
+		// 	for (;i < j; i += buf_size) {
+		// 		int nitems = j - i < buf_size ? j - i : buf_size;
+		// 		uint64_t * vals;
+		// 		//int m;
+		// 		//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
+
+		// 		//prep vals for filter
+		// 		//cudaProfilerStart();
+
+		// 		//get timing
+		// 		delete_start = std::chrono::high_resolution_clock::now();
+
+		// 		get_end.gen_next_batch(nitems);
+		// 		vals = get_end.yield_backing();
+		// 		//cudaDeviceSynchronize();
+		// 		delete_end = std::chrono::high_resolution_clock::now();
+
+		// 		//printf("Time taken in setup: %llu\n", (delete_end - delete_start).count());
+				
+		// 		delete_times[exp+1] += delete_end-delete_start;
+
+			
+					
+					
+		// 		filter_ds.bulk_delete(vals, nitems);
+		// 			//cudaProfilerStop();
+
+				
+		// 	}
+
+		// 	cudaDeviceSynchronize();
+
+
+		// 	auto outer_end = std::chrono::high_resolution_clock::now();
+		// 	delete_times[exp+1] = (outer_end - outer) - delete_times[exp+1];
+
+		// 	//printf("Time taken: %llu\n", std::chrono::duration_cast<std::chrono::seconds>(delete_times[exp+1]).count());
+
+		// }
+
+
+
+		//get_end.destroy();
 		
+
+		if (deletions){
+
+			curand_generator get_deletes{};
+			get_deletes.init(run, seed, buf_size);
+
+
+			for (exp = 0; exp < 2*npoints; exp += 2) {
+				i = (exp/2)*(nvals/npoints);
+				j = ((exp/2) + 1)*(nvals/npoints);
+				//printf("Round: %d\n", exp/2);
+
+
+				delete_times[exp+1] = std::chrono::duration<int64_t>::zero();
+				std::chrono::time_point<std::chrono::high_resolution_clock> insert_start;
+				std::chrono::time_point<std::chrono::high_resolution_clock> insert_end;
+
+				tv_delete[exp][run] = std::chrono::high_resolution_clock::now();
+
+				for (;i < j; i += buf_size) {
+					int nitems = j - i < buf_size ? j - i : buf_size;
+					uint64_t * vals;
+					//int m;
+					//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
+
+					//prep vals for filter
+					//cudaProfilerStart();
+
+					//get timing
+					insert_start = std::chrono::high_resolution_clock::now();
+
+					get_deletes.gen_next_batch(nitems);
+					vals = get_deletes.yield_backing();
+					//cudaDeviceSynchronize();
+					insert_end = std::chrono::high_resolution_clock::now();
+					
+					delete_times[exp+1] += insert_end-insert_start;
+
+				
+						
+						
+					filter_ds.bulk_delete(vals, nitems);
+						//cudaProfilerStop();
+
+
+					
+				}
+
+				cudaDeviceSynchronize();
+
+
+				tv_delete[exp+1][run] = std::chrono::high_resolution_clock::now();
+
+
+
+			}
+
+			get_deletes.destroy();
+
+			
+
+			printf("Deletion Tests Complete\n");
+		}
+
+
+		cudaDeviceSynchronize();
+
+		if (deletions){
+
+
+		curand_generator get_final{};
+		get_final.init(run, seed, buf_size);
+		
+		for (exp = 0; exp < 2*npoints; exp += 2) {
+			i = (exp/2)*(nvals/npoints);
+			j = ((exp/2) + 1)*(nvals/npoints);
+			//printf("Round: %d\n", exp/2);
+
+
+			for (;i < j; i += buf_size) {
+				int nitems = j - i < buf_size ? j - i : buf_size;
+				uint64_t * vals;
+				//int m;
+				//assert(vals_gen->gen(vals_gen_state, nitems, vals) == nitems);
+
+				//prep vals for filter
+				//cudaProfilerStart();
+				get_final.gen_next_batch(nitems);
+				vals = get_final.yield_backing();
+
+				uint64_t result = filter_ds.bulk_lookup(vals, nitems);
+				if (result != nitems){
+
+					printf("Failed to not find %llu/%llu items after deletion\n", nitems-result, nitems);
+					//abort();
+
+				}
+
+
+			}	
+
+		}
+		
+		get_final.destroy();
+
+		cudaDeviceSynchronize();
+		}
+		
+
 		filter_ds.destroy();
 		cudaDeviceSynchronize();
 
@@ -558,7 +784,9 @@ int main(int argc, char **argv)
 
 
 
-	printf("Wiring results to file: %s\n",  filename_insert);
+
+
+	printf("Writing results to file: %s\n",  filename_insert);
 	fprintf(fp_insert, "x_0");
 	for (run = 0; run < nruns; run++) {
 		fprintf(fp_insert, "    y_%d", run);
@@ -574,7 +802,7 @@ int main(int argc, char **argv)
 	}
 	printf("Insert Performance written\n");
 
-	printf("Wiring results to file: %s\n", filename_exit_lookup);
+	printf("Writing results to file: %s\n", filename_exit_lookup);
 	fprintf(fp_exit_lookup, "x_0");
 	for (run = 0; run < nruns; run++) {
 		fprintf(fp_exit_lookup, "    y_%d", run);
@@ -590,7 +818,7 @@ int main(int argc, char **argv)
 	}
 	printf("Existing Lookup Performance written\n");
 
-	printf("Wiring results to file: %s\n", filename_false_lookup);
+	printf("Writing results to file: %s\n", filename_false_lookup);
 	fprintf(fp_false_lookup, "x_0");
 	for (run = 0; run < nruns; run++) {
 		fprintf(fp_false_lookup, "    y_%d", run);
@@ -607,6 +835,42 @@ int main(int argc, char **argv)
 	printf("False Lookup Performance written\n");
 
 	printf("FP rate: %f (%lu/%lu)\n", 1.0 * fps / nvals, fps, nvals);
+
+
+	if (deletions){
+
+
+
+	printf("Writing results to file: %s\n", filename_delete);
+	fprintf(fp_delete, "x_0");
+	for (run = 0; run < nruns; run++) {
+		fprintf(fp_delete, "    y_%d", run);
+	}
+	fprintf(fp_delete, "\n");
+	for (exp = 0; exp < 2*npoints; exp += 2) {
+		fprintf(fp_delete, "%d", ((exp/2)*(100/npoints)));
+
+		for (run = 0; run < nruns; run++) {
+		fprintf(fp_delete, " %f",
+						0.001 * (nvals/npoints)/((tv_delete[exp+1][run]- tv_delete[exp][run])-delete_times[exp+1]).count()*1000000);
+		}
+		// for (run = 0; run < nruns; run++) {
+
+		// 	//printf("Delete: %f \n", ((tv_delete[exp+1][run]- tv_delete[exp][run])).count());
+		// 	//this is all bugged out but the math is the same
+		// 	//for some reason delete timers kept getting reset to 0
+		// 	fprintf(fp_delete, " %f",
+		// 					0.001 * (nvals/npoints)/(delete_times[exp+1]).count());
+		// }
+		fprintf(fp_delete, "\n");
+	}
+	printf("Delete Performance written\n");
+
+	//printf("FP rate: %f (%lu/%lu)\n", 1.0 * fps / nvals, fps, nvals);
+
+
+
+	}
 
 	fclose(fp_insert);
 	fclose(fp_exit_lookup);

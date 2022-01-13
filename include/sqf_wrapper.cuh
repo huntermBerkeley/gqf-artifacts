@@ -222,4 +222,18 @@ extern inline uint64_t * sqf_prep_vals(__uint128_t * vals, uint64_t count){
 	return hostvals;
 }
 
+
+extern inline void sqf_bulk_delete(uint64_t * vals, uint64_t count){
+
+
+	sqf_downcast<<<(count-1)/512+1, 512>>>(count, vals, sqf_inserts);
+
+
+	superclusterDeletes(sqf_cqf_gpu, count, sqf_inserts);
+
+	cudaDeviceSynchronize();
+	return;
+}
+
+
 #endif

@@ -206,5 +206,10 @@ extern inline uint64_t bloom_bulk_get(uint64_t * vals, uint64_t count){
 	return toReturn;
 }
 
+extern inline void bloom_bulk_delete(uint64_t * vals, uint64_t count){
+
+	return;
+}
+
 
 #endif
