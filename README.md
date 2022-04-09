@@ -52,7 +52,6 @@ To build:
 ```bash
  $ source modules.sh
  $ make clean && make
- $ ./test -n 28 -d filter_type
 ```
 
 
@@ -80,20 +79,37 @@ gqf_verify.cu tests the correctness of the GQF on skewed, zipfian, and kmer (FAS
 
 options for test
 ```bash
- $ make clean and make
- $ ./test -d [gqf,point,sqf,rsqf, bloom] -n numbits -v [1 for verbose] -o [outputfile - three files with extensions -insert.txt, exists-lookup.txt, -false-lookup.txt] -p npoints
+ $ ./test -d [gqf,point,sqf,rsqf, bloom] -n [numbits] -v [1 for verbose] -o [outputfile - three files with extensions -inserts.txt, -exists-lookup.txt, -false-lookup.txt] -p [npoints] -f [1 for false-positive reporting]
 ```
+
 
 options for gqf_verify
 ```bash
- $ make clean && make
  $ ./gqf_verify [nbits] [0 bulk, 1 reduce] [0 random, 1 file, 2 random copies, 3 fastq, 4 zipfian] [filename if previous arg is 1]
 ```
+
+Example Runs
+-------------
+
+```bash
+ $ ./test -d gqf -n 28 -p 20 -o results/gqf/28
+```
+This will test the gqf filter with a dataset of 2^28 items split into 20 batches, with items inserted/queried via bulk methods and the results written into results/gqf/28-inserts.txt, results/gqf/28-exists-lookup.txt, and results/gqf/28-false-lookup.txt.
+
+```bash
+ $ ./gqf_verify 26 1 4
+```
+This will test the gqf on a dataset of 2^26 bits, where the data is generated as a zipfian distribution and the items are inserted using a reduction scheme.
 
 Artifact Descriptions
 ----------------------
 
-As part of the artifacts for the sc22 submission, this repo contains the files necessary to rebuild the graphs from our submission. While additional info 
+As part of the artifacts for the sc22 submission, this repo contains the files necessary to rebuild the graphs from our submission. While additional info is available in the additional artifact sumbission document, running
+
+```bash
+ $ ./scripts/generate_data.sh
+```
+will produce a pdf document containing figures identical to those used in our submission, and with results generated from your machine.
 
 
 Contributing
