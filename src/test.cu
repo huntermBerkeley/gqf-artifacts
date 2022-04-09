@@ -33,6 +33,9 @@
 #include "include/sqf_wrapper.cuh"
 #include "include/bloom_wrapper.cuh"
 
+//new
+#include "include/gqf_wrapper_cooperative.cuh"
+#include "include/point_wrapper_coop.cuh"
 
 
 #ifndef  USE_MYRANDOM
@@ -76,6 +79,7 @@ typedef struct filter {
 	bulk_insert_op bulk_insert;
 	bulk_find_op bulk_lookup;
 	bulk_delete_op bulk_delete;
+	bulk_find_op bulk_fp_lookup;
 
 } filter;
 
@@ -88,7 +92,8 @@ filter gqf = {
 	gqf_destroy,
 	gqf_bulk_insert,
 	gqf_bulk_get,
-	gqf_bulk_delete
+	gqf_bulk_delete,
+	gqf_bulk_get_fp
 };
 
 // filter mhm2_map = {
@@ -103,7 +108,8 @@ filter bloom = {
 	bloom_destroy,
 	bloom_bulk_insert,
 	bloom_bulk_get,
-	bloom_bulk_delete
+	bloom_bulk_delete,
+	bloom_bulk_get_fp
 };
 
 // filter one_bit_bloom = {
@@ -127,7 +133,8 @@ filter point = {
 	point_destroy,
 	point_bulk_insert_wrapper,
 	point_bulk_get,
-	point_bulk_delete
+	point_bulk_delete,
+	point_bulk_get_fp
 };
 
 
@@ -136,7 +143,8 @@ filter rsqf = {
 	rsqf_destroy,
 	rsqf_bulk_insert,
 	rsqf_bulk_get,
-	rsqf_bulk_delete
+	rsqf_bulk_delete,
+	rsqf_bulk_get_fp
 };
 
 filter sqf = {
@@ -144,7 +152,28 @@ filter sqf = {
 	sqf_destroy,
 	sqf_bulk_insert,
 	sqf_bulk_get,
-	sqf_bulk_delete
+	sqf_bulk_delete,
+	sqf_bulk_get_fp
+};
+
+
+filter coop_gqf = {
+	coop_gqf_init,
+	coop_gqf_destroy,
+	coop_gqf_bulk_insert,
+	coop_gqf_bulk_get,
+	coop_gqf_bulk_delete,
+	coop_gqf_bulk_get
+};
+
+
+filter coop_point = {
+	coop_point_init,
+	coop_point_destroy,
+	coop_point_bulk_insert_wrapper,
+	coop_point_bulk_get,
+	coop_point_bulk_delete,
+	coop_point_bulk_get
 };
 
 uint64_t * zipfian_backing;
@@ -201,6 +230,9 @@ int main(int argc, char **argv)
 	struct std::chrono::duration<int64_t, std::nano> delete_times[100];
 
 
+	bool fp_queries = false;
+	bool verbose = false;
+
 	uint64_t fps = 0;
 	//default buffer of 20;
 	bool bufset = false;
@@ -238,8 +270,16 @@ int main(int argc, char **argv)
 	int opt;
 	char *term;
 
-	while((opt = getopt(argc, argv, "n:r:p:b:m:d:a:f:i:v:s:e")) != -1) {
+	while((opt = getopt(argc, argv, "o:n:r:p:b:m:d:a:f:i:v:s:e")) != -1) {
 		switch(opt) {
+
+
+			case 'v':
+				verbose = true;
+				break;
+			case 'f':
+				fp_queries = strtol(optarg, &term, 10);
+				break;
 			case 'n':
 				nbits = strtol(optarg, &term, 10);
 
@@ -286,7 +326,7 @@ int main(int argc, char **argv)
 			case 'd':
 				datastruct = optarg;
 				break;
-			case 'f':
+			case 'o':
 				outputfile = optarg;
 				break;
 			case 'e':
@@ -304,7 +344,7 @@ int main(int argc, char **argv)
 
 
 
-	if (strcmp(datastruct, "bulk") == 0) {
+	if ((strcmp(datastruct, "bulk") == 0) || (strcmp(datastruct, "gqf") == 0)) {
 		filter_ds = gqf;
 	} else if (strcmp(datastruct, "bloom") == 0) {
 		filter_ds = bloom;
@@ -314,6 +354,10 @@ int main(int argc, char **argv)
 		filter_ds = rsqf;
 	} else if (strcmp(datastruct, "sqf") == 0) {
 		filter_ds = sqf;
+	} else if (strcmp(datastruct, "coop") == 0) {
+		filter_ds = coop_gqf;
+	} else if (strcmp(datastruct, "cpoint") == 0) {
+		filter_ds = coop_point;
 	} else {
 		fprintf(stderr, "Unknown filter.\n");
 		usage(argv[0]);
@@ -379,7 +423,7 @@ int main(int argc, char **argv)
 		// }
 
 
-		int seed = 1;
+		int seed = 0;
 
 
 
@@ -393,7 +437,9 @@ int main(int argc, char **argv)
 		curand_generator curand_get{};
 		curand_get.init(run, seed, buf_size);
 		curand_generator curand_false{};
+
 		curand_false.init((run+1)*2702173, 0, buf_size);
+		//curand_false.init(run, seed, buf_size);
 		
 		cudaDeviceSynchronize();
 
@@ -513,15 +559,25 @@ int main(int argc, char **argv)
 				false_times[exp+1] += false_end-false_start;
 
 		
+				if (!fp_queries){
+
 
 					
-				fps += nitems-filter_ds.bulk_lookup(othervals, nitems);
+				//fps += nitems-filter_ds.bulk_lookup(othervals, nitems);
+				filter_ds.bulk_lookup(othervals, nitems);
+
+				} else {
+
+					fps += nitems-filter_ds.bulk_fp_lookup(othervals, nitems);
+
+				}
 					
 				
 			}
 
 			cudaDeviceSynchronize();
 			tv_false_lookup[exp+1][run] = std::chrono::high_resolution_clock::now();
+			
 			
 		}
 
@@ -591,7 +647,8 @@ int main(int argc, char **argv)
 				get_end.gen_next_batch(nitems);
 				vals = get_end.yield_backing();
 
-				uint64_t result = filter_ds.bulk_lookup(vals, nitems);
+				//this should always trigger fp - need to assert that items are correct
+				uint64_t result = filter_ds.bulk_fp_lookup(vals, nitems);
 				if (result != 0){
 
 					printf("Failed to find %llu items\n", result);
@@ -728,7 +785,7 @@ int main(int argc, char **argv)
 
 			
 
-			printf("Deletion Tests Complete\n");
+			if (verbose) printf("Deletion Tests Complete\n");
 		}
 
 
@@ -757,7 +814,14 @@ int main(int argc, char **argv)
 				get_final.gen_next_batch(nitems);
 				vals = get_final.yield_backing();
 
-				uint64_t result = filter_ds.bulk_lookup(vals, nitems);
+				uint64_t result;
+
+		
+
+				result = filter_ds.bulk_fp_lookup(vals, nitems);
+				
+
+				
 				if (result != nitems){
 
 					printf("Failed to not find %llu/%llu items after deletion\n", nitems-result, nitems);
@@ -786,7 +850,9 @@ int main(int argc, char **argv)
 
 
 
-	printf("Writing results to file: %s\n",  filename_insert);
+	if (verbose) printf("Writing results to file: %s\n",  filename_insert);
+
+
 	fprintf(fp_insert, "x_0");
 	for (run = 0; run < nruns; run++) {
 		fprintf(fp_insert, "    y_%d", run);
@@ -800,9 +866,9 @@ int main(int argc, char **argv)
 		}
 		fprintf(fp_insert, "\n");
 	}
-	printf("Insert Performance written\n");
+	if (verbose) printf("Insert Performance written\n");
 
-	printf("Writing results to file: %s\n", filename_exit_lookup);
+	if (verbose) printf("Writing results to file: %s\n", filename_exit_lookup);
 	fprintf(fp_exit_lookup, "x_0");
 	for (run = 0; run < nruns; run++) {
 		fprintf(fp_exit_lookup, "    y_%d", run);
@@ -816,9 +882,9 @@ int main(int argc, char **argv)
 		}
 		fprintf(fp_exit_lookup, "\n");
 	}
-	printf("Existing Lookup Performance written\n");
+	if (verbose) printf("Existing Lookup Performance written\n");
 
-	printf("Writing results to file: %s\n", filename_false_lookup);
+	if (verbose) printf("Writing results to file: %s\n", filename_false_lookup);
 	fprintf(fp_false_lookup, "x_0");
 	for (run = 0; run < nruns; run++) {
 		fprintf(fp_false_lookup, "    y_%d", run);
@@ -832,16 +898,17 @@ int main(int argc, char **argv)
 		}
 		fprintf(fp_false_lookup, "\n");
 	}
-	printf("False Lookup Performance written\n");
 
-	printf("FP rate: %f (%lu/%lu)\n", 1.0 * fps / nvals, fps, nvals);
+	if (verbose) printf("False Lookup Performance written\n");
+
+	if (fp_queries) printf("FP rate: %f (%lu/%lu)\n", 1.0 * fps / nvals, fps, nvals);
 
 
 	if (deletions){
 
 
 
-	printf("Writing results to file: %s\n", filename_delete);
+	if (verbose) printf("Writing results to file: %s\n", filename_delete);
 	fprintf(fp_delete, "x_0");
 	for (run = 0; run < nruns; run++) {
 		fprintf(fp_delete, "    y_%d", run);
@@ -864,7 +931,7 @@ int main(int argc, char **argv)
 		// }
 		fprintf(fp_delete, "\n");
 	}
-	printf("Delete Performance written\n");
+	if (verbose) printf("Delete Performance written\n");
 
 	//printf("FP rate: %f (%lu/%lu)\n", 1.0 * fps / nvals, fps, nvals);
 

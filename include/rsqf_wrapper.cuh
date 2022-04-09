@@ -117,11 +117,37 @@ __global__ void rsqf_check(int * returns, uint64_t count, uint64_t * misses){
 extern inline uint64_t rsqf_bulk_get(uint64_t * vals, uint64_t count){
 
 
-	uint64_t * misses;
+	// uint64_t * misses;
+ //  cudaMallocManaged((void **)& misses, sizeof(uint64_t));
+ //  misses[0] = 0;
+
+  downcast<<<(count-1)/512+1, 512>>>(count, vals, rsqf_inserts);
+  //return bulk_get_wrapper(g_quotient_filter, vals, count);
+  launchLookups(test_cqf_gpu, count, rsqf_inserts, rsqf_returns);
+  cudaDeviceSynchronize();
+
+
+  //rsqf_check<<<(count-1)/512+1, 512>>>(rsqf_returns, count, misses);
+  //cudaDeviceSynchronize();
+
+  //uint64_t toReturn = misses[0];
+  uint64_t toReturn = 0;  
+
+  //cudaFree(misses);
+
+  return toReturn;
+
+
+}
+
+extern inline uint64_t rsqf_bulk_get_fp(uint64_t * vals, uint64_t count){
+
+
+  uint64_t * misses;
   cudaMallocManaged((void **)& misses, sizeof(uint64_t));
   misses[0] = 0;
 
-	downcast<<<(count-1)/512+1, 512>>>(count, vals, rsqf_inserts);
+  downcast<<<(count-1)/512+1, 512>>>(count, vals, rsqf_inserts);
   //return bulk_get_wrapper(g_quotient_filter, vals, count);
   launchLookups(test_cqf_gpu, count, rsqf_inserts, rsqf_returns);
   cudaDeviceSynchronize();
@@ -131,6 +157,7 @@ extern inline uint64_t rsqf_bulk_get(uint64_t * vals, uint64_t count){
   cudaDeviceSynchronize();
 
   uint64_t toReturn = misses[0];
+  //uint64_t toReturn = 0;  
 
   cudaFree(misses);
 
@@ -138,6 +165,7 @@ extern inline uint64_t rsqf_bulk_get(uint64_t * vals, uint64_t count){
 
 
 }
+
 
 extern inline void rsqf_bulk_delete(uint64_t * vals, uint64_t count){
 

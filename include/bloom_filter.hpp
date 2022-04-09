@@ -541,6 +541,8 @@ class device_bloom_filter
 				atomicOr(bit_table_ + bit_index, 1 << bit);
 				//atomicCAS(& / bits_per_char], bit_mask[bit])
 				//bit_table_[bit_index / bits_per_char] |= ;
+
+				__threadfence();
 			}
 			++inserted_element_count_;
 		
@@ -553,6 +555,7 @@ class device_bloom_filter
 
 			std::size_t bit_index = 0;
 			std::size_t bit = 0;
+			__threadfence();
 			for (std::size_t i = 0; i < salt_size; ++i)
 			{
 

@@ -28,6 +28,7 @@
 #include "include/gqf_int.cuh"
 #include "hashutil.cuh"
 #include "include/gqf.cuh"
+#include "include/zipf.cuh"
 //#include "src/gqf.cu"
 #include <fstream>
 #include <string>
@@ -65,8 +66,7 @@ int main(int argc, char** argv) {
 
 	printf("This is a set of tests to verify GQF performance and correctness.\n");
 	printf("Testing against other filters is handled by test.cu.\n");
-	printf("For the Zipfian data used in our experiments, email hjmccoy@lbl.gov");
-
+	
 
 	QF qf;
 	uint64_t qbits = atoi(argv[1]);
@@ -326,6 +326,18 @@ int main(int argc, char** argv) {
 	    std::mt19937 g(rd());
 	 
 		std::shuffle(vals, vals+nvals, g);
+
+	} else if (preset == 4){
+
+		printf("generating Zipfian data!\n");
+
+		//do we need to free vals here? zipfian should generate new malloc.
+		generate_random_keys(vals, nvals, nvals, 1);
+
+		for (uint64_t i=0; i < nvals; i++){
+
+			vals[i] = vals[i] % qf.metadata->range;
+		}
 
 	} else {
 

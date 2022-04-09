@@ -1,0 +1,58 @@
+\begin{figure*}
+   \centering
+   \ref{30-comp-legend-load}\\
+   \begin{subfigure}{0.32\linewidth}
+      \begin{tikzpicture}
+         \begin{axis}[
+               InstanPlot,
+               legend entries={QF-NoLock, QF-Lock, BF, BF-1Bit, SQF, RSQF},
+               legend columns=6,
+               legend to name={30-comp-legend-load}
+            ]
+            
+            \addplot[QFNLStyle] table[x=x_0, y=y_0] {../results/gqf/30-insert.txt};
+            \addplot[QFLStyle] table[x=x_0, y=y_0] {../results/point/30-insert.txt};
+            \addplot[BFStyle] table[x=x_0, y=y_0] {../results/bloom/30-insert.txt};
+
+            
+         \end{axis}
+      \end{tikzpicture}
+      \caption{Inserts.}
+      \label{30-comparison-inserts}
+   \end{subfigure}%
+   \begin{subfigure}{0.32\linewidth}
+      \begin{tikzpicture}
+         \begin{axis}[
+               InstanPlot
+            ]
+
+            \addplot[QFNLStyle] table[x=x_0, y=y_0] {../results/gqf/30-exists-lookup.txt};
+            \addplot[QFLStyle] table[x=x_0, y=y_0] {../results/point/30-exists-lookup.txt};
+            \addplot[BFStyle] table[x=x_0, y=y_0] {../results/bloom/30-exists-lookup.txt};
+
+            
+         \end{axis}
+      \end{tikzpicture}
+      \caption{Positive queries.}
+      \label{30-comparison-exists}
+   \end{subfigure}%
+   \begin{subfigure}{0.32\linewidth}
+      \begin{tikzpicture}
+         \begin{axis}[
+               InstanPlot
+            ]
+
+            \addplot[QFNLStyle] table[x=x_0, y=y_0] {../results/gqf/30-false-lookup.txt};
+            \addplot[QFLStyle] table[x=x_0, y=y_0] {../results/point/30-false-lookup.txt};
+            \addplot[BFStyle] table[x=x_0, y=y_0] {../results/bloom/30-false-lookup.txt};
+
+
+         \end{axis}
+      \end{tikzpicture}
+      \caption{Random Queries.}
+      \label{30-false}
+   \end{subfigure}%
+\caption{Comparison between filter types when the dataset is of size $2^{30}$}
+\label{fig:30_perf}
+\end{figure*}
+

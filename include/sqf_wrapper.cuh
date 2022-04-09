@@ -182,7 +182,38 @@ __global__ void sqf_check(unsigned int * returns, uint64_t count, uint64_t * mis
 extern inline uint64_t sqf_bulk_get(uint64_t * vals, uint64_t count){
 
 
-	uint64_t * misses;
+	// uint64_t * misses;
+ //  cudaMallocManaged((void **)& misses, sizeof(uint64_t));
+ //  misses[0] = 0;
+
+  sqf_downcast<<<(count-1)/512+1, 512>>>(count, vals, sqf_inserts);
+  //return bulk_get_wrapper(g_quotient_filter, vals, count);
+
+  sqf_filter::launchSortedLookups(sqf_cqf_gpu, count, sqf_inserts, sqf_returns);
+
+  //launchLookups(test_cqf_gpu, count, sqf_inserts, sqf_returns);
+  cudaDeviceSynchronize();
+
+
+  //sqf_check<<<(count-1)/512+1, 512>>>(sqf_returns, count, misses);
+  cudaDeviceSynchronize();
+
+  // uint64_t toReturn = misses[0];
+
+  // cudaFree(misses);
+
+  // return toReturn;
+
+  return 0;
+
+
+}
+
+
+extern inline uint64_t sqf_bulk_get_fp(uint64_t * vals, uint64_t count){
+
+
+  uint64_t * misses;
   cudaMallocManaged((void **)& misses, sizeof(uint64_t));
   misses[0] = 0;
 
@@ -204,8 +235,11 @@ extern inline uint64_t sqf_bulk_get(uint64_t * vals, uint64_t count){
 
   return toReturn;
 
+  //return 0;
+
 
 }
+
 
 //replace vals with a cudaMalloced Array for gpu inserts
 extern inline uint64_t * sqf_prep_vals(__uint128_t * vals, uint64_t count){

@@ -1193,7 +1193,7 @@ __global__ void deleteItemGPU(int numItems, quotient_filter qfilter, unsigned in
 
         do{
             b++;
-        }while(!isOccupiedGPU(getElementGPU(&qfilter, b)));  //keep track of current run
+        }while(!isOccupiedGPU(getElementGPU(&qfilter, b))  );  //keep track of current run
 
     }
 

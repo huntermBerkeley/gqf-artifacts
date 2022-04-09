@@ -54,7 +54,8 @@ cluster_length_test:					$(OBJDIR)/cluster_length_test.o $(OBJDIR)/gqf.o \
 
 gqf_verify:								$(OBJDIR)/gqf_verify.o $(OBJDIR)/gqf.o \
 										$(OBJDIR)/hashutil.o \
-										$(OBJDIR)/partitioned_counter.o
+										$(OBJDIR)/partitioned_counter.o \
+										$(OBJDIR)/zipf.o
 
 
 test:							$(OBJDIR)/test.o $(OBJDIR)/gqf.o \
@@ -92,6 +93,7 @@ $(OBJDIR)/gqf.o:							$(LOC_SRC)/gqf.cu $(LOC_INCLUDE)/gqf.cuh
 $(OBJDIR)/hashutil.o:					$(LOC_SRC)/hashutil.cu $(LOC_INCLUDE)/hashutil.cuh
 $(OBJDIR)/partitioned_counter.o:	$(LOC_INCLUDE)/partitioned_counter.cuh
 $(OBJDIR)/sqf.o: $(LOC_SRC)/sqf.cu $(LOC_INCLUDE)/sqf.cuh
+$(OBJDIR)/zipf.o: $(LOC_SRC)/zipf.cu $(LOC_INCLUDE)/zipf.cuh
 
 #
 # generic build rules

@@ -51,7 +51,7 @@ of select on machine words to work on CPUs older than Haswell.
 To build:
 ```bash
  $ source modules.sh
- $ make test
+ $ make clean && make
  $ ./test -n 28 -d filter_type
 ```
 
@@ -77,6 +77,23 @@ Testing
 -------
 test.cu contains the tests used to compare the various filters
 gqf_verify.cu tests the correctness of the GQF on skewed, zipfian, and kmer (FASTQ) datasets, and verifies the correctness of operations like counting and deletions.
+
+options for test
+```bash
+ $ make clean and make
+ $ ./test -d [gqf,point,sqf,rsqf, bloom] -n numbits -v [1 for verbose] -o [outputfile - three files with extensions -insert.txt, exists-lookup.txt, -false-lookup.txt] -p npoints
+```
+
+options for gqf_verify
+```bash
+ $ make clean && make
+ $ ./gqf_verify [nbits] [0 bulk, 1 reduce] [0 random, 1 file, 2 random copies, 3 fastq, 4 zipfian] [filename if previous arg is 1]
+```
+
+Artifact Descriptions
+----------------------
+
+As part of the artifacts for the sc22 submission, this repo contains the files necessary to rebuild the graphs from our submission. While additional info 
 
 
 Contributing

@@ -74,6 +74,13 @@ extern inline uint64_t point_bulk_get(uint64_t * vals, uint64_t count){
 
 }
 
+extern inline uint64_t point_bulk_get_fp(uint64_t * vals, uint64_t count){
+
+	return point_get_wrapper_fp(point_quotient_filter, vals, count);
+
+
+}
+
 extern inline void point_bulk_delete(uint64_t * vals, uint64_t count){
 
 	return;

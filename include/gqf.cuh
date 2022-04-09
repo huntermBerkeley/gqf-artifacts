@@ -126,6 +126,9 @@ extern "C" {
 		//Used exclusively for cluster empirical check
 
 
+	//new cooperative version
+	__host__ void bulk_insert_cooperative(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags);
+
 
 	/* TESTING SUPPORT */
 
@@ -135,6 +138,9 @@ extern "C" {
 
 	__global__ void point_bulk_insert(QF * qf, uint64_t * hashes, uint64_t nitems);
 
+	__global__ void point_bulk_insert_cooperative(QF * qf, uint64_t * hashes, uint64_t nitems);
+
+	
 	
 	//a version of bulk_get used for testing, counts the items not found and returns that count
 	__host__ uint64_t bulk_get_misses_wrapper(QF * qf, uint64_t * vals, uint64_t nvals);
@@ -413,13 +419,20 @@ extern "C" {
 	__host__ __device__ void qf_dump(const QF *);
 	__host__ __device__ void qf_dump_metadata(const QF *qf);
 
+	__host__ uint64_t point_get_wrapper_fp(QF * qf, uint64_t * hashes, uint64_t nitems);
+
+
 	//Moved to debug to allow host to check cluster lengths.
 	//static inline removed cause cuda has a hissy fit
   __host__ uint64_t host_debug_find_first_empty_slot(QF *qf, uint64_t from);
 
   __host__ __device__ uint64_t first_empty_slot_wrapper(QF * qf, uint64_t from);
 
+  __host__ uint64_t cooperative_bulk_get_wrapper(QF * qf, uint64_t * hashes, uint64_t nitems);
 
+  __global__ void get_dev_nvals(QF* qf, uint64_t * external_nvals);
+
+  __host__ uint64_t bulk_get_nocount_wrapper(QF * qf, uint64_t * vals, uint64_t nvals);
 
 
 #ifdef __cplusplus

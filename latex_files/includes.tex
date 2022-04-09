@@ -1,0 +1,48 @@
+% !TEX root =  main.tex
+
+%\usepackage{usenix}
+\usepackage[textsize=tiny]{todonotes} % package for cool todonotes in the margin
+\usepackage[normalem]{ulem} % package that allows text to be striked out
+
+\usepackage{xspace}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amstext}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{cleveref}
+\usepackage{subcaption}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.3}
+\usepackage{url}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{siunitx}
+\usepackage[moderate]{savetrees}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{comment}
+%\usepackage[title]{appendix}
+
+
+\iffalse
+\usepackage{xr}
+% In your preamble
+
+\makeatletter
+\newcommand*{\addFileDependency}[1]{% argument=file name and extension
+  \typeout{(#1)}
+  \@addtofilelist{#1}
+  \IfFileExists{#1}{}{\typeout{No file #1.}}
+}
+\makeatother
+
+\newcommand*{\myexternaldocument}[1]{%
+    \externaldocument{#1}%
+    \addFileDependency{#1.tex}%
+    \addFileDependency{#1.aux}%
+}
+\myexternaldocument{supplementary}
+\fi

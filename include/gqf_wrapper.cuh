@@ -71,8 +71,9 @@ extern inline int gqf_bulk_insert(uint64_t * vals, uint64_t count)
 extern inline uint64_t gqf_bulk_get(uint64_t * vals, uint64_t count){
 
   
-
-  return bulk_get_misses_wrapper(g_quotient_filter, vals, count);
+	//__host__ uint64_t bulk_get_nocount_wrapper(QF * qf, uint64_t * vals, uint64_t nvals)
+  //return bulk_get_misses_wrapper(g_quotient_filter, vals, count);
+  return bulk_get_nocount_wrapper(g_quotient_filter, vals, count);
 
 }
 
@@ -81,9 +82,20 @@ extern inline void gqf_bulk_delete(uint64_t * vals, uint64_t count){
 
 	bulk_delete(g_quotient_filter, count, vals, QF_NO_LOCK);
 
+
 	cudaDeviceSynchronize();
 	return;
 }
 
+extern inline uint64_t gqf_bulk_get_fp(uint64_t * vals, uint64_t count){
+
+  
+	//__host__ uint64_t bulk_get_nocount_wrapper(QF * qf, uint64_t * vals, uint64_t nvals)
+  //return bulk_get_misses_wrapper(g_quotient_filter, vals, count);
+
+  //bulk_get_misses(QF * qf, uint64_t * vals,  uint64_t nvals, uint64_t key_count, uint64_t * counter, uint8_t flags){
+  return bulk_get_misses_wrapper(g_quotient_filter, vals, count);
+
+}
 
 #endif

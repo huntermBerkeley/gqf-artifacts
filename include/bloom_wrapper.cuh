@@ -168,7 +168,7 @@ extern inline int bloom_bulk_insert(uint64_t * vals, uint64_t count)
 }
 
 
-__global__ void bulk_get_kernel(device_bloom_filter * bloom_map, uint64_t * vals, uint64_t count, uint64_t * misses){
+__global__ void bulk_get_kernel(device_bloom_filter * bloom_map, uint64_t * vals, uint64_t count){
 
 	uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -176,9 +176,29 @@ __global__ void bulk_get_kernel(device_bloom_filter * bloom_map, uint64_t * vals
 
 	uint64_t val = vals[tid];
 
-	if (!bloom_map->contains(val)){
+	if (bloom_map->contains(val) && tid > count){
 
-			atomicAdd((unsigned long long int *) misses, 1);
+			//atomicAdd((unsigned long long int *) misses, 1);
+			printf("Dummy text!\n");
+
+	}
+		
+
+
+}
+
+__global__ void bulk_get_kernel_fp(device_bloom_filter * bloom_map, uint64_t * vals, uint64_t count, uint64_t * misses){
+
+	uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+	if (tid >= count) return;
+
+	uint64_t val = vals[tid];
+
+	if (bloom_map->contains(val) && tid > count){
+
+			//atomicAdd((unsigned long long int *) misses, 1);
+			printf("Dummy text!\n");
 
 	}
 		
@@ -190,13 +210,35 @@ extern inline uint64_t bloom_bulk_get(uint64_t * vals, uint64_t count){
 
   
 	//the hmh2 table uses quadratic probing
+	// uint64_t * misses;
+	// //this is fine, should never be triggered
+ //  cudaMallocManaged((void **)&misses, sizeof(uint64_t));
+ //  misses[0] = 0;
+
+
+	bulk_get_kernel<<<(count-1)/512+1, 512>>>(bloom_map, vals, count);
+
+	cudaDeviceSynchronize();
+
+	//uint64_t toReturn = *misses;
+	// cudaFree(misses);
+
+	//return toReturn;
+	return 0;
+}
+
+
+extern inline uint64_t bloom_bulk_get_fp(uint64_t * vals, uint64_t count){
+
+  
+	//the hmh2 table uses quadratic probing
 	uint64_t * misses;
 	//this is fine, should never be triggered
   cudaMallocManaged((void **)&misses, sizeof(uint64_t));
   misses[0] = 0;
 
 
-	bulk_get_kernel<<<(count-1)/512+1, 512>>>(bloom_map, vals, count, misses);
+	bulk_get_kernel_fp<<<(count-1)/512+1, 512>>>(bloom_map, vals, count, misses);
 
 	cudaDeviceSynchronize();
 
@@ -204,6 +246,7 @@ extern inline uint64_t bloom_bulk_get(uint64_t * vals, uint64_t count){
 	cudaFree(misses);
 
 	return toReturn;
+	//return 0;
 }
 
 extern inline void bloom_bulk_delete(uint64_t * vals, uint64_t count){
