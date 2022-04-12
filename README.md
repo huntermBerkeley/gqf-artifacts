@@ -69,7 +69,8 @@ The argument to -d is the filter being tested. The currently supported filter ty
 
 MetaHipMer
 ----------
-A version of this code has been integrated into MetaHipMer and is available [here](https://bitbucket.org/berkeleylab/mhm2/branch/cqf).
+
+The GQF has been integrated with MetaHipMer and is available [here](https://bitbucket.org/berkeleylab/mhm2/src/master/).
 
 
 Testing
@@ -85,7 +86,7 @@ options for test
 
 options for gqf_verify
 ```bash
- $ ./gqf_verify [nbits] [0 bulk, 1 reduce] [0 random, 1 file, 2 random copies, 3 fastq, 4 zipfian] [filename if previous arg is 1]
+ $ ./gqf_verify [nbits] [0 bulk, 1 reduce] [0 random, 1 file, 2 random copies, 3 fastq, 4 zipfian] [filename if previous arg is 1 or 3]
 ```
 
 Example Runs
