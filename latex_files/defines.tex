@@ -1,0 +1,83 @@
+% !TEX root =  main.tex
+
+\newcommand{\errbits}{\log (1/\epsilon)}
+\newcommand{\opt}{n\errbits}
+\renewcommand{\epsilon}{\varepsilon}
+
+% \newcommand{\defn}[1]{\textit{#1}}
+\newcommand{\defn}[1]{{\textit{\textbf{\boldmath #1}}}\xspace}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{invariant}[theorem]{Invariant}
+\newtheorem{observation}[theorem]{Observation}
+
+\makeatletter
+\algrenewcommand\ALG@beginalgorithmic{\footnotesize}
+\makeatother
+
+
+\definecolor{magenta4}{rgb}{0.5625,0,0.5625}
+\definecolor{green4}{rgb}{0,0.5625,0}
+\definecolor{orange4}{rgb}{0.98,0.31,0.09}
+\definecolor{powderblue}{rgb}{0.69,0.88,0.9}
+
+\iffalse 
+\newcommand{\kathy}[1]{{\scriptsize \textcolor{powderblue}{Kathy: {#1}}}}
+\newcommand{\steve}[1]{{\scriptsize \textcolor{orange4}{Steve: {#1}}}}
+\newcommand{\hunter}[1]{\scriptsize \textcolor{pink}{Hunter: {#1}}}
+\newcommand{\prashant}[1]{{\scriptsize \textcolor{cyan}{Prashant: {#1}}}}
+\fi 
+
+\newcommand{\change}[2]{\sout{#1}\xspace\textcolor{blue}{#2}}
+%\newcommand{\change}[2]{#2}
+
+%\newenvironment{scaddition}[1]{\textcolor{blue}{#1}}
+\newenvironment{scaddition}{}{}
+
+\newenvironment{addition}{}{}
+
+% see http://latexcolor.com to define more colors
+
+\newcommand{\kathy}[1]{\todo[size=\tiny,color=powderblue]{Kathy: #1}}
+\newcommand{\steve}[1]{\todo[size=\tiny,color=orange]{Steve: #1}}
+\newcommand{\prashant}[1]{\todo[size=\tiny,color=cyan]{Prashant: #1}}
+\newcommand{\hunter}[1]{\todo[size=\tiny,color=pink]{Hunter: #1}}
+
+\newcommand{\kathyinline}[1]{\todo[inline,size=\tiny,color=powderblue]{Kathy: #1}}
+\newcommand{\steveinline}[1]{\todo[inline,size=\tiny,color=orange]{Steve: #1}}
+\newcommand{\prashantinline}[1]{\todo[inline,size=\tiny,color=cyan]{Prashant: #1}}
+\newcommand{\hunterinline}[1]{\todo[inline, size=\tiny,color=pink]{Hunter: #1}}
+
+\newcommand{\fixme}[1]{\todo[size=\tiny]{#1}}
+
+\newcommand{\TODO}{{\color{red}\bf TODO}}
+
+%% comment the next few lines to remove all our comments
+\iffalse
+\renewcommand{\kathy}[1]{}
+\renewcommand{\steve}[1]{}
+\renewcommand{\prashant}[1]{}
+\renewcommand{\hunter}[1]{}
+\renewcommand{\kathyinline}[1]{}
+\renewcommand{\steveinline}[1]{}
+\renewcommand{\prashantinline}[1]{}
+\renewcommand{\hunterinline}[1]{}
+\fi
+
+\newcommand{\sysname}{GPU-based quotient filter\xspace}
+\newcommand{\Sysname}{GPU-based Quotient Filter\xspace}
+\newcommand{\qf}{quotient filter\xspace}
+\newcommand{\cqf}{counting quotient filter\xspace}
+\newcommand{\bloom}{Bloom filter\xspace}
+
+
+\newcommand{\poly}[1]{\textrm{poly}{(#1)}}
+\newcommand{\polylog}[1]{\textrm{polylog}{(#1)}}
+
+\newcommand{\para}[1]{\smallskip\noindent\textbf{#1.}}
+

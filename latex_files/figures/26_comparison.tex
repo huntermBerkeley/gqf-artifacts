@@ -1,0 +1,60 @@
+\begin{figure*}
+   \centering
+   \ref{26-comp-legend-load}\\
+   \begin{subfigure}{0.32\linewidth}
+      \begin{tikzpicture}
+         \begin{axis}[
+               InstanPlot,
+               legend entries={QF-NoLock, QF-Lock, BF, BF-1Bit, SQF, RSQF},
+               legend columns=6,
+               legend to name={26-comp-legend-load}
+            ]
+            
+            \addplot[QFNLStyle] table[x=x_0, y=y_0] {../results/gqf/26-insert.txt};
+            \addplot[QFLStyle] table[x=x_0, y=y_0] {../results/point/26-insert.txt};
+            \addplot[BFStyle] table[x=x_0, y=y_0] {../results/bloom/26-insert.txt};
+            \addplot[SQFStyle] table[x=x_0, y=y_0] {../results/sqf/26-insert.txt};
+            \addplot[RSQFStyle] table[x=x_0, y=y_0] {../results/rsqf/26-insert.txt};
+            
+         \end{axis}
+      \end{tikzpicture}
+      \caption{Inserts.}
+      \label{26-comparison-inserts}
+   \end{subfigure}%
+   \begin{subfigure}{0.32\linewidth}
+      \begin{tikzpicture}
+         \begin{axis}[
+               InstanPlot
+            ]
+
+            \addplot[QFNLStyle] table[x=x_0, y=y_0] {../results/gqf/26-exists-lookup.txt};
+            \addplot[QFLStyle] table[x=x_0, y=y_0] {../results/point/26-exists-lookup.txt};
+            \addplot[BFStyle] table[x=x_0, y=y_0] {../results/bloom/26-exists-lookup.txt};
+            \addplot[SQFStyle] table[x=x_0, y=y_0] {../results/sqf/26-exists-lookup.txt};
+            \addplot[RSQFStyle] table[x=x_0, y=y_0] {../results/rsqf/26-exists-lookup.txt};
+            
+         \end{axis}
+      \end{tikzpicture}
+      \caption{Positive queries.}
+      \label{26-comparison-exists}
+   \end{subfigure}%
+   \begin{subfigure}{0.32\linewidth}
+      \begin{tikzpicture}
+         \begin{axis}[
+               InstanPlot
+            ]
+
+            \addplot[QFNLStyle] table[x=x_0, y=y_0] {../results/gqf/26-false-lookup.txt};
+            \addplot[QFLStyle] table[x=x_0, y=y_0] {../results/point/26-false-lookup.txt};
+            \addplot[BFStyle] table[x=x_0, y=y_0] {../results/bloom/26-false-lookup.txt};
+            \addplot[SQFStyle] table[x=x_0, y=y_0] {../results/sqf/26-false-lookup.txt};
+            \addplot[RSQFStyle] table[x=x_0, y=y_0] {../results/rsqf/26-false-lookup.txt};
+
+         \end{axis}
+      \end{tikzpicture}
+      \caption{Random Queries.}
+      \label{26-false}
+   \end{subfigure}%
+\caption{Comparison between filter types when the dataset is of size $2^{26}$}
+\label{fig:26_perf}
+\end{figure*}

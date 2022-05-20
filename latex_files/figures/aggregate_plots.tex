@@ -1,0 +1,55 @@
+\begin{figure*}
+   \centering
+   \ref{agg-legend-load}\\
+   \begin{subfigure}{0.32\linewidth}
+      \begin{tikzpicture}
+         \begin{axis}[
+               AggregatePlot,
+               legend entries={\color{black}GQF-Bulk, \color{black}GQF, \color{black}BF, \color{black}SQF, \color{black}RSQF},
+               legend columns=6,
+               legend to name={agg-legend-load}
+            ]
+          \addplot[QFNLStyle]  table[x=x_0, y=y_0] {../results/aggregate/gqf-aggregate-insert.txt};
+          \addplot[QFLStyle]   table[x=x_0, y=y_0] {../results/aggregate/point-aggregate-insert.txt};
+          \addplot[BFStyle]    table[x=x_0, y=y_0] {../results/aggregate/bloom-aggregate-insert.txt};
+          \addplot[SQFStyle]   table[x=x_0, y=y_0] {../results/aggregate/sqf-aggregate-insert.txt};
+          \addplot[RSQFStyle]  table[x=x_0, y=y_0] {../results/aggregate/rsqf-aggregate-insert.txt};
+         \end{axis}
+      \end{tikzpicture}
+      \caption{Inserts (Cori).}
+      \label{fig:agg-inserts}
+   \end{subfigure}%
+   \begin{subfigure}{0.32\linewidth}
+      \begin{tikzpicture}
+         \begin{axis}[
+               AggregatePlot
+            ]
+           \addplot[QFNLStyle] table[x=x_0, y=y_0] {../results/aggregate/gqf-aggregate-exists-lookup.txt};
+           \addplot[QFLStyle]  table[x=x_0, y=y_0] {../results/aggregate/point-aggregate-exists-lookup.txt};
+           \addplot[BFStyle]   table[x=x_0, y=y_0] {../results/aggregate/bloom-aggregate-exists-lookup.txt};
+           \addplot[SQFStyle]  table[x=x_0, y=y_0] {../results/aggregate/sqf-aggregate-exists-lookup.txt};
+           \addplot[RSQFStyle] table[x=x_0, y=y_0] {../results/aggregate/rsqf-aggregate-exists-lookup.txt};
+         \end{axis}
+      \end{tikzpicture}
+      \caption{Positive queries (Cori).}
+      \label{fig:agg-exists}
+   \end{subfigure}%
+   \begin{subfigure}{0.32\linewidth}
+      \begin{tikzpicture}
+         \begin{axis}[
+               AggregatePlot
+            ]
+           \addplot[QFNLStyle] table[x=x_0, y=y_0] {../results/aggregate/gqf-aggregate-false-lookup.txt};
+           \addplot[QFLStyle]  table[x=x_0, y=y_0] {../results/aggregate/point-aggregate-false-lookup.txt};
+           \addplot[BFStyle]   table[x=x_0, y=y_0] {../results/aggregate/bloom-aggregate-false-lookup.txt};
+           \addplot[SQFStyle]  table[x=x_0, y=y_0] {../results/aggregate/sqf-aggregate-false-lookup.txt};
+           \addplot[RSQFStyle] table[x=x_0, y=y_0] {../results/aggregate/rsqf-aggregate-false-lookup.txt};
+         \end{axis}
+      \end{tikzpicture}
+      \caption{Random Queries (Cori).}
+      \label{fig:agg-false}
+   \end{subfigure}%
+\caption{Performance for various filters grouped by filter size. The experiments were performed on your computer. The x-axis shows $\log{n}$, where $n$ is the number of slots in the filter. SQF and RSQF only support up to $2^{26}$ slots.}
+\label{fig:agg_perf}
+\vspace{-0.5em}
+\end{figure*}
