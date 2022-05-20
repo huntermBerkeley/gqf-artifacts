@@ -542,6 +542,7 @@ __global__ void hashAndLookupGPU(int numItems, struct countingQuotientFilterGPU 
 __host__ float launchUnsortedLookups(countingQuotientFilterGPU cqf, int numValues, unsigned int* d_lookupValues, int* d_slotValuesArray)
 {
 
+    //printf("Yes, this gets called\n");
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);

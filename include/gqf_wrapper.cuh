@@ -64,6 +64,8 @@ extern inline int gqf_bulk_insert(uint64_t * vals, uint64_t count)
 
 	bulk_insert(g_quotient_filter, count, vals, QF_NO_LOCK);
 
+	//bulk_insert_timed(g_quotient_filter, count, vals, QF_NO_LOCK);
+
 	cudaDeviceSynchronize();
 	return 0;
 }

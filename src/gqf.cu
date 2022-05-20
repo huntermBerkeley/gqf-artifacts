@@ -740,6 +740,7 @@ __host__ __device__ static inline int might_be_empty(const QF *qf, uint64_t slot
 
 
 
+
 //static inlines were re-added, should
 __host__ __device__ uint64_t static inline find_first_empty_slot(QF *qf, uint64_t from)
 {
@@ -781,11 +782,11 @@ __host__ __device__ uint64_t static inline find_first_empty_slot(QF *qf, uint64_
 	uint64_t end_start_from = from/NUM_SLOTS_TO_LOCK;
 
 	//testing without this gate to check if we see speed improvements
-	if (end_start_from>bucket_start_from+1){
+	// if (end_start_from>bucket_start_from+1){
 
-		//return -1;
-		printf("Find first empty ran over a bucket: %llu\n", end_start_from-bucket_start_from);
-	}
+	// 	//return -1;
+	// 	printf("Find first empty ran over a bucket: %llu\n", end_start_from-bucket_start_from);
+	// }
 
 	return from;
 }
@@ -1561,6 +1562,14 @@ __host__ __device__ static inline qf_returns insert1_if_not_exists(QF *qf, __uin
 
 		if (operation >= 0) {
 			uint64_t empty_slot_index = find_first_empty_slot(qf, runend_index+1);
+
+
+			if (empty_slot_index / NUM_SLOTS_TO_LOCK > hash_bucket_index / NUM_SLOTS_TO_LOCK +1){
+
+				//return -1;
+				printf("Find first empty ran over a bucket: %llu\n", empty_slot_index / NUM_SLOTS_TO_LOCK - hash_bucket_index / NUM_SLOTS_TO_LOCK);
+			}
+
 			if (empty_slot_index >= qf->metadata->xnslots) {
 				printf("Ran out of space. Total xnslots is %lu, first empty slot is %lu\n", qf->metadata->xnslots, empty_slot_index);
 				return QF_FULL;
@@ -2041,6 +2050,14 @@ __host__ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t r
 
 		if (operation >= 0) {
 			uint64_t empty_slot_index = find_first_empty_slot(qf, runend_index+1);
+
+
+			if (empty_slot_index / NUM_SLOTS_TO_LOCK > hash_bucket_index / NUM_SLOTS_TO_LOCK +1){
+
+				//return -1;
+				printf("Find first empty ran over a bucket: %llu\n", empty_slot_index / NUM_SLOTS_TO_LOCK - hash_bucket_index / NUM_SLOTS_TO_LOCK);
+			}
+
 			if (empty_slot_index >= qf->metadata->xnslots) {
 				printf("Ran out of space. Total xnslots is %lu, first empty slot is %lu\n", qf->metadata->xnslots, empty_slot_index);
 				return QF_NO_SPACE;
@@ -3547,6 +3564,49 @@ __global__ void insert_from_buffers_hashed(QF* qf,  uint64_t evenness){
 
 }
 
+
+__global__ void find_clusters(QF* qf, uint64_t * cluster_lengths, uint64_t * max_clusters){
+
+	uint64_t tid = threadIdx.x+blockIdx.x*blockDim.x;
+
+	if (tid != 0) return;
+
+	uint64_t start_slot = 0;
+
+	uint64_t i =0;
+
+	while (start_slot < qf->metadata->nslots){
+
+		
+
+		uint64_t old_start = start_slot;
+
+		start_slot = find_first_empty_slot(qf, start_slot);
+
+		if (start_slot == old_start){
+
+			start_slot++; 
+
+		} else {
+
+			cluster_lengths[i] = start_slot-old_start;
+
+			i++;
+
+		}
+
+
+
+	}
+
+
+	max_clusters[0] = i;
+
+
+
+}
+
+
 //insert from buffers using prehashed_data
 //use warp cooperative operations
 __global__ void insert_from_buffers_cooperative(QF* qf, uint64_t evenness){
@@ -4264,14 +4324,22 @@ __host__ void bulk_insert(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags)
 
 	cudaFree(dev_num_locks);
 
+	auto start = std::chrono::high_resolution_clock::now();
 
 
 	//keys are hashed, now need to treat them as hashed in all further functions
 	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, flags);
 
 
+	cudaDeviceSynchronize();
+
+	//auto before_sort = std::chrono::high_resolution_clock::now();
+
 	thrust::sort(thrust::device, keys, keys+nvals);
 
+	//cudaDeviceSynchronize();
+
+	//auto after_sort = std::chrono::high_resolution_clock::now();
 
 	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, flags);
 
@@ -4295,9 +4363,106 @@ __host__ void bulk_insert(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags)
 
 	insert_from_buffers_hashed<<<(num_locks-1)/bulk_block_size+1, bulk_block_size>>>(qf, evenness);
 
+	//cudaDeviceSynchronize();
+
+	//auto end = std::chrono::high_resolution_clock::now();
+
+	//std::cout << "sort: " << (after_sort - before_sort).count() << " full." << (end - start).count() << " \n";
+
+
+
 
 }
 
+
+__host__ void bulk_insert_timed(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags) {
+
+	uint64_t key_block_size = 32;
+	uint64_t key_block = (nvals -1)/key_block_size + 1;
+	//start with num_locks, get counts
+
+
+	//This is slow, but there isn't a better way to do it
+	//we'll have to see how this affects performance
+	uint64_t * dev_num_locks;
+	cudaMallocManaged((void **)&dev_num_locks, sizeof(uint64_t));
+	get_dev_nvals<<<1,1>>>(qf, dev_num_locks);
+	cudaDeviceSynchronize();
+
+
+	uint64_t num_locks = dev_num_locks[0];
+
+	cudaFree(dev_num_locks);
+
+	auto start = std::chrono::high_resolution_clock::now();
+
+
+	//keys are hashed, now need to treat them as hashed in all further functions
+	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, flags);
+
+
+
+
+	cudaDeviceSynchronize();
+
+	auto after_hash = std::chrono::high_resolution_clock::now();
+
+	thrust::sort(thrust::device, keys, keys+nvals);
+
+	cudaDeviceSynchronize();
+
+	auto after_sort = std::chrono::high_resolution_clock::now();
+
+	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, flags);
+
+	cudaDeviceSynchronize();
+
+	auto after_binary_search = std::chrono::high_resolution_clock::now();
+
+	
+	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys);
+
+	cudaDeviceSynchronize();
+
+	auto after_length = std::chrono::high_resolution_clock::now();
+
+
+	//insert_from_buffers_hashed_onepass<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes);
+	
+	//return;
+
+
+	const int bulk_block_size = 32;
+
+	uint64_t evenness = 0;
+
+	insert_from_buffers_hashed<<<(num_locks-1)/bulk_block_size+1, bulk_block_size>>>(qf, evenness);
+	
+
+	evenness = 1;
+
+	insert_from_buffers_hashed<<<(num_locks-1)/bulk_block_size+1, bulk_block_size>>>(qf, evenness);
+
+	cudaDeviceSynchronize();
+
+	auto end = std::chrono::high_resolution_clock::now();
+
+	std::cout << "hash: " << (after_hash - start).count() << "\n";
+
+	std::cout << "sort: " << (after_sort - after_hash).count() << "\n";
+
+	std::cout << "binary: " << (after_binary_search - after_sort).count()<< "\n";
+
+  std::cout << "calcultate length: " << (after_length - after_binary_search).count() << "\n";	
+
+  std::cout << "inserts: " << (end - after_length).count() << "\n";
+
+	std::cout << "full: " << (end - start).count() << " \n";
+
+
+
+
+}
 
 __host__ void bulk_insert_cooperative(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags) {
 

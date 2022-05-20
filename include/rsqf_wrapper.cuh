@@ -123,7 +123,7 @@ extern inline uint64_t rsqf_bulk_get(uint64_t * vals, uint64_t count){
 
   downcast<<<(count-1)/512+1, 512>>>(count, vals, rsqf_inserts);
   //return bulk_get_wrapper(g_quotient_filter, vals, count);
-  launchLookups(test_cqf_gpu, count, rsqf_inserts, rsqf_returns);
+  launchUnsortedLookups(test_cqf_gpu, count, rsqf_inserts, rsqf_returns);
   cudaDeviceSynchronize();
 
 
@@ -149,7 +149,7 @@ extern inline uint64_t rsqf_bulk_get_fp(uint64_t * vals, uint64_t count){
 
   downcast<<<(count-1)/512+1, 512>>>(count, vals, rsqf_inserts);
   //return bulk_get_wrapper(g_quotient_filter, vals, count);
-  launchLookups(test_cqf_gpu, count, rsqf_inserts, rsqf_returns);
+  launchUnsortedLookups(test_cqf_gpu, count, rsqf_inserts, rsqf_returns);
   cudaDeviceSynchronize();
 
 

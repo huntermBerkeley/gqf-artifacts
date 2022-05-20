@@ -63,6 +63,7 @@ test:							$(OBJDIR)/test.o $(OBJDIR)/gqf.o \
 										$(OBJDIR)/partitioned_counter.o \
 										$(OBJDIR)/RSQF.o \
 										$(OBJDIR)/sqf.o \
+										$(OBJDIR)/zipf.o
 
 # dependencies between .o files and .h files
 

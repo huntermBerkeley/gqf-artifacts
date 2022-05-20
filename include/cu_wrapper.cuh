@@ -21,6 +21,8 @@
 #include <cuda_runtime_api.h>
 #include <curand.h>
 
+#include "include/zipf.cuh"
+
 struct curand_generator {
 
 
@@ -32,6 +34,8 @@ struct curand_generator {
 
 	void destroy();
 
+	void setup_host_backing(uint64_t full_size);
+
 private:
 
 
@@ -41,6 +45,9 @@ private:
 	uint64_t backing_size;
 	curandGenerator_t gen;
 	int type;
+	uint64_t * host_backing;
+	uint64_t host_counter;
+	uint64_t max_host_counter;
 
 
 };
@@ -78,6 +85,28 @@ void curand_generator::init(uint64_t inp_seed, int rand_type, uint64_t _backing_
 	CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, 1ULL*seed));
 	backing = temp_backing;
 
+
+}
+
+
+//This generates a zipfian distribution when called iff the generator is set to 2
+//all other generators use cuRand so no work is done on host. 
+void curand_generator::setup_host_backing(uint64_t full_size){
+
+	if (state != 2){
+
+		//printf("Calling host setup on non-zipfian randomness, ignoring.\n");
+		return;
+	}
+
+
+	uint64_t * temp_arr = (uint64_t * ) malloc(full_size * sizeof(uint64_t));
+
+	generate_random_keys(temp_arr, full_size, full_size, 1);
+
+	host_backing = temp_arr;
+	host_counter = 0;
+	max_host_counter = full_size;
 }
 
 void curand_generator::gen_next_batch(uint64_t noutputs){
@@ -87,6 +116,18 @@ void curand_generator::gen_next_batch(uint64_t noutputs){
 
 		CURAND_CALL(curandGenerate(gen, (unsigned int *) backing, 2*backing_size));
 
+
+	} else if (state == 2){
+
+		
+		cudaMemcpy(backing, host_backing+host_counter, noutputs, cudaMemcpyHostToDevice);
+
+		host_counter +=noutputs;
+
+		if (host_counter > max_host_counter){
+			printf("ERROR Zipfian too small\n");
+			abort();
+		}
 
 	} else {
 
@@ -112,7 +153,7 @@ __device__ uint64_t curand_generator::get_next(uint64_t tid){
 
 uint64_t * curand_generator::yield_backing(){
 
-	if (state ==0){
+	if (state ==0 || state == 2){
 		return backing;
 	} else if (state == 1){
 

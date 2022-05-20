@@ -129,6 +129,8 @@ extern "C" {
 	//new cooperative version
 	__host__ void bulk_insert_cooperative(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags);
 
+	__host__ void bulk_insert_timed(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags);
+
 
 	/* TESTING SUPPORT */
 
@@ -433,6 +435,8 @@ extern "C" {
   __global__ void get_dev_nvals(QF* qf, uint64_t * external_nvals);
 
   __host__ uint64_t bulk_get_nocount_wrapper(QF * qf, uint64_t * vals, uint64_t nvals);
+
+  __global__ void find_clusters(QF* qf, uint64_t * cluster_lengths, uint64_t * max_clusters);
 
 
 #ifdef __cplusplus

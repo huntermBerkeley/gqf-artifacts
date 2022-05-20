@@ -423,7 +423,7 @@ int main(int argc, char **argv)
 		// }
 
 
-		int seed = 0;
+		int rand_type = 0;
 
 
 
@@ -433,13 +433,20 @@ int main(int argc, char **argv)
 		//setup for curand here
 		//three generators - two clones for get/find and one random for fp testing
 		curand_generator curand_put{};
-		curand_put.init(run, seed, buf_size);
+		curand_put.init(run, rand_type, buf_size);
 		curand_generator curand_get{};
-		curand_get.init(run, seed, buf_size);
+		curand_get.init(run, rand_type, buf_size);
 		curand_generator curand_false{};
 
-		curand_false.init((run+1)*2702173, 0, buf_size);
-		//curand_false.init(run, seed, buf_size);
+
+		curand_false.init((run+1)*2702173, rand_type, buf_size);
+		//curand_false.init(run, rand_type, buf_size);
+
+
+
+		curand_put.setup_host_backing(1ULL << nbits);
+		curand_get.setup_host_backing(1ULL << nbits);
+		curand_false.setup_host_backing(1ULL << nbits);
 		
 		cudaDeviceSynchronize();
 
@@ -628,7 +635,9 @@ int main(int argc, char **argv)
 		// }
 
 		curand_generator get_end{};
-		get_end.init(run, seed, buf_size);
+		get_end.init(run, rand_type, buf_size);
+
+		get_end.setup_host_backing(1ULL << nbits);
 		
 		for (exp = 0; exp < 2*npoints; exp += 2) {
 			i = (exp/2)*(nvals/npoints);
@@ -728,7 +737,7 @@ int main(int argc, char **argv)
 		if (deletions){
 
 			curand_generator get_deletes{};
-			get_deletes.init(run, seed, buf_size);
+			get_deletes.init(run, rand_type, buf_size);
 
 
 			for (exp = 0; exp < 2*npoints; exp += 2) {
@@ -795,7 +804,7 @@ int main(int argc, char **argv)
 
 
 		curand_generator get_final{};
-		get_final.init(run, seed, buf_size);
+		get_final.init(run, rand_type, buf_size);
 		
 		for (exp = 0; exp < 2*npoints; exp += 2) {
 			i = (exp/2)*(nvals/npoints);

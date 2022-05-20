@@ -420,6 +420,41 @@ int main(int argc, char** argv) {
   	printf("Queries per second: %f\n", nvals/diff.count());
 
 
+
+
+  	printf("Generating clusters, writing to file\n");
+
+  	uint64_t * cluster_lengths;
+
+  	cudaMallocManaged((void**)& cluster_lengths, nvals*sizeof(uint64_t));
+
+    uint64_t * max_cluster;
+
+  	cudaMallocManaged((void**)& max_cluster, 1*sizeof(uint64_t));
+
+  	cudaDeviceSynchronize();
+
+
+
+
+  	find_clusters<<<1,1>>>(dev_qf, cluster_lengths, max_cluster);
+
+  	cudaDeviceSynchronize();
+
+
+  	FILE *fp_insert = fopen("clusters.txt", "a");
+
+
+  	for (uint64_t i=0; i < max_cluster[0]; i++){
+
+  		fprintf(fp_insert, " %llu\n", cluster_lengths[i]);
+
+  	}
+
+
+
+
+
   	cudaMemcpy(dev_vals, vals, nvals*sizeof(uint64_t), cudaMemcpyHostToDevice);
   	cudaDeviceSynchronize();
 
