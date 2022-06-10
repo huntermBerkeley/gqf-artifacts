@@ -77,6 +77,14 @@
 
 #define DEBUG_ASSERTS 0
 
+#define DROP_ON_RUNEND 0
+
+#define RUNEND_CUTOFF 15
+
+#define DROP_ON_BIG_CLUSTER 0
+
+#define BIG_CLUSTER_DROPOFF 4096
+
 #define DISTANCE_FROM_HOME_SLOT_CUTOFF 1000
 #define BILLION 1000000000L
 #define CUDA_CHECK(ans)                                                                  \
@@ -737,7 +745,6 @@ __host__ __device__ static inline int might_be_empty(const QF *qf, uint64_t slot
 // 		&& !is_occupied(qf, slot_index)
 // 		&& !is_runend(qf, slot_index);
 // }
-
 
 
 
@@ -1563,11 +1570,29 @@ __host__ __device__ static inline qf_returns insert1_if_not_exists(QF *qf, __uin
 		if (operation >= 0) {
 			uint64_t empty_slot_index = find_first_empty_slot(qf, runend_index+1);
 
+			#if DROP_ON_BIG_CLUSTER
 
-			if (empty_slot_index / NUM_SLOTS_TO_LOCK > hash_bucket_index / NUM_SLOTS_TO_LOCK +1){
+			// if (empty_slot_index - hash_bucket_index > BIG_CLUSTER_DROPOFF){
+			// 	return QF_FULL;
+			// }
 
-				//return -1;
-				printf("Find first empty ran over a bucket: %llu\n", empty_slot_index / NUM_SLOTS_TO_LOCK - hash_bucket_index / NUM_SLOTS_TO_LOCK);
+			if (qf->metadata->qf_full){
+				return QF_FULL;
+			}
+
+			if (empty_slot_index - hash_bucket_index > BIG_CLUSTER_DROPOFF){
+
+				qf->metadata->qf_full = true;
+				return QF_FULL;
+
+			}
+
+
+
+			#endif
+
+			if (empty_slot_index/NUM_SLOTS_TO_LOCK > hash_bucket_index/NUM_SLOTS_TO_LOCK+1){
+				return QF_FULL;
 			}
 
 			if (empty_slot_index >= qf->metadata->xnslots) {
@@ -1774,6 +1799,31 @@ __device__ static inline qf_returns insert1_if_not_exists_cooperative(QF *qf, __
 
 			if (warpID == 0) empty_slot_index = find_first_empty_slot(qf, runend_index+1);
 
+			#if DROP_ON_BIG_CLUSTER
+
+			// if (empty_slot_index - hash_bucket_index > BIG_CLUSTER_DROPOFF){
+			// 	return QF_FULL;
+			// }
+
+			if (qf->metadata->qf_full){
+				return QF_FULL;
+			}
+
+			if (empty_slot_index - hash_bucket_index > BIG_CLUSTER_DROPOFF){
+
+				qf->metadata->qf_full = true;
+				return QF_FULL;
+
+			}
+
+
+
+			#endif
+
+			if (empty_slot_index/NUM_SLOTS_TO_LOCK > hash_bucket_index/NUM_SLOTS_TO_LOCK+1){
+				return QF_FULL;
+			}
+
 			empty_slot_index = __shfl_sync(0xffffffff, empty_slot_index, 0);
 
 			if (empty_slot_index >= qf->metadata->xnslots) {
@@ -1856,7 +1906,7 @@ __device__ static inline qf_returns insert1_if_not_exists_cooperative(QF *qf, __
 
 
 
-__host__ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t runtime_lock)
+__host__ __device__ static inline qf_returns insert1(QF *qf, __uint64_t hash, uint8_t runtime_lock)
 {
 	int ret_distance = 0;
 	uint64_t hash_remainder           = hash & BITMASK(qf->metadata->bits_per_slot);
@@ -1883,6 +1933,16 @@ __host__ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t r
 		//modify_metadata(&qf->runtimedata->pc_nelts, 1);
 	} else {
 		uint64_t runend_index       = run_end(qf, hash_bucket_index);
+
+		#if DROP_ON_RUNEND
+
+		if (runend_index - hash_bucket_index >= RUNEND_CUTOFF){
+			//printf("Dropping\n");
+			return QF_FULL;
+		}
+
+		#endif
+
 		int operation = 0; /* Insert into empty bucket */
 		uint64_t insert_index = runend_index + 1;
 		uint64_t new_value = hash_remainder;
@@ -2051,16 +2111,34 @@ __host__ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t r
 		if (operation >= 0) {
 			uint64_t empty_slot_index = find_first_empty_slot(qf, runend_index+1);
 
+			#if DROP_ON_BIG_CLUSTER
 
-			if (empty_slot_index / NUM_SLOTS_TO_LOCK > hash_bucket_index / NUM_SLOTS_TO_LOCK +1){
+			// if (empty_slot_index - hash_bucket_index > BIG_CLUSTER_DROPOFF){
+			// 	return QF_FULL;
+			// }
 
-				//return -1;
-				printf("Find first empty ran over a bucket: %llu\n", empty_slot_index / NUM_SLOTS_TO_LOCK - hash_bucket_index / NUM_SLOTS_TO_LOCK);
+			if (qf->metadata->qf_full){
+				return QF_FULL;
+			}
+
+			if (empty_slot_index - hash_bucket_index > BIG_CLUSTER_DROPOFF){
+
+				qf->metadata->qf_full = true;
+				return QF_FULL;
+
+			}
+
+
+
+			#endif
+
+			if (empty_slot_index/NUM_SLOTS_TO_LOCK > hash_bucket_index/NUM_SLOTS_TO_LOCK+1){
+				return QF_FULL;
 			}
 
 			if (empty_slot_index >= qf->metadata->xnslots) {
 				printf("Ran out of space. Total xnslots is %lu, first empty slot is %lu\n", qf->metadata->xnslots, empty_slot_index);
-				return QF_NO_SPACE;
+				return QF_FULL;
 			}
 			shift_remainders(qf, insert_index, empty_slot_index);
 
@@ -2112,7 +2190,8 @@ __host__ __device__ static inline int insert1(QF *qf, __uint64_t hash, uint8_t r
 		qf_unlock(qf, hash_bucket_index, true);
 	}
 	*/
-	return ret_distance;
+	//return ret_distance;
+	return QF_ITEM_INSERTED;
 }
 
 __device__ static inline int insert1_cooperative(QF *qf, __uint64_t hash, uint8_t runtime_lock, int warpID)
@@ -2355,9 +2434,35 @@ __device__ static inline int insert1_cooperative(QF *qf, __uint64_t hash, uint8_
 
 		if (operation >= 0) {
 			uint64_t empty_slot_index = find_first_empty_slot(qf, runend_index+1);
+
+			#if DROP_ON_BIG_CLUSTER
+
+			// if (empty_slot_index - hash_bucket_index > BIG_CLUSTER_DROPOFF){
+			// 	return QF_FULL;
+			// }
+
+			if (qf->metadata->qf_full){
+				return QF_FULL;
+			}
+
+			if (empty_slot_index - hash_bucket_index > BIG_CLUSTER_DROPOFF){
+
+				qf->metadata->qf_full = true;
+				return QF_FULL;
+
+			}
+
+
+
+			#endif
+
+			if (empty_slot_index/NUM_SLOTS_TO_LOCK > hash_bucket_index/NUM_SLOTS_TO_LOCK+1){
+				return QF_FULL;
+			}
+
 			if (empty_slot_index >= qf->metadata->xnslots) {
 				printf("Ran out of space. Total xnslots is %lu, first empty slot is %lu\n", qf->metadata->xnslots, empty_slot_index);
-				return QF_NO_SPACE;
+				return QF_FULL;
 			}
 			shift_remainders(qf, insert_index, empty_slot_index);
 
@@ -2414,7 +2519,7 @@ __device__ static inline int insert1_cooperative(QF *qf, __uint64_t hash, uint8_
 
 
 
-__host__ __device__ static inline int insert(QF *qf, __uint64_t hash, uint64_t count, uint8_t
+__host__ __device__ static inline qf_returns insert(QF *qf, __uint64_t hash, uint64_t count, uint8_t
 												 runtime_lock)
 {
 	int ret_distance = 0;
@@ -2456,7 +2561,7 @@ __host__ __device__ static inline int insert(QF *qf, __uint64_t hash, uint64_t c
 			uint64_t *p = encode_counter(qf, hash_remainder, count, &new_values[67]);
 			ret = insert_replace_slots_and_shift_remainders_and_runends_and_offsets(qf, 0, hash_bucket_index, runstart_index, p, &new_values[67] - p, 0);
 			if (!ret)
-				return QF_NO_SPACE;
+				return QF_FULL;
 			//modify_metadata(&qf->runtimedata->pc_ndistinct_elts, 1);
 			ret_distance = runstart_index - hash_bucket_index;
 		} else { /* Non-empty bucket */
@@ -2477,7 +2582,7 @@ __host__ __device__ static inline int insert(QF *qf, __uint64_t hash, uint64_t c
 				uint64_t *p = encode_counter(qf, hash_remainder, count, &new_values[67]);
 				ret = insert_replace_slots_and_shift_remainders_and_runends_and_offsets(qf, 1, /* Append to bucket */hash_bucket_index, current_end + 1, p, &new_values[67] - p, 0);
 				if (!ret)
-					return QF_NO_SPACE;
+					return QF_FULL;
 				//modify_metadata(&qf->runtimedata->pc_ndistinct_elts, 1);
 				ret_distance = (current_end + 1) - hash_bucket_index;
 				/* Found a counter for this remainder.  Add in the new count. */
@@ -2491,7 +2596,7 @@ __host__ __device__ static inline int insert(QF *qf, __uint64_t hash, uint64_t c
 																																					&new_values[67] - p,
 																																					current_end - runstart_index + 1);
 			if (!ret)
-				return QF_NO_SPACE;
+				return QF_FULL;
 			ret_distance = runstart_index - hash_bucket_index;
 				/* No counter for this remainder, but there are larger
 					 remainders, so we're not appending to the bucket. */
@@ -2505,7 +2610,7 @@ __host__ __device__ static inline int insert(QF *qf, __uint64_t hash, uint64_t c
 																																								&new_values[67] - p,
 																																								0);
 				if (!ret)
-					return QF_NO_SPACE;
+					return QF_FULL;
 				//modify_metadata(&qf->runtimedata->pc_ndistinct_elts, 1);
 			ret_distance = runstart_index - hash_bucket_index;
 			}
@@ -2519,7 +2624,8 @@ __host__ __device__ static inline int insert(QF *qf, __uint64_t hash, uint64_t c
 		qf_unlock(qf, hash_bucket_index,  false);
 	}
 	*/
-	return ret_distance;
+	//return ret_distance;
+	return QF_ITEM_INSERTED;
 }
 
 
@@ -2643,6 +2749,8 @@ __host__ uint64_t qf_init(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t v
 	qf->metadata->nelts = 0;
 	qf->metadata->ndistinct_elts = 0;
 	qf->metadata->noccupied_slots = 0;
+
+	qf->metadata->qf_full = false;
 
 	qf->runtimedata->num_locks = ((qf->metadata->xnslots/NUM_SLOTS_TO_LOCK)+2);
 
@@ -3045,10 +3153,10 @@ __host__ __device__ qf_returns qf_insert_not_exists(QF *qf, uint64_t key, uint64
 			if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) < 0)
 			{
 				fprintf(stderr, "Resizing the failed.\n");
-				return QF_NO_SPACE;
+				return QF_FULL;
 			}
 		} else
-			return QF_NO_SPACE;
+			return QF_FULL;
 	}
 	*/
 	// if (count == 0)
@@ -3074,7 +3182,7 @@ __host__ __device__ qf_returns qf_insert_not_exists(QF *qf, uint64_t key, uint64
 	// check for fullness based on the distance from the home slot to the slot
 	// in which the key is inserted
 	/*
-	if (ret == QF_NO_SPACE || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
+	if (ret == QF_FULL || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
 		float load_factor = qf_get_num_occupied_slots(qf) /
 			(float)qf->metadata->nslots;
 		fprintf(stdout, "Load factor: %lf\n", load_factor);
@@ -3082,7 +3190,7 @@ __host__ __device__ qf_returns qf_insert_not_exists(QF *qf, uint64_t key, uint64
 			fprintf(stdout, "Resizing the CQF.\n");
 			if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) > 0)
 			{
-				if (ret == QF_NO_SPACE) {
+				if (ret == QF_FULL) {
 					if (count == 1)
 						ret = insert1(qf, hash, flags);
 					else
@@ -3091,11 +3199,11 @@ __host__ __device__ qf_returns qf_insert_not_exists(QF *qf, uint64_t key, uint64
 				fprintf(stderr, "Resize finished.\n");
 			} else {
 				fprintf(stderr, "Resize failed\n");
-				ret = QF_NO_SPACE;
+				ret = QF_FULL;
 			}
 		} else {
 			fprintf(stderr, "The CQF is filling up.\n");
-			ret = QF_NO_SPACE;
+			ret = QF_FULL;
 		}
 	}
 	*/
@@ -3117,10 +3225,10 @@ __device__ qf_returns qf_insert_not_exists_cooperative(QF *qf, uint64_t key, uin
 			if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) < 0)
 			{
 				fprintf(stderr, "Resizing the failed.\n");
-				return QF_NO_SPACE;
+				return QF_FULL;
 			}
 		} else
-			return QF_NO_SPACE;
+			return QF_FULL;
 	}
 	*/
 	// if (count == 0)
@@ -3146,7 +3254,7 @@ __device__ qf_returns qf_insert_not_exists_cooperative(QF *qf, uint64_t key, uin
 	// check for fullness based on the distance from the home slot to the slot
 	// in which the key is inserted
 	/*
-	if (ret == QF_NO_SPACE || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
+	if (ret == QF_FULL || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
 		float load_factor = qf_get_num_occupied_slots(qf) /
 			(float)qf->metadata->nslots;
 		fprintf(stdout, "Load factor: %lf\n", load_factor);
@@ -3154,7 +3262,7 @@ __device__ qf_returns qf_insert_not_exists_cooperative(QF *qf, uint64_t key, uin
 			fprintf(stdout, "Resizing the CQF.\n");
 			if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) > 0)
 			{
-				if (ret == QF_NO_SPACE) {
+				if (ret == QF_FULL) {
 					if (count == 1)
 						ret = insert1(qf, hash, flags);
 					else
@@ -3163,11 +3271,11 @@ __device__ qf_returns qf_insert_not_exists_cooperative(QF *qf, uint64_t key, uin
 				fprintf(stderr, "Resize finished.\n");
 			} else {
 				fprintf(stderr, "Resize failed\n");
-				ret = QF_NO_SPACE;
+				ret = QF_FULL;
 			}
 		} else {
 			fprintf(stderr, "The CQF is filling up.\n");
-			ret = QF_NO_SPACE;
+			ret = QF_FULL;
 		}
 	}
 	*/
@@ -3175,7 +3283,7 @@ __device__ qf_returns qf_insert_not_exists_cooperative(QF *qf, uint64_t key, uin
 }
 
 
-__host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
+__host__ __device__ qf_returns qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 							flags)
 {
 	// We fill up the CQF up to 95% load factor.
@@ -3189,14 +3297,14 @@ __host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t
 			if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) < 0)
 			{
 				fprintf(stderr, "Resizing the failed.\n");
-				return QF_NO_SPACE;
+				return QF_FULL;
 			}
 		} else
-			return QF_NO_SPACE;
+			return QF_FULL;
 	}
 	*/
 	if (count == 0)
-		return 0;
+		return QF_ITEM_INSERTED;
 
 	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
 		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
@@ -3207,7 +3315,7 @@ __host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t
 
 	uint64_t hash = (key << qf->metadata->value_bits) | (value & BITMASK(qf->metadata->value_bits));
   //printf("Inside insert, new hash is recorded as %llu\n", hash);
-	int ret;
+	qf_returns ret;
 	if (count == 1){
 		ret = insert1(qf, hash, flags);
 	}
@@ -3218,7 +3326,7 @@ __host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t
 	// check for fullness based on the distance from the home slot to the slot
 	// in which the key is inserted
 	/*
-	if (ret == QF_NO_SPACE || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
+	if (ret == QF_FULL || ret > DISTANCE_FROM_HOME_SLOT_CUTOFF) {
 		float load_factor = qf_get_num_occupied_slots(qf) /
 			(float)qf->metadata->nslots;
 		fprintf(stdout, "Load factor: %lf\n", load_factor);
@@ -3226,7 +3334,7 @@ __host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t
 			fprintf(stdout, "Resizing the CQF.\n");
 			if (qf->runtimedata->container_resize(qf, qf->metadata->nslots * 2) > 0)
 			{
-				if (ret == QF_NO_SPACE) {
+				if (ret == QF_FULL) {
 					if (count == 1)
 						ret = insert1(qf, hash, flags);
 					else
@@ -3235,11 +3343,11 @@ __host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t
 				fprintf(stderr, "Resize finished.\n");
 			} else {
 				fprintf(stderr, "Resize failed\n");
-				ret = QF_NO_SPACE;
+				ret = QF_FULL;
 			}
 		} else {
 			fprintf(stderr, "The CQF is filling up.\n");
-			ret = QF_NO_SPACE;
+			ret = QF_FULL;
 		}
 	}
 	*/
@@ -3481,6 +3589,48 @@ __global__ void set_buffers_binary(QF * qf, uint64_t num_keys, uint64_t * keys, 
 
 }
 
+__global__ void find_clusters(QF* qf, uint64_t * cluster_lengths, uint64_t * max_clusters){
+
+	uint64_t tid = threadIdx.x+blockIdx.x*blockDim.x;
+
+	if (tid != 0) return;
+
+	uint64_t start_slot = 0;
+
+	uint64_t i =0;
+
+	while (start_slot < qf->metadata->nslots){
+
+		
+
+		uint64_t old_start = start_slot;
+
+		start_slot = find_first_empty_slot(qf, start_slot);
+
+		if (start_slot == old_start){
+
+			start_slot++; 
+
+		} else {
+
+			cluster_lengths[i] = start_slot-old_start;
+
+			i++;
+
+		}
+
+
+
+	}
+
+
+	max_clusters[0] = i;
+
+
+
+}
+
+
 //this can maybe be rolled into set_buffers_binary
 //it performs an identical set of operations that are O(1) here
 // O(log n) there, but maybe amortized
@@ -3564,49 +3714,6 @@ __global__ void insert_from_buffers_hashed(QF* qf,  uint64_t evenness){
 
 }
 
-
-__global__ void find_clusters(QF* qf, uint64_t * cluster_lengths, uint64_t * max_clusters){
-
-	uint64_t tid = threadIdx.x+blockIdx.x*blockDim.x;
-
-	if (tid != 0) return;
-
-	uint64_t start_slot = 0;
-
-	uint64_t i =0;
-
-	while (start_slot < qf->metadata->nslots){
-
-		
-
-		uint64_t old_start = start_slot;
-
-		start_slot = find_first_empty_slot(qf, start_slot);
-
-		if (start_slot == old_start){
-
-			start_slot++; 
-
-		} else {
-
-			cluster_lengths[i] = start_slot-old_start;
-
-			i++;
-
-		}
-
-
-
-	}
-
-
-	max_clusters[0] = i;
-
-
-
-}
-
-
 //insert from buffers using prehashed_data
 //use warp cooperative operations
 __global__ void insert_from_buffers_cooperative(QF* qf, uint64_t evenness){
@@ -3658,7 +3765,7 @@ __global__ void insert_from_buffers_cooperative(QF* qf, uint64_t evenness){
 		qf_returns ret_val = qf_insert_not_exists_cooperative(qf, buffers[idx][i], 0, 1, QF_NO_LOCK | QF_KEY_IS_HASH, &query, warpID);
 
 		#if DEBUG_ASSERTS
-		assert(ret_val != QF_NO_SPACE);
+		assert(ret_val != QF_FULL);
 		#endif
 
 
@@ -3937,15 +4044,14 @@ __device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t 
 					lock_16(qf->runtimedata->locks, lock_index+1);
 
 					
-					int ret = qf_insert(qf, hash, value, 1, QF_NO_LOCK | QF_KEY_IS_HASH);
+					qf_returns ret = qf_insert(qf, hash, value, 1, QF_NO_LOCK | QF_KEY_IS_HASH);
 
 					__threadfence();
 					unlock_16(qf->runtimedata->locks, lock_index+1);
 					unlock_16(qf->runtimedata->locks, lock_index);
 
 
-					if (ret == QF_NO_SPACE) return QF_FULL;
-					return QF_ITEM_INSERTED;
+					return ret;
 
 
 				//}
@@ -4262,8 +4368,12 @@ __global__ void point_bulk_insert(QF * qf, uint64_t * hashes, uint64_t nitems){
 
 	if (tid >=nitems) return;
 
+	//#if DROP_ON_RUNEND
+		point_insert(qf, hashes[tid], 0, 0);
 
-	assert(point_insert(qf, hashes[tid], 0, 0) != QF_NO_SPACE);
+	// #else
+	// 	assert(point_insert(qf, hashes[tid], 0, 0) != QF_FULL);
+	// #endif
 
 }
 
@@ -4282,7 +4392,7 @@ __global__ void point_bulk_insert_cooperative(QF * qf, uint64_t * hashes, uint64
 	if (tid >=nitems) return;
 
 	uint8_t retvalue;
-	assert(point_insert_not_exists_cooperative(qf, hashes[tid], 0, retvalue, 0, warpID) != QF_NO_SPACE);
+	assert(point_insert_not_exists_cooperative(qf, hashes[tid], 0, retvalue, 0, warpID) != QF_FULL);
 
 }
 
@@ -4324,22 +4434,14 @@ __host__ void bulk_insert(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags)
 
 	cudaFree(dev_num_locks);
 
-	auto start = std::chrono::high_resolution_clock::now();
 
 
 	//keys are hashed, now need to treat them as hashed in all further functions
 	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, flags);
 
 
-	cudaDeviceSynchronize();
-
-	//auto before_sort = std::chrono::high_resolution_clock::now();
-
 	thrust::sort(thrust::device, keys, keys+nvals);
 
-	//cudaDeviceSynchronize();
-
-	//auto after_sort = std::chrono::high_resolution_clock::now();
 
 	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, flags);
 
@@ -4363,106 +4465,9 @@ __host__ void bulk_insert(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags)
 
 	insert_from_buffers_hashed<<<(num_locks-1)/bulk_block_size+1, bulk_block_size>>>(qf, evenness);
 
-	//cudaDeviceSynchronize();
-
-	//auto end = std::chrono::high_resolution_clock::now();
-
-	//std::cout << "sort: " << (after_sort - before_sort).count() << " full." << (end - start).count() << " \n";
-
-
-
 
 }
 
-
-__host__ void bulk_insert_timed(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags) {
-
-	uint64_t key_block_size = 32;
-	uint64_t key_block = (nvals -1)/key_block_size + 1;
-	//start with num_locks, get counts
-
-
-	//This is slow, but there isn't a better way to do it
-	//we'll have to see how this affects performance
-	uint64_t * dev_num_locks;
-	cudaMallocManaged((void **)&dev_num_locks, sizeof(uint64_t));
-	get_dev_nvals<<<1,1>>>(qf, dev_num_locks);
-	cudaDeviceSynchronize();
-
-
-	uint64_t num_locks = dev_num_locks[0];
-
-	cudaFree(dev_num_locks);
-
-	auto start = std::chrono::high_resolution_clock::now();
-
-
-	//keys are hashed, now need to treat them as hashed in all further functions
-	hash_all<<<key_block, key_block_size>>>(qf, keys, keys, nvals, flags);
-
-
-
-
-	cudaDeviceSynchronize();
-
-	auto after_hash = std::chrono::high_resolution_clock::now();
-
-	thrust::sort(thrust::device, keys, keys+nvals);
-
-	cudaDeviceSynchronize();
-
-	auto after_sort = std::chrono::high_resolution_clock::now();
-
-	set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys, flags);
-
-	cudaDeviceSynchronize();
-
-	auto after_binary_search = std::chrono::high_resolution_clock::now();
-
-	
-	set_buffer_lens<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, nvals, keys);
-
-	cudaDeviceSynchronize();
-
-	auto after_length = std::chrono::high_resolution_clock::now();
-
-
-	//insert_from_buffers_hashed_onepass<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, num_locks, buffers, buffer_sizes);
-	
-	//return;
-
-
-	const int bulk_block_size = 32;
-
-	uint64_t evenness = 0;
-
-	insert_from_buffers_hashed<<<(num_locks-1)/bulk_block_size+1, bulk_block_size>>>(qf, evenness);
-	
-
-	evenness = 1;
-
-	insert_from_buffers_hashed<<<(num_locks-1)/bulk_block_size+1, bulk_block_size>>>(qf, evenness);
-
-	cudaDeviceSynchronize();
-
-	auto end = std::chrono::high_resolution_clock::now();
-
-	std::cout << "hash: " << (after_hash - start).count() << "\n";
-
-	std::cout << "sort: " << (after_sort - after_hash).count() << "\n";
-
-	std::cout << "binary: " << (after_binary_search - after_sort).count()<< "\n";
-
-  std::cout << "calcultate length: " << (after_length - after_binary_search).count() << "\n";	
-
-  std::cout << "inserts: " << (end - after_length).count() << "\n";
-
-	std::cout << "full: " << (end - start).count() << " \n";
-
-
-
-
-}
 
 __host__ void bulk_insert_cooperative(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags) {
 

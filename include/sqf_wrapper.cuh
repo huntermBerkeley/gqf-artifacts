@@ -192,28 +192,28 @@ extern inline uint64_t sqf_bulk_get(uint64_t * vals, uint64_t count){
  //  cudaMallocManaged((void **)& misses, sizeof(uint64_t));
  //  misses[0] = 0;
 
-  auto start = std::chrono::high_resolution_clock::now();
+  //auto start = std::chrono::high_resolution_clock::now();
 
   sqf_downcast<<<(count-1)/512+1, 512>>>(count, vals, sqf_inserts);
   //return bulk_get_wrapper(g_quotient_filter, vals, count);
 
-  cudaDeviceSynchronize();
+  //cudaDeviceSynchronize();
 
-  auto midpoint = std::chrono::high_resolution_clock::now();
+  //auto midpoint = std::chrono::high_resolution_clock::now();
 
   sqf_filter::launchUnsortedLookups(sqf_cqf_gpu, count, sqf_inserts, sqf_returns);
 
   //launchLookups(test_cqf_gpu, count, sqf_inserts, sqf_returns);
   cudaDeviceSynchronize();
 
-   auto end = std::chrono::high_resolution_clock::now();
+  //  auto end = std::chrono::high_resolution_clock::now();
 
 
-  //sqf_check<<<(count-1)/512+1, 512>>>(sqf_returns, count, misses);
-  cudaDeviceSynchronize();
+  // //sqf_check<<<(count-1)/512+1, 512>>>(sqf_returns, count, misses);
+  // cudaDeviceSynchronize();
 
 
-  std::cout << "downcast: " << (midpoint - start).count() << " rest." << (end - midpoint).count() << " \n";
+  //std::cout << "downcast: " << (midpoint - start).count() << " rest." << (end - midpoint).count() << " \n";
 
   // uint64_t toReturn = misses[0];
 

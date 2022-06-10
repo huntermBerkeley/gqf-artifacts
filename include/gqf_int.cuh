@@ -38,6 +38,7 @@ extern "C" {
 	typedef struct{
 		/* Code works with uint16_t, uint32_t, etc, but uint8_t seems just as fast as
 		 * anything else */
+		uint8_t offset;
 		uint64_t occupieds[QF_METADATA_WORDS_PER_BLOCK];
 		uint64_t runends[QF_METADATA_WORDS_PER_BLOCK];
 #if QF_BITS_PER_SLOT == 8
@@ -53,8 +54,6 @@ extern "C" {
 #else
 		uint8_t   slots[];
 #endif
-
-		uint8_t offset;
 	}  __attribute__((__packed__)) qfblock;
 
 //	struct __attribute__ ((__packed__)) qfblock;
@@ -111,6 +110,7 @@ extern "C" {
 		uint64_t nelts;
 		uint64_t ndistinct_elts;
 		uint64_t noccupied_slots;
+		bool qf_full;
 	} quotient_filter_metadata;
 
 	typedef quotient_filter_metadata qfmetadata;

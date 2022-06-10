@@ -229,7 +229,7 @@ extern "C" {
 	 *    == QF_NO_SPACE: the CQF has reached capacity.
 	 *    == QF_COULDNT_LOCK: TRY_ONCE_LOCK has failed to acquire the lock.
 	 */
-	__host__ __device__ int qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
+	__host__ __device__ qf_returns qf_insert(QF *qf, uint64_t key, uint64_t value, uint64_t count, uint8_t
 								flags);
 
 
@@ -305,6 +305,9 @@ extern "C" {
 	 */
 	__host__ __device__ int64_t qf_get_unique_index(const QF *qf, uint64_t key, uint64_t value,
 															uint8_t flags);
+
+
+	__global__ void find_clusters(QF* qf, uint64_t * cluster_lengths, uint64_t * max_clusters);
 
 
 	/****************************************
