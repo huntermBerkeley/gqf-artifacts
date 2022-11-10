@@ -3367,8 +3367,11 @@ __device__ void lock_16(uint16_t * lock, uint64_t index){
 	uint16_t zero = 0;
 	uint16_t one = 1;
 
-	while (atomicCAS((uint16_t *) &lock[index*LOCK_DIST], zero, one) != zero)
-		;
+	//while (atomicCAS((uint16_t *) &lock[index*LOCK_DIST], zero, one) != zero);
+
+	//unsigned short int patch for cuda
+	while (atomicCAS((unsigned short int *) &lock[index*LOCK_DIST], (unsigned short int) zero, (unsigned short int) one) != zero);
+
 
 }
 
@@ -3380,8 +3383,10 @@ __device__ void lock_16_coop(uint16_t * lock, uint64_t index, int warpID){
 
 	if (warpID ==0){
 
-			while (atomicCAS((uint16_t *) &lock[index*LOCK_DIST], zero, one) != zero)
-		;
+			//while (atomicCAS((uint16_t *) &lock[index*LOCK_DIST], zero, one) != zero);
+
+			//quick patch, cuda wants unsigned short int *
+			while (atomicCAS((unsigned short int *) &lock[index*LOCK_DIST], (unsigned short int) zero, (unsigned short int) one) != zero);
 
 	}
 
@@ -3397,7 +3402,11 @@ __device__ void unlock_16(uint16_t * lock, uint64_t index){
 	uint16_t zero = 0;
 	uint16_t one = 1;
 
-	atomicCAS((uint16_t *) &lock[index*LOCK_DIST], one, zero);
+	//atomicCAS((uint16_t *) &lock[index*LOCK_DIST], one, zero);
+
+	//CUDA CAS Patch	
+	atomicCAS((unsigned short int *) &lock[index*LOCK_DIST], (unsigned short int) one, (unsigned short int) zero);
+
 		
 
 }
@@ -3411,7 +3420,10 @@ __device__ bool try_lock_16(uint16_t * lock, uint64_t index){
 	uint16_t zero = 0;
 	uint16_t one = 1;
 
-	if (atomicCAS((uint16_t *) &lock[index*LOCK_DIST], zero, one) == zero){
+	//if (atomicCAS((uint16_t *) &lock[index*LOCK_DIST], zero, one) == zero){
+
+	if (atomicCAS((unsigned short int *) &lock[index*LOCK_DIST], (unsigned short int) zero, (unsigned short int) one) == zero){
+
 
 		return true;
 	}
@@ -3429,7 +3441,9 @@ __device__ bool try_lock_16_coop(uint16_t * lock, uint64_t index, int warpID){
 	bool ballot = 0;
 	if (warpID == 0){
 
-		if (atomicCAS((uint16_t *) &lock[index*LOCK_DIST], zero, one) == zero){
+
+		if (atomicCAS((unsigned short int *) &lock[index*LOCK_DIST], (unsigned short int) zero, (unsigned short int) one) == zero){
+		//if (atomicCAS((uint16_t *) &lock[index*LOCK_DIST], zero, one) == zero){
 
 			ballot = 1;
 		}
