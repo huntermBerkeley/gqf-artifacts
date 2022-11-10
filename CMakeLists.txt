@@ -32,8 +32,11 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 file(GLOB all_SRCS
   "${PROJECT_SOURCE_DIR}/include/*.cuh"
   "${PROJECT_SOURCE_DIR}/include/*.hpp"
-  "${PROJECT_SOURCE_DIR}/src/*.cu"
-  "${PROJECT_SOURCE_DIR}/src/*.cuh"
+  "${PROJECT_SOURCE_DIR}/src/gqf.cu"
+  "${PROJECT_SOURCE_DIR}/src/sqf.cu"
+  "${PROJECT_SOURCE_DIR}/src/RSQF.cu"
+  "${PROJECT_SOURCE_DIR}/src/hashutil.cu"
+  "${PROJECT_SOURCE_DIR}/src/partitioned_counter.cu"
 
 )
 
