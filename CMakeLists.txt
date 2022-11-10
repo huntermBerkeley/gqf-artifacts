@@ -45,6 +45,8 @@ file(GLOB all_SRCS
 
 add_library(gqf STATIC ${all_SRCS})
 
+target_include_directories(gqf PUBLIC ${PROJECT_SOURCE_DIR}/include)
+
 set_target_properties(gqf PROPERTIES CUDA_ARCHITECTURES ${GPU_ARCHS})
 
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-extended-lambda --expt-relaxed-constexpr")
