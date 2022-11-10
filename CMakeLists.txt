@@ -18,6 +18,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 
+set(GPU_ARCHS "")
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/EvalGpuArchs.cmake)
+  evaluate_gpu_archs(GPU_ARCHS)
 
 find_package(CUDAToolkit 11.0 REQUIRED)
 set(CMAKE_CUDA_RUNTIME_LIBRARY SHARED)
@@ -42,6 +45,7 @@ file(GLOB all_SRCS
 
 add_library(gqf STATIC ${all_SRCS})
 
+set_target_properties(gqf PROPERTIES CUDA_ARCHITECTURES ${GPU_ARCHS})
 
 
 #set(CMAKE_CXX_STANDARD 17)
