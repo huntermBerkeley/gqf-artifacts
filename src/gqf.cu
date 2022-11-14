@@ -4706,7 +4706,7 @@ __global__ void bulk_get_hits(QF * qf, uint64_t * vals, bool * hits, uint64_t nv
 
 		uint64_t count = qf_count_key_value(qf, vals[tid], 0, 0);
 
-		if (count >= key_count) {
+		if (count >= 1) {
 
 			hits[tid] = 1;
 
