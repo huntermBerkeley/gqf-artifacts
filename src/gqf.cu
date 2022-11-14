@@ -77,7 +77,7 @@
 
 #define DEBUG_ASSERTS 0
 
-#define DROP_ON_RUNEND 1
+#define DROP_ON_RUNEND 0
 
 #define RUNEND_CUTOFF 15
 
@@ -2885,7 +2885,7 @@ __host__ void qf_malloc_device(QF** qf, int nbits, bool bulk_config){
 
 	//bring in compile #define
 	int rbits = 8;
-	int vbits = 0;
+	int vbits = 8;
 
 	QF host_qf;
 	QF temp_device_qf;
