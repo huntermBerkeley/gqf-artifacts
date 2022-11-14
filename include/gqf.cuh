@@ -146,6 +146,8 @@ extern "C" {
 	
 	//a version of bulk_get used for testing, counts the items not found and returns that count
 	__host__ uint64_t bulk_get_misses_wrapper(QF * qf, uint64_t * vals, uint64_t nvals);
+
+	__host__ uint64_t bulk_get_hits_wrapper(QF * qf, uint64_t * vals, bool * hits, uint64_t nvals);
 	
 
 

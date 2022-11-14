@@ -4697,6 +4697,22 @@ __global__ void bulk_get_misses(QF * qf, uint64_t * vals,  uint64_t nvals, uint6
 		}
 }
 
+__global__ void bulk_get_hits(QF * qf, uint64_t * vals, bool * hits, uint64_t nvals){
+
+	uint64_t tid = threadIdx.x + blockDim.x * blockIdx.x;
+
+  //should never happen, but just in case
+  if (tid >= nvals) return;
+
+		uint64_t count = qf_count_key_value(qf, vals[tid], 0, 0);
+
+		if (count >= key_count) {
+
+			hits[tid] = 1;
+
+		}
+}
+
 __global__ void bulk_get_kernel(QF * qf, uint64_t * vals,  uint64_t nvals, uint64_t * returns, uint8_t flags){
 
 	uint64_t tid = threadIdx.x + blockDim.x * blockIdx.x;
