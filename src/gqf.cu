@@ -2885,7 +2885,7 @@ __host__ void qf_malloc_device(QF** qf, int nbits, bool bulk_config){
 
 	//bring in compile #define
 	int rbits = 8;
-	int vbits = 8;
+	int vbits = 0;
 
 	QF host_qf;
 	QF temp_device_qf;
