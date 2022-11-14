@@ -112,6 +112,9 @@ extern "C" {
 	//Insert a batch of items in parallel
 	__host__ void bulk_insert(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags);
 
+	//rename to check for namespace conflict
+	__host__ void qf_bulk_insert(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags);
+
 	//Reduce input items before inserting
 	__host__ void bulk_insert_reduce(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags);
 

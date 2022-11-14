@@ -4713,6 +4713,11 @@ __global__ void bulk_get_hits_kernel(QF * qf, uint64_t * vals, bool * hits, uint
 		}
 }
 
+__host__ void qf_bulk_insert(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t flags){
+
+		bulk_insert(qf, nvals, keys, flags);
+}
+
 
 __host__ void bulk_get_hits(QF * qf, uint64_t * vals, bool * hits, uint64_t nvals){
 
