@@ -77,7 +77,7 @@
 
 #define DEBUG_ASSERTS 0
 
-#define DROP_ON_RUNEND 0
+#define DROP_ON_RUNEND 1
 
 #define RUNEND_CUTOFF 15
 
@@ -4383,7 +4383,7 @@ __global__ void point_bulk_insert(QF * qf, uint64_t * hashes, uint64_t nitems){
 	if (tid >=nitems) return;
 
 	//#if DROP_ON_RUNEND
-		point_insert(qf, hashes[tid], 0, 0);
+	point_insert(qf, hashes[tid], 0, 0);
 
 	// #else
 	// 	assert(point_insert(qf, hashes[tid], 0, 0) != QF_FULL);

@@ -153,8 +153,8 @@ and estimated element insertion count.
 				optp.table_size = maximum_size;
 
 
-      std::cout << "Table size: " << optp.table_size << '\n';
-      std::cout << "Num hashes: " << optp.number_of_hashes << '\n';
+      // std::cout << "Table size: " << optp.table_size << '\n';
+      // std::cout << "Num hashes: " << optp.number_of_hashes << '\n';
 			return true;
 		}
 
