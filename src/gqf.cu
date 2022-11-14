@@ -2839,7 +2839,7 @@ __host__ bool qf_malloc(QF *qf, uint64_t nslots, uint64_t key_bits, uint64_t
 	void* buffer = malloc(total_num_bytes);
   memset(buffer, 0, total_num_bytes);
 
-  printf("QF bytes: %llu\n", total_num_bytes);
+  //printf("QF bytes: %llu\n", total_num_bytes);
 
 	if (buffer == NULL) {
 		perror("Couldn't allocate memory for the CQF.");
@@ -4724,6 +4724,8 @@ __host__ void bulk_get_hits(QF * qf, uint64_t * vals, bool * hits, uint64_t nval
 	bulk_get_hits_kernel<<<(nvals -1)/512+1, 512>>>(qf, vals, hits, nvals);
 
 }
+
+
 
 __global__ void bulk_get_kernel(QF * qf, uint64_t * vals,  uint64_t nvals, uint64_t * returns, uint8_t flags){
 
