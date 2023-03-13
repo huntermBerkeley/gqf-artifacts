@@ -92,6 +92,7 @@ extern "C" {
 
 	//Lock and insert singular items
 	__device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t flags);
+	__device__ int point_remove(QF* qf, uint64_t key, uint8_t value, uint8_t flags);
 
 	//combined query and insert
     __device__ qf_returns point_insert_not_exists(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal,  uint8_t flags);

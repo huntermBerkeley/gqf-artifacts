@@ -22,6 +22,7 @@ POINT API
 * `__device__ qf_returns point_insert_not_exists(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal,  uint8_t flags)`: Check if an item is found in the filter. if so, return the item, otherwise, insert it into the filter.
 * `__device__ uint64_t point_query(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags)`: Return the count of an item in the filter, return 0 if the item is not found.
 * `__device__ uint64_t point_query_concurrent(QF* qf, uint64_t key, uint8_t value, uint8_t& returnedVal, uint8_t flags)`: Same behavior as point_query, but with locking. Use this when inserts and queries must occur simultaneously and counts are required. (If counts are not necessary, point_insert_not_exists is faster)
+* ` __device__ int point_remove(QF* qf, uint64_t key, uint8_t value, uint8_t flags)`: Remove an item from the point filter. This function locks and is thread-safe. retuns the number of slots freed in the filter (-1 for failure).
 
 > `qf_returns` is an enum of either QF_ITEM_FOUND, QF_ITEM_INSERTED, or QF_FULL.
 

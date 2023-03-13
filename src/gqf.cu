@@ -3795,7 +3795,7 @@ __global__ void insert_from_buffers_cooperative(QF* qf, uint64_t evenness){
 
 }
 
-__global__ void insert_from_buffers_thrust(QF* qf, uint64_t evenness, uint64_t * keys, uint64_t * vals){
+__global__ void insert_from_buffers_thrust(QF* qf, uint64_t evenness, uint64_t * keys, uint64_t * vals, uint64_t num_keys){
 
 
 	uint64_t idx = 2*(threadIdx.x + blockDim.x * blockIdx.x)+evenness;
@@ -3823,7 +3823,16 @@ __global__ void insert_from_buffers_thrust(QF* qf, uint64_t evenness, uint64_t *
 	// }
 	
 	//uint64_t - uint64_t should yield offset into vals
-	uint64_t absolute_offset = buffers[idx]- keys;
+	uint64_t absolute_offset = buffers[idx] - keys;
+
+
+	if (absolute_offset >= num_keys){
+
+		printf("Offset is %llu, num_keys %llu\n", absolute_offset, num_keys);
+
+		return;
+
+	}
 
 
 
@@ -4024,6 +4033,57 @@ __device__ qf_returns point_insert_not_exists_cooperative(QF* qf, uint64_t key, 
 
 }
 
+__device__ int point_remove(QF* qf, uint64_t key, uint8_t value, uint8_t flags){
+
+
+	if (GET_KEY_HASH(flags) != QF_KEY_IS_HASH) {
+  		if (qf->metadata->hash_mode == QF_HASH_DEFAULT)
+  			key = MurmurHash64A(((void *)&key), sizeof(key), qf->metadata->seed) % qf->metadata->range;
+  		else if (qf->metadata->hash_mode == QF_HASH_INVERTIBLE)
+  			key = hash_64(key, BITMASK(qf->metadata->key_bits));
+  	}
+
+	uint64_t hash = key % qf->metadata->range;
+
+	uint64_t hash_bucket_index = hash >> qf->metadata->key_remainder_bits;
+	//uint64_t hash_bucket_index = hash >> qf->metadata->bits_per_slot;
+
+
+	uint64_t lock_index = hash_bucket_index / NUM_SLOTS_TO_LOCK;
+
+	//encode extensions outside of the lock
+
+	while (true){
+
+
+		if (try_lock_16(qf->runtimedata->locks, lock_index)){
+
+
+			//this can also be a regular lock?
+			//if (try_lock_16(qf->runtimedata->locks, lock_index+1)){
+
+
+					lock_16(qf->runtimedata->locks, lock_index+1);
+
+					
+					int ret = qf_remove(qf, hash, value, 1, QF_NO_LOCK | QF_KEY_IS_HASH);
+
+					__threadfence();
+					unlock_16(qf->runtimedata->locks, lock_index+1);
+					unlock_16(qf->runtimedata->locks, lock_index);
+
+					return ret;
+
+
+				//}
+
+
+			unlock_16(qf->runtimedata->locks, lock_index);
+			}
+
+	}
+
+}
 
 __device__ qf_returns point_insert(QF* qf, uint64_t key, uint8_t value, uint8_t flags){
 
@@ -4578,14 +4638,24 @@ __host__ void bulk_insert_reduce(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t
 
 	new_end = thrust::reduce_by_key(thrust::device, keys_ptr, keys_ptr+nvals, dupe_counts, thrust_keys, thrust_vals);
 
+	cudaDeviceSynchronize();
 
 	uint64_t new_nvals = new_end.first - thrust_keys;
 
+
+
 	printf("New nvals %llu\n", new_nvals);
+
+	printf("Error after this is pointer cast?\n");
 
 	uint64_t * new_keys = thrust::raw_pointer_cast(thrust_keys);
 	uint64_t * new_key_counts = thrust::raw_pointer_cast(thrust_vals);
 
+
+	cudaDeviceSynchronize();
+
+
+	printf("Error after this in binary?\n");
 
 	//set_buffers_binary<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, new_nvals, slots_per_lock, new_keys, num_locks, buffers, flags);
 
@@ -4599,15 +4669,22 @@ __host__ void bulk_insert_reduce(QF* qf, uint64_t nvals, uint64_t* keys, uint8_t
 	
 	//return;
 
+	cudaDeviceSynchronize();
+
+	printf("Thrust buffers attached\n");
+
 	uint64_t evenness = 0;
 
-	insert_from_buffers_thrust<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, evenness, new_keys,new_key_counts);
+	insert_from_buffers_thrust<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, evenness, new_keys,new_key_counts, new_nvals);
 	
 
 	evenness = 1;
 
-	insert_from_buffers_thrust<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, evenness, new_keys, new_key_counts);
+	insert_from_buffers_thrust<<<(num_locks-1)/key_block_size+1, key_block_size>>>(qf, evenness, new_keys, new_key_counts, new_nvals);
 
+	cudaDeviceSynchronize();
+
+	printf("Insertion done.\n");
 
 	//free resources
 	thrust::device_free(thrust_keys);

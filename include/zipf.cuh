@@ -1,5 +1,5 @@
-#ifndef ZIPF_CUH
-#define ZIPF_CUH
+#ifndef ZIPF_H
+#define ZIPF_H
 
 /* Zipfian number generator.
  * Goals: Fast (10M numbers/s)
@@ -40,6 +40,5 @@ void generate_random_keys (uint64_t *elems, long N, long gencount, double s);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

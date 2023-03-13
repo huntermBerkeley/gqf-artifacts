@@ -332,11 +332,16 @@ int main(int argc, char** argv) {
 		printf("generating Zipfian data!\n");
 
 		//do we need to free vals here? zipfian should generate new malloc.
+
+
+		//uint64_t * ext_vals = (uint64_t*)malloc(nvals * sizeof(uint64_t));
+
+
 		generate_random_keys(vals, nvals, nvals, 1);
 
 		for (uint64_t i=0; i < nvals; i++){
 
-			vals[i] = vals[i] % qf.metadata->range;
+			vals[i] = (1 *vals[i]) % qf.metadata->range;
 		}
 
 	} else {
