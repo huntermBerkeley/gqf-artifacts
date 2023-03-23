@@ -1,6 +1,12 @@
 # GQF: A Practical Counting Quotient Filter for GPUs
 
 
+Deprecated
+------------
+
+This repo is no longer being supported. An up-to-date version is available at https://github.com/saltsystemslab/gpu-filters.
+
+
 Overview
 --------
  The GQF is a general-purpose AMQ that is small and fast, has good
